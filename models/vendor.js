@@ -4,7 +4,7 @@ const { sequelize } = require('../lib/db');
 const Vendor = sequelize.define('Vendor', {
   companyId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   vendorName: {
     type: DataTypes.STRING,

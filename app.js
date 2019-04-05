@@ -8,15 +8,9 @@ const logger = require('morgan');
 const session = require('express-session');
 
 const appConfig = require('./lib/appConfig');
+const appConstant = require('./constants/appConstant');
 
 const index = require('./routes/index');
-
-const apiUrl = 'https://api.xilo.io';
-const clientAppUrl = 'https://app.xilo.io';
-const dashboardUrl = 'https://dashboard.xilo.io';
-const devApiUrl = 'http://localhost:3000';
-const devUrl = 'http://localhost:4200';
-const devDashUrl = 'http://localhost:4100';
 
 const app = express();
 
@@ -28,29 +22,19 @@ app.use(express.static(path.join(__dirname, './dist')));
 app.use(logger('dev'));
 
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true }, { limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  const allowedOrigins = [apiUrl, devApiUrl, clientAppUrl, devUrl, devDashUrl, dashboardUrl];
+  const { allowedOrigin } = appConstant;
   const { origin } = req.headers;
-  if (allowedOrigins.indexOf(origin) > -1) {
+  if (allowedOrigin === origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.header('Access-Control-Allow-Methods', 'PUT, PATCH, GET, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   res.setHeader('Access-Control-Allow-Credentials', true);
   next();
-});
-
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV || process.env.NODE_ENV === 'production') {
-    if (req.headers['x-forwarded-proto'] === 'https') {
-      return next();
-    }
-    // return res.redirect(`https://${req.hostname}${req.url}`);
-  }
-  return next();
 });
 
 // Handle request

@@ -14,7 +14,7 @@ module.exports = {
         where: {
           companyId: params.companyId,
           vendorName: params.vendorName,
-        }
+        },
       });
       if (vendor) {
         return next(Boom.badRequest('Vendor already exists!'));
@@ -24,16 +24,16 @@ module.exports = {
         vendorName: params.vendorName,
         username: params.username,
         password: params.password,
-        companyId: params.companyId
+        companyId: params.companyId,
       });
 
       req.session.data = {
-        message: "New vendor created successfully",
-        obj: newVendor
+        message: 'New vendor created successfully',
+        obj: newVendor,
       };
       return next();
     } catch (error) {
       return next(Boom.badRequest('Error creating vendor!'));
     }
   },
-}
+};

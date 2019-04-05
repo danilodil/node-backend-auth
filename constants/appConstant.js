@@ -1,3 +1,17 @@
+const ENVIRONMENT = require('./environment');
+
+const nodeEnv = ENVIRONMENT.ENV;
+
+if (nodeEnv === 'local') {
+  exports.allowedOrigin = 'http://localhost:3000';
+}
+if (nodeEnv === 'development') {
+  exports.allowedOrigin = '';
+}
+if (nodeEnv === 'production') {
+  exports.allowedOrigin = 'https://api.xilo.io';
+}
+
 module.exports = {
   qqCatalyst: {
     AUTHORIZE_URL: 'https://login.qqcatalyst.com/oauth/authorize',
@@ -6,7 +20,5 @@ module.exports = {
     ACCESS_TOKEN_URL: 'https://login.qqcatalyst.com/oauth/token',
     RESOURCE_URL: 'https://api.qqcatalyst.com',
     CALLBACK_URL: 'https://xilo-qq-test.herokuapp.com/callback',
-    U: 'bill@tayloragy.com',
-    P: 'Ohio!2123',
   },
 };
