@@ -20,3 +20,9 @@ exports.qqCatalyst = {
   RESOURCE_URL: 'https://api.qqcatalyst.com',
   CALLBACK_URL: 'https://xilo-qq-test.herokuapp.com/callback',
 };
+
+exports.ezLynx = {
+  USERNAME: 'xi_uploadUAT',
+  PASSWORD: 'Cojoanin93',
+  UPLOAD_PATH: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx'
+};
