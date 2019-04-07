@@ -5,7 +5,7 @@ const ezlynxController = require('../controllers/ezlynx');
 
 const router = express.Router();
 
-router.put('/contact', asyncHandler(async (req, res, next) => {
+router.put('/contact/:type', asyncHandler(async (req, res, next) => {
   await ezlynxController.createContact(req, res, next);
 }));
 

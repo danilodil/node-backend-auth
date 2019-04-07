@@ -1,0 +1,2852 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200"
+	elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://www.ezlynx.com/XMLSchema/Auto/V200"
+	version="2.0.0">
+    <xsd:simpleType name="int10">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="10" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int50">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="50" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int100">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="100" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int255">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="255" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int999">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="999" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int100000">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="int999999">
+        <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:minInclusive value="0" />
+            <xsd:maxInclusive value="999999" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NamePrefixType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="MR" />
+            <xsd:enumeration value="MRS" />
+            <xsd:enumeration value="MS" />
+            <xsd:enumeration value="DR" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NameSuffixType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="JR" />
+            <xsd:enumeration value="SR" />
+            <xsd:enumeration value="I" />
+            <xsd:enumeration value="II" />
+            <xsd:enumeration value="III" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="NameType">
+        <xsd:sequence>
+            <xsd:element name="Prefix" type="NamePrefixType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FirstName" type="ProperName" />
+            <xsd:element name="MiddleName" type="MiddleInitial" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="LastName" type="ProperName" />
+            <xsd:element name="Suffix" type="NameSuffixType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="SSNType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="\d{9}" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DateType">
+        <xsd:restriction base="xsd:date" />
+    </xsd:simpleType>
+    <xsd:simpleType name="Zip5Type">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="\d{5}" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="Zip4Type">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="\d{4}" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="YearType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="2019"/>
+            <xsd:enumeration value="2018"/>
+            <xsd:enumeration value="2017"/>
+            <xsd:enumeration value="2016"/>
+            <xsd:enumeration value="2015"/>
+            <xsd:enumeration value="2014"/>
+            <xsd:enumeration value="2013"/>
+            <xsd:enumeration value="2012"/>
+            <xsd:enumeration value="2011"/>
+            <xsd:enumeration value="2010"/>
+            <xsd:enumeration value="2009" />
+            <xsd:enumeration value="2008" />
+            <xsd:enumeration value="2007" />
+            <xsd:enumeration value="2006" />
+            <xsd:enumeration value="2005" />
+            <xsd:enumeration value="2004" />
+            <xsd:enumeration value="2003" />
+            <xsd:enumeration value="2002" />
+            <xsd:enumeration value="2001" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="1999" />
+            <xsd:enumeration value="1998" />
+            <xsd:enumeration value="1997" />
+            <xsd:enumeration value="1996" />
+            <xsd:enumeration value="1995" />
+            <xsd:enumeration value="1994" />
+            <xsd:enumeration value="1993" />
+            <xsd:enumeration value="1992" />
+            <xsd:enumeration value="1991" />
+            <xsd:enumeration value="1990" />
+            <xsd:enumeration value="1989" />
+            <xsd:enumeration value="1988" />
+            <xsd:enumeration value="1987" />
+            <xsd:enumeration value="1986" />
+            <xsd:enumeration value="1985" />
+            <xsd:enumeration value="1984" />
+            <xsd:enumeration value="1983" />
+            <xsd:enumeration value="1982" />
+            <xsd:enumeration value="1981" />
+            <xsd:enumeration value="1980" />
+            <xsd:enumeration value="1979" />
+            <xsd:enumeration value="1978" />
+            <xsd:enumeration value="1977" />
+            <xsd:enumeration value="1976" />
+            <xsd:enumeration value="1975" />
+            <xsd:enumeration value="1974" />
+            <xsd:enumeration value="1973" />
+            <xsd:enumeration value="1972" />
+            <xsd:enumeration value="1971" />
+            <xsd:enumeration value="1970" />
+            <xsd:enumeration value="1969" />
+            <xsd:enumeration value="1968" />
+            <xsd:enumeration value="1967" />
+            <xsd:enumeration value="1966" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="BooleanType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Yes" />
+            <xsd:enumeration value="No" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="MaritalStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Single" />
+            <xsd:enumeration value="Married" />
+            <xsd:enumeration value="Domestic Partner" />
+            <xsd:enumeration value="Widowed" />
+            <xsd:enumeration value="Separated" />
+            <xsd:enumeration value="Divorced" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="OccupationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Self-Employed" />
+            <xsd:enumeration value="Employed" />
+            <xsd:enumeration value="Unemployed" />
+            <xsd:enumeration value="Homemaker" />
+            <xsd:enumeration value="Retired" />
+            <xsd:enumeration value="Student" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="EducationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No High School Diploma" />
+            <xsd:enumeration value="High School Diploma" />
+            <xsd:enumeration value="Some College - No Degree" />
+            <xsd:enumeration value="Vocational/Technical Degree" />
+            <xsd:enumeration value="Associates Degree" />
+            <xsd:enumeration value="Bachelors" />
+            <xsd:enumeration value="Masters" />
+            <xsd:enumeration value="Phd" />
+            <xsd:enumeration value="Medical Degree" />
+            <xsd:enumeration value="Law Degree" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="PersonalInfoType">
+        <xsd:sequence>
+            <xsd:element name="Name" type="NameType" />
+            <xsd:element name="DOB" type="DateType" />
+            <xsd:element name="SSN" type="SSNType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Gender" type="GenderType" />
+            <xsd:element name="MaritalStatus" type="MaritalStatusType" />
+            <xsd:element name="Industry" type="xsd:string" />
+            <xsd:element name="Occupation" type="xsd:string" />
+            <xsd:element name="YearsWithEmployer" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="YearsWithPreviousEmployer" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Education" type="EducationType" minOccurs="0" maxOccurs="1" />
+            <!-- <xsd:annotation> Licensed to Drive will be removed in a future release </xsd:annotation> -->
+            <xsd:element name="LicensedToDrive" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Relation" type="RelationType" />
+            <xsd:element name="MaidenName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NickName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="AddressCodeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="BillingAddress" />
+            <xsd:enumeration value="InsuredsAddress" />
+            <xsd:enumeration value="LegalAddr" />
+            <xsd:enumeration value="MailingAddress" />
+            <xsd:enumeration value="PhysicalRisk" />
+            <xsd:enumeration value="PreviousAddress" />
+            <xsd:enumeration value="StreetAddress" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-10">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="10" />
+            <xsd:minLength value="0" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-10_NoBlank">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="10" />
+            <xsd:minLength value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-50">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="50" />
+            <xsd:minLength value="0" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-50_NoBlank">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="50" />
+            <xsd:minLength value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-255">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="255" />
+            <xsd:minLength value="0" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="C-255_NoBlank">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="255" />
+            <xsd:minLength value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ProperName">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="^[A-Za-z]{1}[\-' A-Za-z]*$" />
+            <xsd:maxLength value="64" />
+            <xsd:minLength value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="MiddleInitial">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="^[A-Za-z]?$" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="DetailAddrType">
+        <xsd:sequence>
+            <xsd:element name="StreetName" type="C-255_NoBlank" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="StreetNumber" type="C-50" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="UnitNumber" type="C-50" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="PhoneTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Home" />
+            <xsd:enumeration value="Work" />
+            <xsd:enumeration value="Mobile" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PhoneNumberTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Cell" />
+            <xsd:enumeration value="Fax" />
+            <xsd:enumeration value="Marine" />
+            <xsd:enumeration value="Pager" />
+            <xsd:enumeration value="Phone" />
+            <xsd:enumeration value="TTY" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PhoneNumberType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[1-9]{1}[0-9]{2}[1-9]{1}[0-9]{2}[0-9]{4}" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="VINType">
+      <xsd:restriction base="xsd:string">
+        <xsd:maxLength value="17" />
+        <xsd:minLength value="3" />
+      </xsd:restriction>
+      <!--<xsd:restriction base="xsd:string">
+            <xsd:pattern value="[a-hj-npr-zA-HJ-NPR-Z0-9]{13}[0-9]{4}" />
+        </xsd:restriction>-->
+    </xsd:simpleType>
+  
+    <xsd:complexType name="PhoneType">
+        <xsd:sequence>
+            <xsd:element name="PhoneType" type="PhoneTypeType" />
+            <xsd:element name="PhoneNumberType" type="PhoneNumberTypeType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PhoneNumber" type="PhoneNumberType" />
+            <xsd:element name="Extension" type="C-10" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" />
+    </xsd:complexType>
+    <xsd:simpleType name="EmailType">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="100" />
+            <xsd:minLength value="0" />
+            <xsd:pattern value="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PreferredContactMethodType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Phone (Home)" />
+            <xsd:enumeration value="Phone (Work)" />
+            <xsd:enumeration value="Phone (Mobile)" />
+            <xsd:enumeration value="Email" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PreferredContactTimeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Morning" />
+            <xsd:enumeration value="Afternoon" />
+            <xsd:enumeration value="Evening" />
+            <xsd:enumeration value="Anytime" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AddressType">
+        <xsd:sequence>
+            <xsd:element name="AddressCode" type="AddressCodeType" />
+            <xsd:element name="Addr1" type="DetailAddrType" />
+            <xsd:element name="Addr2" type="C-255" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="City" type="C-50_NoBlank" />
+            <xsd:element name="StateCode" type="StateCodeType" />
+            <xsd:element name="County" type="C-50_NoBlank" />
+            <xsd:element name="Zip5" type="Zip5Type" />
+            <xsd:element name="Zip4" type="Zip4Type" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Phone" type="PhoneType" minOccurs="1" maxOccurs="5" />
+            <xsd:element name="Email" type="EmailType" minOccurs="0" maxOccurs="2" />
+            <xsd:element name="PreferredContactMethod" type="PreferredContactMethodType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PreferredContactTime" type="PreferredContactTimeType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Validation" type="AddressValidationType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AddressValidationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Valid" />
+            <xsd:enumeration value="Invalid" />
+            <xsd:enumeration value="NonDeliverable" />
+            <xsd:enumeration value="MultipleMatches" />
+            <xsd:enumeration value="Disabled" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="SimpleAddressType">
+        <xsd:sequence>
+            <xsd:element name="AddressCode" type="AddressCodeType" />
+            <xsd:element name="Addr1" type="DetailAddrType" />
+            <xsd:element name="Addr2" type="C-255" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="City" type="C-50_NoBlank" />
+            <xsd:element name="StateCode" type="StateCodeType" />
+            <xsd:element name="County" type="C-50_NoBlank" />
+            <xsd:element name="Zip5" type="Zip5Type" />
+            <xsd:element name="Zip4" type="Zip4Type" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Validation" type="AddressValidationType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ApplicantTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Applicant" />
+            <xsd:enumeration value="CoApplicant" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="ApplicantType">
+        <xsd:sequence>
+            <xsd:element name="ApplicantType" type="ApplicantTypeType" />
+            <xsd:element name="PersonalInfo" type="PersonalInfoType" />
+            <xsd:element name="Address" type="AddressType" minOccurs="1" maxOccurs="5" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="PriorLiabilityLimitType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="10/20" />
+            <!-- 10/20 shown in FL,LA only -->
+            <xsd:enumeration value="12/25" />
+            <!-- 12/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="12.5/25" />
+            <!-- 12.5/25 shown in OH only -->
+            <xsd:enumeration value="15/30" />
+            <xsd:enumeration value="20/40" />
+            <!-- 20/40 shown in CT,IL,IA,MA,MD,MI,WV only -->
+            <xsd:enumeration value="20/50" />
+            <!-- 20/50 shown in MA,MS only-->
+            <xsd:enumeration value="25/25" />
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="25/60" />
+            <!-- 25/60 shown in MA only-->
+            <xsd:enumeration value="25/65" />
+            <!-- 25/65 shown in UT only -->
+            <xsd:enumeration value="30/60" />
+            <!-- 30/60 shown in MN,NC,CA only -->
+            <xsd:enumeration value="35/80" />
+            <!-- 35/80 shown in MA only-->
+            <xsd:enumeration value="50/50" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="100/200" />
+            <!-- 100/200 shown in MA only-->
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="200/400" />
+            <!-- 200/400 shown in MA only-->
+            <xsd:enumeration value="200/600" />
+            <!-- 200/600 shown in CT only -->
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="250/1000" />
+            <!-- 250/1000 shown in MA only-->
+            <xsd:enumeration value="300/300" />
+            <xsd:enumeration value="300/500" />
+            <!-- 300/500 shown in MA only-->
+            <xsd:enumeration value="500/500" />
+            <xsd:enumeration value="500/1000" />
+            <!-- 500/1000 Shown in CT,MA only -->
+            <xsd:enumeration value="1000/1000" />
+            <xsd:enumeration value="55CSL" />
+            <xsd:enumeration value="100CSL" />
+            <xsd:enumeration value="115CSL" />
+            <!-- 115 CSL only shown in WI. Effective Jan 1, 2010 -->
+            <xsd:enumeration value="300CSL" />
+            <xsd:enumeration value="500CSL" />
+            <xsd:enumeration value="1000CSL" />
+            <!-- 1000CSL Shown in IN only -->
+            <xsd:enumeration value="None" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PolicyTermType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="6 Month" />
+            <xsd:enumeration value="12 Month" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ReasonForLapseType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Active Military Duty" />
+            <xsd:enumeration value="Driving A Company Car" />
+            <xsd:enumeration value="Driving A Car Owned By A Relative" />
+            <xsd:enumeration value="Has Not Owned Or Operated A Vehicle" />
+            <xsd:enumeration value="Owned Veh Parked/Stored Off Road/Not Driven" />
+            <xsd:enumeration value="Other" />
+            <xsd:enumeration value="Non-Payment" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ReasonNoPriorType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Active Military Duty" />
+            <xsd:enumeration value="Driving A Company Car" />
+            <xsd:enumeration value="Driving A Car Owned By A Relative" />
+            <xsd:enumeration value="Has Not Owned Or Operated A Vehicle" />
+            <xsd:enumeration value="Owned Veh Parked/Stored Off Road/Not Driven" />
+            <xsd:enumeration value="Other" />
+            <xsd:enumeration value="Non-Payment" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="PriorPolicyInfoType">
+        <xsd:sequence>
+            <xsd:element name="PriorCarrier" type="PriorCarrierType" />
+            <xsd:element name="Expiration" type="DateType" />
+            <xsd:element name="YearsWithPriorCarrier" type="DurationType" />
+            <xsd:element name="YearsWithContinuousCoverage" type="DurationType" />
+            <xsd:element name="PriorLiabilityLimit" type="PriorLiabilityLimitType" />
+            <xsd:element name="ReasonForLapse" type="ReasonForLapseType" minOccurs="0" maxOccurs="1" />
+            <!-- required when lapse in coverage -->
+            <xsd:element name="ReasonNoPrior" type="ReasonNoPriorType" minOccurs="0" maxOccurs="1" />
+            <!-- required when No Prior Ins -->
+            <xsd:element name="PriorPolicyPremium" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PriorPolicyTerm" type="PolicyTermType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="PriorCarrierType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Other Standard" />
+            <xsd:enumeration value="Other Non-Standard" />
+            <xsd:enumeration value="No Prior Insurance" />
+            <xsd:enumeration value="21st Century" />
+            <xsd:enumeration value="A.Central" />
+            <xsd:enumeration value="AAA" />
+            <xsd:enumeration value="AARP" />
+            <xsd:enumeration value="Acadia" />
+            <xsd:enumeration value="Access General" />
+            <xsd:enumeration value="Ace" />
+            <xsd:enumeration value="Acuity" />
+            <xsd:enumeration value="Adirondack Ins Exchange" />
+            <xsd:enumeration value="Aegis" />
+			<xsd:enumeration value="Affirmative" />
+            <xsd:enumeration value="AIC" />
+            <xsd:enumeration value="AIG" />
+            <xsd:enumeration value="Alfa Alliance" />
+            <xsd:enumeration value="Allied" />
+            <xsd:enumeration value="Allstate" />
+            <xsd:enumeration value="America First" />
+            <xsd:enumeration value="American Commerce" />
+            <xsd:enumeration value="American Family" />
+            <xsd:enumeration value="American Freedom Insurance Company" />
+            <xsd:enumeration value="American National" />
+			<xsd:enumeration value="Amerisure" />
+            <xsd:enumeration value="Amica" />
+			<xsd:enumeration value="Anchor General" />
+			<xsd:enumeration value="Arrowhead" />
+            <xsd:enumeration value="ASI Lloyds" />
+            <xsd:enumeration value="Atlantic Mutual" />
+            <xsd:enumeration value="Austin Mutual" />
+            <xsd:enumeration value="Autoone" />
+            <xsd:enumeration value="Auto-Owners" />
+			<xsd:enumeration value="AutoTex" />
+            <xsd:enumeration value="Badger Mutual" />
+            <xsd:enumeration value="Balboa" />
+            <xsd:enumeration value="Bankers" />
+            <xsd:enumeration value="Beacon National" />
+			<xsd:enumeration value="Bear River Mutual" />
+            <xsd:enumeration value="Brethern Mutual" />
+            <xsd:enumeration value="Bristol West" />
+			<xsd:enumeration value="Buckeye" />
+            <xsd:enumeration value="California Casualty" />
+            <xsd:enumeration value="Cameron Mutual" />
+            <xsd:enumeration value="Capital Insurance Group" />
+            <xsd:enumeration value="Celina" />
+			<xsd:enumeration value="Centennial" />
+            <xsd:enumeration value="Central Mutual of OH" />
+            <xsd:enumeration value="Charter" />
+            <xsd:enumeration value="Chubb" />
+            <xsd:enumeration value="Cincinnati" />
+			<xsd:enumeration value="Citizens" />
+            <xsd:enumeration value="CNA" />
+            <xsd:enumeration value="Colonial Penn" />
+            <xsd:enumeration value="Colorado Casualty" />
+            <xsd:enumeration value="Columbia" />
+            <xsd:enumeration value="Commerce West" />
+            <xsd:enumeration value="Constitutional Casualty" />
+            <xsd:enumeration value="Consumers" />
+            <xsd:enumeration value="Cornerstone" />
+            <xsd:enumeration value="Countrywide" />
+			<xsd:enumeration value="Country Insurance" />
+            <xsd:enumeration value="CSE" />
+            <xsd:enumeration value="Cumberland" />
+            <xsd:enumeration value="Dairyland" />
+            <xsd:enumeration value="Deerbrook" />
+            <xsd:enumeration value="Delta Lloyds Insurance Company" />
+			<xsd:enumeration value="Depositors" />
+            <xsd:enumeration value="Direct" />
+			<xsd:enumeration value="Direct General" />
+			<xsd:enumeration value="Discovery" />
+            <xsd:enumeration value="Donegal" />
+            <xsd:enumeration value="Drive" />
+            <xsd:enumeration value="Electric" />
+            <xsd:enumeration value="EMC" />
+            <xsd:enumeration value="Encompass" />
+            <xsd:enumeration value="Erie" />
+            <xsd:enumeration value="Esurance" />
+			<xsd:enumeration value="Eveready" />
+            <xsd:enumeration value="Explorer" />
+            <xsd:enumeration value="Farm Bureau" />
+            <xsd:enumeration value="Farmers" />
+			<xsd:enumeration value="Federated" />
+            <xsd:enumeration value="Fidelity" />
+			<xsd:enumeration value="Financial Indemnity" />
+			<xsd:enumeration value="Firemans Fund" />
+			<xsd:enumeration value="First Acceptance" />
+            <xsd:enumeration value="First American" />
+			<xsd:enumeration value="First Auto" />
+			<xsd:enumeration value="First Chicago" />
+			<xsd:enumeration value="First Connect" />
+            <xsd:enumeration value="Flagship Insurance" />
+            <xsd:enumeration value="Foremost" />
+			<xsd:enumeration value="Founders" />
+			<xsd:enumeration value="Frankenmuth" />
+			<xsd:enumeration value="Fred Loya" />
+			<xsd:enumeration value="Gateway" />
+            <xsd:enumeration value="Geico" />
+            <xsd:enumeration value="General Casualty" />
+            <xsd:enumeration value="Germantown Mutual" />
+            <xsd:enumeration value="GMAC" />
+			<!-- The enumeration GMAC should no longer be used as part of EZLynx 4.1.5 portal update since it has been renamed as National General. -->
+            <xsd:enumeration value="Grange" />
+            <xsd:enumeration value="Great American" />
+            <xsd:enumeration value="GRE/Go America" />
+            <xsd:enumeration value="Grinnell" />
+            <xsd:enumeration value="Guide One" />
+            <xsd:enumeration value="Hallmark Insurance Company" />
+            <xsd:enumeration value="Hanover" />
+            <xsd:enumeration value="Harbor" />
+            <xsd:enumeration value="Harleysville" />
+            <xsd:enumeration value="Hartford OMNI" />
+            <xsd:enumeration value="Hartford" />
+            <xsd:enumeration value="Hastings Mutual" />
+            <xsd:enumeration value="Hawkeye Security" />
+            <xsd:enumeration value="HDI" />
+
+            <xsd:enumeration value="Horace Mann" />
+            <xsd:enumeration value="Houston General" />
+            <xsd:enumeration value="IFA" />
+            <xsd:enumeration value="Imperial Casualty" />
+			<xsd:enumeration value="IMT Ins" />
+            <xsd:enumeration value="Indiana Farmers" />
+            <xsd:enumeration value="Indiana" />
+            <xsd:enumeration value="Infinity" />
+			<xsd:enumeration value="Insuremax" />
+            <xsd:enumeration value="Insurequest" />
+            <xsd:enumeration value="Integon" />
+            <xsd:enumeration value="Integrity" />
+            <xsd:enumeration value="Kemper" />
+			<xsd:enumeration value="Kingsway" />
+            <xsd:enumeration value="Liberty Mutual" />
+            <xsd:enumeration value="Liberty Northwest" />
+			<xsd:enumeration value="MAIF" />
+            <xsd:enumeration value="Main Street America" />
+            <xsd:enumeration value="Mapfre" />
+			<xsd:enumeration value="Markel" />
+            <xsd:enumeration value="Maryland Auto Insurance" />
+			<xsd:enumeration value="Mendakota" />
+            <xsd:enumeration value="Mendota" />
+            <xsd:enumeration value="Merchants Group" />
+            <xsd:enumeration value="Mercury" />
+            <xsd:enumeration value="MetLife" />
+            <xsd:enumeration value="Metropolitan" />
+            <xsd:enumeration value="Mid-Continent" />
+            <xsd:enumeration value="Midwestern Indemnity" />
+            <xsd:enumeration value="Montgomery" />
+            <xsd:enumeration value="Motorists Mutual" />
+            <xsd:enumeration value="MSA" />
+            <xsd:enumeration value="Mt. Washington" />
+            <xsd:enumeration value="Mutual Benefit" />
+            <xsd:enumeration value="Mutual of Enumclaw" />
+            <xsd:enumeration value="National Lloyds Insurance Company" />
+            <xsd:enumeration value="Nationwide" />
+			<xsd:enumeration value="National General" />
+			<!-- This enumeration is a replacement for GMAC. -->
+            <xsd:enumeration value="New York Central Mutual" />
+            <xsd:enumeration value="NJ Manufacturers" />
+            <xsd:enumeration value="NJ Skylands" />
+			<xsd:enumeration value="Nodak Mutual" />
+            <xsd:enumeration value="Northstar" />
+			<xsd:enumeration value="NYAIP" />
+            <xsd:enumeration value="Occidental" />
+			<xsd:enumeration value="Ocean Harbor" />
+            <xsd:enumeration value="Ohio Casualty" />
+            <xsd:enumeration value="Omaha P/C" />
+            <xsd:enumeration value="Omni Insurance Co" />
+            <xsd:enumeration value="One Beacon" />
+            <xsd:enumeration value="Oregon Mutual" />
+            <xsd:enumeration value="Palisades" />
+			<xsd:enumeration value="Patriot" />
+			<xsd:enumeration value="Patrons Oxford" />
+            <xsd:enumeration value="Peerless/Montgomery" />
+            <xsd:enumeration value="Pekin" />
+            <xsd:enumeration value="Pemco" />
+            <xsd:enumeration value="Penn National" />
+			<xsd:enumeration value="Phoenix Indemnity" />
+            <xsd:enumeration value="Plymouth Rock" />
+            <xsd:enumeration value="Preferred Mutual" />
+            <xsd:enumeration value="Proformance" />
+            <xsd:enumeration value="Progressive" />
+            <xsd:enumeration value="Prudential" />
+            <xsd:enumeration value="Republic" />
+			<xsd:enumeration value="Response" />
+            <xsd:enumeration value="Rockford Mutual" />
+            <xsd:enumeration value="Royal and Sun Alliance" />
+            <xsd:enumeration value="Safeco" />
+			<xsd:enumeration value="Safe Auto" />
+			<xsd:enumeration value="Safeway" />
+			<xsd:enumeration value="Sagamore" />
+            <xsd:enumeration value="SECURA" />
+            <xsd:enumeration value="Selective" />
+			<xsd:enumeration value="Sentry Ins" />
+            <xsd:enumeration value="Shelter Insurance" />
+            <xsd:enumeration value="Southern County" />
+            <xsd:enumeration value="Southern Mutual" />
+            <xsd:enumeration value="Southern Trust" />
+            <xsd:enumeration value="St. Paul/Travelers" />
+            <xsd:enumeration value="Standard Mutual" />
+            <xsd:enumeration value="Star Casualty" />
+            <xsd:enumeration value="State Auto" />
+            <xsd:enumeration value="State Farm" />
+			<xsd:enumeration value="StillWater" />
+			<xsd:enumeration value="Stonegate" />
+			<xsd:enumeration value="Titan" />
+			<xsd:enumeration value="Topa" />
+			<xsd:enumeration value="Tower" />
+            <xsd:enumeration value="Travelers" />
+            <xsd:enumeration value="TWFG" />
+            <xsd:enumeration value="Unigard" />
+			<xsd:enumeration value="United Automobile" />
+            <xsd:enumeration value="United Fire and Casualty" />
+            <xsd:enumeration value="Unitrin" />
+            <xsd:enumeration value="Universal" />
+            <xsd:enumeration value="USAA" />
+            <xsd:enumeration value="Utica National" />
+            <xsd:enumeration value="Victoria" />
+            <xsd:enumeration value="West Bend" />
+            <xsd:enumeration value="Western National" />
+            <xsd:enumeration value="Western Reserve Group" />
+            <xsd:enumeration value="Westfield" />
+            <xsd:enumeration value="White Mountains" />
+		    <xsd:enumeration value="Wilshire" />	
+			<xsd:enumeration value="Wilson Mutual" />
+            <xsd:enumeration value="Wisconsin Mutual" />
+            <xsd:enumeration value="Windsor" />
+			<xsd:enumeration value="Wind Haven" />
+            <xsd:enumeration value="Zurich" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:complexType name="PolicyInfoType">
+        <!-- Current quote information -->
+        <xsd:sequence>
+            <xsd:element name="PolicyTerm" type="PolicyTermType" />
+            <xsd:element name="Package" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="Effective" type="DateType" />
+            <xsd:element name="CreditCheckAuth" type="BooleanType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="HomeOwnershipType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Home (owned)" />
+            <xsd:enumeration value="Condo (owned)" />
+            <xsd:enumeration value="Apartment" />
+            <xsd:enumeration value="Rental Home/Condo" />
+            <xsd:enumeration value="Mobile Home" />
+            <xsd:enumeration value="Live With Parents" />
+            <xsd:enumeration value="Other" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="AutoOwnershipType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Owned" />
+            <xsd:enumeration value="Leased" />
+            <xsd:enumeration value="Lien" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DurationYearsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="1" />
+            <xsd:enumeration value="2" />
+            <xsd:enumeration value="3" />
+            <xsd:enumeration value="4" />
+            <xsd:enumeration value="5" />
+            <xsd:enumeration value="6" />
+            <xsd:enumeration value="7" />
+            <xsd:enumeration value="8" />
+            <xsd:enumeration value="9" />
+            <xsd:enumeration value="10" />
+            <xsd:enumeration value="11" />
+            <xsd:enumeration value="12" />
+            <xsd:enumeration value="13" />
+            <xsd:enumeration value="14" />
+            <xsd:enumeration value="15" />
+            <xsd:enumeration value="More than 15" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DurationMonthsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="1" />
+            <xsd:enumeration value="2" />
+            <xsd:enumeration value="3" />
+            <xsd:enumeration value="4" />
+            <xsd:enumeration value="5" />
+            <xsd:enumeration value="6" />
+            <xsd:enumeration value="7" />
+            <xsd:enumeration value="8" />
+            <xsd:enumeration value="9" />
+            <xsd:enumeration value="10" />
+            <xsd:enumeration value="11" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="DurationType">
+        <xsd:sequence>
+            <xsd:element name="Years" type="DurationYearsType" />
+            <xsd:element name="Months" type="DurationMonthsType" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CurrentAddressType">
+        <xsd:sequence>
+            <xsd:element name="YearsAtCurrent" type="DurationType" />
+            <xsd:element name="Ownership" type="HomeOwnershipType" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PreviousAddressType">
+        <xsd:sequence>
+            <xsd:element name="YearsAtPrevious" type="DurationType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Address" type="SimpleAddressType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="GarageAddressType">
+        <xsd:sequence>
+            <xsd:element name="Address" type="SimpleAddressType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ResidenceInfoType">
+        <xsd:sequence>
+            <xsd:element name="CurrentAddress" type="CurrentAddressType" />
+            <xsd:element name="PreviousAddress" type="PreviousAddressType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="GarageLocation" type="GarageAddressType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="GenderType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Male" />
+            <xsd:enumeration value="Female" />
+            <xsd:enumeration value="X - Not Specified" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="RelationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Child" />
+            <xsd:enumeration value="Domestic Partner" />
+            <xsd:enumeration value="Employee" />
+            <xsd:enumeration value="Insured" />
+            <xsd:enumeration value="Other" />
+            <xsd:enumeration value="Parent" />
+            <xsd:enumeration value="Relative" />
+            <xsd:enumeration value="Spouse" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="StateCodeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="AK" />
+            <xsd:enumeration value="AL" />
+            <xsd:enumeration value="AR" />
+            <xsd:enumeration value="AZ" />
+            <xsd:enumeration value="CA" />
+            <xsd:enumeration value="CO" />
+            <xsd:enumeration value="CT" />
+            <xsd:enumeration value="DC" />
+            <xsd:enumeration value="DE" />
+            <xsd:enumeration value="FL" />
+            <xsd:enumeration value="GA" />
+            <xsd:enumeration value="HI" />
+            <xsd:enumeration value="IA" />
+            <xsd:enumeration value="ID" />
+            <xsd:enumeration value="IL" />
+            <xsd:enumeration value="IN" />
+            <xsd:enumeration value="KS" />
+            <xsd:enumeration value="KY" />
+            <xsd:enumeration value="LA" />
+            <xsd:enumeration value="MA" />
+            <xsd:enumeration value="MD" />
+            <xsd:enumeration value="ME" />
+            <xsd:enumeration value="MI" />
+            <xsd:enumeration value="MN" />
+            <xsd:enumeration value="MO" />
+            <xsd:enumeration value="MS" />
+            <xsd:enumeration value="MT" />
+            <xsd:enumeration value="NC" />
+            <xsd:enumeration value="ND" />
+            <xsd:enumeration value="NE" />
+            <xsd:enumeration value="NH" />
+            <xsd:enumeration value="NJ" />
+            <xsd:enumeration value="NM" />
+            <xsd:enumeration value="NV" />
+            <xsd:enumeration value="NY" />
+            <xsd:enumeration value="OH" />
+            <xsd:enumeration value="OK" />
+            <xsd:enumeration value="OR" />
+            <xsd:enumeration value="PA" />
+            <xsd:enumeration value="RI" />
+            <xsd:enumeration value="SC" />
+            <xsd:enumeration value="SD" />
+            <xsd:enumeration value="TN" />
+            <xsd:enumeration value="TX" />
+            <xsd:enumeration value="UT" />
+            <xsd:enumeration value="VA" />
+            <xsd:enumeration value="VT" />
+            <xsd:enumeration value="WA" />
+            <xsd:enumeration value="WI" />
+            <xsd:enumeration value="WV" />
+            <xsd:enumeration value="WY" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DLStateCodeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="AK" />
+            <xsd:enumeration value="AL" />
+            <xsd:enumeration value="AR" />
+            <xsd:enumeration value="AZ" />
+            <xsd:enumeration value="CA" />
+            <xsd:enumeration value="CO" />
+            <xsd:enumeration value="CT" />
+            <xsd:enumeration value="DC" />
+            <xsd:enumeration value="DE" />
+            <xsd:enumeration value="FL" />
+            <xsd:enumeration value="GA" />
+            <xsd:enumeration value="HI" />
+            <xsd:enumeration value="IA" />
+            <xsd:enumeration value="ID" />
+            <xsd:enumeration value="IL" />
+            <xsd:enumeration value="IN" />
+            <xsd:enumeration value="KS" />
+            <xsd:enumeration value="KY" />
+            <xsd:enumeration value="LA" />
+            <xsd:enumeration value="MA" />
+            <xsd:enumeration value="MD" />
+            <xsd:enumeration value="ME" />
+            <xsd:enumeration value="MI" />
+            <xsd:enumeration value="MN" />
+            <xsd:enumeration value="MO" />
+            <xsd:enumeration value="MS" />
+            <xsd:enumeration value="MT" />
+            <xsd:enumeration value="NC" />
+            <xsd:enumeration value="ND" />
+            <xsd:enumeration value="NE" />
+            <xsd:enumeration value="NH" />
+            <xsd:enumeration value="NJ" />
+            <xsd:enumeration value="NM" />
+            <xsd:enumeration value="NV" />
+            <xsd:enumeration value="NY" />
+            <xsd:enumeration value="OH" />
+            <xsd:enumeration value="OK" />
+            <xsd:enumeration value="OR" />
+            <xsd:enumeration value="PA" />
+            <xsd:enumeration value="RI" />
+            <xsd:enumeration value="SC" />
+            <xsd:enumeration value="SD" />
+            <xsd:enumeration value="TN" />
+            <xsd:enumeration value="TX" />
+            <xsd:enumeration value="UT" />
+            <xsd:enumeration value="VA" />
+            <xsd:enumeration value="VT" />
+            <xsd:enumeration value="WA" />
+            <xsd:enumeration value="WI" />
+            <xsd:enumeration value="WV" />
+            <xsd:enumeration value="WY" />
+            <xsd:enumeration value="Canada" />
+            <xsd:enumeration value="Mexico" />
+            <xsd:enumeration value="International" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ChildCustodyType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Male" />
+            <xsd:enumeration value="Female" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="RatedDriverType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Rated" />
+            <xsd:enumeration value="Excluded" />
+            <xsd:enumeration value="Non Rated" />
+            <!-- Show Non Rated for KY only -->
+            <xsd:enumeration value="Never Licensed" />
+            <!-- Show Never Licensed for KY only -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DLStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Valid" />
+            <!-- default value -->
+            <xsd:enumeration value="Permit" />
+            <xsd:enumeration value="Expired" />
+            <xsd:enumeration value="Suspended" />
+            <xsd:enumeration value="Cancelled" />
+            <xsd:enumeration value="Not Licensed" />
+            <xsd:enumeration value="Permanently Revoked" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="DriverTypeType">
+        <xsd:sequence>
+            <xsd:element name="Name" type="NameType" />
+            <xsd:element name="Gender" type="GenderType" />
+            <xsd:element name="DOB" type="DateType" />
+            <xsd:element name="SSN" type="SSNType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DLNumber" type="C-50" />
+            <xsd:element name="SDIPPoint" type="xsd:nonNegativeInteger" minOccurs="0" maxOccurs="1" />
+            <!-- Shown in MA only -->
+            <xsd:element name="DLState" type="DLStateCodeType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DateLicensed" type="DateType" />
+            <xsd:element name="DLStatus" type="DLStatusType" />
+            <xsd:element name="AgeLicensed" type="int100" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="AccPrev" type="DateType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="MaritalStatus" type="MaritalStatusType" />
+            <xsd:element name="Relation" type="RelationType" />
+            <xsd:element name="Industry" type="xsd:string" />
+            <xsd:element name="Occupation" type="xsd:string" />
+            <xsd:element name="GoodStudent" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Student100" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DriverTraining" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="GoodDriver" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="MATDriver" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PrincipalVehicle" type="int10" />
+            <xsd:element name="Accident" type="AccidentType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="Violation" type="ViolationType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="CompLoss" type="CompLossType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="Rated" type="RatedDriverType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="SR22" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FR44" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <!-- Shown only in FL & VA -->
+            <xsd:element name="LicenseRevokedSuspended" type="BooleanType" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:complexType name="DriversType">
+        <xsd:sequence>
+            <xsd:element name="Driver" type="DriverTypeType" minOccurs="1" maxOccurs="6" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="AntiTheftType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Active" />
+            <xsd:enumeration value="Alarm Only" />
+            <xsd:enumeration value="Passive" />
+            <xsd:enumeration value="Vehicle Recovery System" />
+            <xsd:enumeration value="Both Active and Passive" />
+            <xsd:enumeration value="VIN# Etching" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PassiveRestraintsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Automatic Seatbelts" />
+            <xsd:enumeration value="Airbag (Drvr Side)" />
+            <xsd:enumeration value="Auto Stbelts/Drvr Airbag" />
+            <xsd:enumeration value="Airbag Both Sides" />
+            <xsd:enumeration value="Auto Stbelts/Airbag Both" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="VehicleTypeType">
+        <xsd:sequence>
+            <xsd:element name="UseVinLookup" type="BooleanType" />
+            <xsd:element name="UseVehicleLookupService" type="BooleanType" default="No" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Year" type="YearType" />
+            <xsd:element name="Vin" type="VINType" />
+            <xsd:element name="Make" type="C-50_NoBlank" />
+            <xsd:element name="Model" type="C-50_NoBlank" />
+            <xsd:element name="Sub-Model" type="C-255_NoBlank" />
+            <xsd:element name="Anti-Theft" type="AntiTheftType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PassiveRestraints" type="PassiveRestraintsType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="AntiLockBrake" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DaytimeRunningLights" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="VehicleInspection" type="VehicleInspectionType" minOccurs="0" maxOccurs="1" />
+
+          
+          <!-- Shown in NY only, and required -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:complexType name="VehiclesType">
+        <xsd:sequence>
+            <xsd:element name="Vehicle" type="VehicleTypeType" minOccurs="1" maxOccurs="6" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="VehicleInspectionType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Inspection Completed: No Damage" />
+            <xsd:enumeration value="Inspection Completed: Damaged" />
+            <xsd:enumeration value="No Inspection Needed" />
+            <xsd:enumeration value="No Acknowledgement Form Attached" />
+            <xsd:enumeration value="Acknowledgement Form Attached" />
+            <xsd:enumeration value="Bill of Sale For New Vehicle" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="UseageType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Business" />
+            <xsd:enumeration value="Farming" />
+            <xsd:enumeration value="Pleasure" />
+            <xsd:enumeration value="To/From Work" />
+            <xsd:enumeration value="To/From School" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PerformanceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Standard" />
+            <xsd:enumeration value="Sports" />
+            <xsd:enumeration value="Intermediate" />
+            <xsd:enumeration value="High Performance" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="DaysPerWeekType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="7" />
+            <xsd:enumeration value="6" />
+            <xsd:enumeration value="5" />
+            <xsd:enumeration value="4" />
+            <xsd:enumeration value="3" />
+            <xsd:enumeration value="2" />
+            <xsd:enumeration value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="WeeksPerMonthType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="4" />
+            <xsd:enumeration value="3" />
+            <xsd:enumeration value="2" />
+            <xsd:enumeration value="1" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="VehicleUseType">
+        <xsd:sequence>
+            <xsd:element name="Useage" type="UseageType" />
+            <xsd:element name="OneWayMiles" type="int999" />
+            <xsd:element name="DaysPerWeek" type="DaysPerWeekType" />
+            <xsd:element name="WeeksPerMonth" type="WeeksPerMonthType" />
+            <xsd:element name="AnnualMiles" type="int100000" />
+            <xsd:element name="Ownership" type="AutoOwnershipType" />
+            <xsd:element name="Carpool" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Odometer" type="int999999" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Performance" type="PerformanceType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NewVehicle" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="AdditionalModificationValue" type="int100000" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="AlternateGarage" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PrincipalOperator" type="int10" />
+            <xsd:element name="CostNew" type="int999999" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="UsedForDelivery" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PriorDamagePresent" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="SnowPlow" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:complexType name="VehiclesUseType">
+        <xsd:sequence>
+            <xsd:element name="VehicleUse" type="VehicleUseType" minOccurs="1" maxOccurs="6" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="AccidentDescType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="At Fault With Injury" />
+            <xsd:enumeration value="At Fault With No Injury" />
+            <xsd:enumeration value="Not At Fault" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="AccidentType">
+        <xsd:sequence>
+            <xsd:element name="Date" type="DateType" />
+            <xsd:element name="Description" type="AccidentDescType" />
+            <xsd:element name="PD" type="int999999" />
+            <xsd:element name="BI" type="int999999" />
+      			<xsd:element name="Collision" type="int999999" minOccurs="0" maxOccurs="1" />
+			      <xsd:element name="MP" type="int999999" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="VehicleInvolved" minOccurs="0" maxOccurs="1">
+              <xsd:simpleType>
+                <xsd:union>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                      <xsd:length value="0"/>
+                    </xsd:restriction>
+                  </xsd:simpleType>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:nonNegativeInteger" />
+                  </xsd:simpleType>                
+                </xsd:union>
+              </xsd:simpleType>
+            </xsd:element>
+            <!-- should be 0 if vehicle no longer owned -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:simpleType name="ViolationDescType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Careless Driving" />
+			<xsd:enumeration value="Cell Phone" />
+			<xsd:enumeration value="Child Safety Restraint" />
+            <xsd:enumeration value="Defective Equipment" />
+			<xsd:enumeration value="Divided Highways" />
+			<xsd:enumeration value="Double Lines" />
+			<xsd:enumeration value="Driving Left of Center" />
+            <xsd:enumeration value="Driving on Sus. License" />
+			<xsd:enumeration value="Driving too slow" />
+			<xsd:enumeration value="Driving without lights" />
+            <xsd:enumeration value="DUI" />
+            <xsd:enumeration value="Eluding Police" />
+            <xsd:enumeration value="Failure to Obey Signal" />
+            <xsd:enumeration value="Failure to Stop" />
+            <xsd:enumeration value="Failure to Yield" />
+			<xsd:enumeration value="Failure To Observe A Safety Zone" />
+			<xsd:enumeration value="Failure to show documents" />
+			<xsd:enumeration value="False Reporting" />
+			<xsd:enumeration value="Felony" />
+            <xsd:enumeration value="Following too Closely" />
+            <xsd:enumeration value="Homicide" />
+            <xsd:enumeration value="Illegal Turn" />
+			<xsd:enumeration value="Improper Parking" />
+            <xsd:enumeration value="Improper Passing" />
+			<xsd:enumeration value="Improper Loads" />
+            <xsd:enumeration value="Leaving scene of an Accident/Hit and Run" />
+			<xsd:enumeration value="Motorcycle Violation" />
+            <xsd:enumeration value="Other Major" />
+            <xsd:enumeration value="Other Minor" />
+			<xsd:enumeration value="Open Container" />
+			<xsd:enumeration value="Operating Vehicle without Permission" />
+			<xsd:enumeration value="Out of State" />
+			<xsd:enumeration value="Passing School Bus" />
+            <xsd:enumeration value="Racing/Drag Racing" />
+			<xsd:enumeration value="Recreational Vehicle" />
+			<xsd:enumeration value="Refusal to submit to chemical test" />
+            <xsd:enumeration value="Speeding 1-5" />
+            <xsd:enumeration value="Speeding 6-10" />
+            <xsd:enumeration value="Speeding 11-15" />
+            <xsd:enumeration value="Speeding 16-20" />
+            <xsd:enumeration value="Speeding 21+" />
+			<xsd:enumeration value="Speed over 100mph" />
+            <xsd:enumeration value="Speeding Violation-Major" />
+            <xsd:enumeration value="Speeding Violation-Minor" />
+			<xsd:enumeration value="Seat Belt" />
+			<xsd:enumeration value="Suspension" />
+            <xsd:enumeration value="Ticket Violation Not Listed" />
+			<xsd:enumeration value="Towing" />
+			<xsd:enumeration value="Transportation of Hazardous Materials" />
+			<xsd:enumeration value="Unsafe Operation of a Motor Vehicle" />
+			<xsd:enumeration value="Vehicle Theft" />
+            <xsd:enumeration value="Wrong Way/Wrong Lane" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="ViolationType">
+        <xsd:sequence>
+            <xsd:element name="Date" type="DateType" />
+            <xsd:element name="Description" type="ViolationDescType" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:simpleType name="CompLossDescType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FIRE" />
+            <xsd:enumeration value="HIT ANIMAL" />
+            <xsd:enumeration value="THEFT" />
+            <xsd:enumeration value="TOWING" />
+            <xsd:enumeration value="VANDALISM" />
+            <xsd:enumeration value="GLASS" />
+            <xsd:enumeration value="TORNADO/HURRICANE" />
+            <xsd:enumeration value="FLOOD" />
+            <xsd:enumeration value="WIND/HAIL" />
+            <xsd:enumeration value="ALL OTHER" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="CompLossType">
+        <xsd:sequence>
+            <xsd:element name="Date" type="DateType" />
+            <xsd:element name="Description" type="CompLossDescType" />
+            <xsd:element name="Value" type="int999999" />
+            <xsd:element name="VehicleInvolved" minOccurs="0" maxOccurs="1">
+              <xsd:simpleType>
+                <xsd:union>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                      <xsd:length value="0"/>
+                    </xsd:restriction>
+                  </xsd:simpleType>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:nonNegativeInteger"/>
+                  </xsd:simpleType>
+                </xsd:union>
+              </xsd:simpleType>
+            </xsd:element>
+          <!-- should be 0 if vehicle no longer owned -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:simpleType name="BIType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="10/20" />
+            <!-- 10/20 shown in FL only -->
+            <xsd:enumeration value="12/25" />
+            <!-- 12/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="12.5/25" />
+            <!-- 12.5/25 No longer shown in any of the states -->
+            <xsd:enumeration value="15/30" />
+            <!-- 15/30 No Longer shown in OH state -->
+            <xsd:enumeration value="20/40" />
+            <!-- 20/40 shown in CT,IA,MD,MI,MA only -->
+            <xsd:enumeration value="20/50" />
+            <!-- 20/50 shown in MS only-->
+            <xsd:enumeration value="25/25" />
+            <!-- 25/25 No Longer shown in OH,IL & WV state -->
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="25/65" />
+            <!-- 25/65 shown in UT only -->
+            <xsd:enumeration value="30/60" />
+            <!-- 30/60 shown in MN,NC,CA only -->
+            <xsd:enumeration value="50/50" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="200/600" />
+            <!-- 200/600 shown in CT only -->
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="300/300" />
+            <xsd:enumeration value="500/500" />
+            <xsd:enumeration value="500/1000" />
+            <!-- 500/1000 Shown in CT only -->
+            <xsd:enumeration value="1000/1000" />
+            <xsd:enumeration value="35 CSL" />
+            <!-- 35 CSL Shown in NJ only -->
+            <xsd:enumeration value="50 CSL" />
+            <!-- 50 CSL Shown in NJ only -->
+            <xsd:enumeration value="55 CSL" />
+            <!-- 55 CSL No longer shown in NJ -->
+            <xsd:enumeration value="100 CSL" />
+            <xsd:enumeration value="115 CSL" />
+            <!-- 115 CSL only shown in WI. Effective Jan 1, 2010 -->
+            <xsd:enumeration value="300 CSL" />
+            <xsd:enumeration value="500 CSL" />
+            <xsd:enumeration value="1000 CSL" />
+            <!-- 1000 CSL Shown in IN only -->
+
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="5000" />
+            <!-- 5000 shown in CA, MA, NJ & PA only -->
+            <xsd:enumeration value="7500" />
+            <!-- 7500 No Longer shown in any of the states -->
+            <xsd:enumeration value="10000" />
+			<!-- 10000 shown in all states except for OH, VA, WV, WY, LA, MT, IN & KS -->
+            <xsd:enumeration value="15000" />
+            <!-- 15000 shown in all states except for OH, VA, IL, WV, WY, LA, MT, IN & KS -->
+            <xsd:enumeration value="20000" />
+            <!-- 20000 shown in VA & WY & OR & IL & MT only -->
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="35000" />
+            <!-- 35000 shown in MA only -->
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <!-- 300000 shown in MA only -->
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="10000" />
+            <!-- Hide 10000 for OR only -->
+            <xsd:enumeration value="15000" />
+            <!-- Hide 15000 for OR only -->
+            <xsd:enumeration value="20000" />
+            <!-- Show 20000 for OR only -->
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="MPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="2500" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UMType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="10/20" />
+            <!-- 10/20 shown in FL,LA only -->
+            <xsd:enumeration value="12/25" />
+            <!-- 12/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="12.5/25" />
+            <!-- 12.5/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="15/30" />
+            <!-- 15/30 No Longer shown in OH state -->
+            <xsd:enumeration value="20/40" />
+            <!-- 20/40 shown in CT,IA,MD,MI,WV,MA only -->
+            <xsd:enumeration value="20/50" />
+            <!-- 20/50 shown in MS,MA only-->
+            <xsd:enumeration value="25/25" />
+            <!-- 25/25 No Longer shown in OH,IL & WV state -->
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="25/60" />
+            <!-- 25/60 shown in MA only -->
+            <xsd:enumeration value="25/65" />
+            <!-- 25/65 shown in UT only -->
+            <xsd:enumeration value="30/60" />
+            <!-- 30/60 shown in MN,NC,CA only -->
+            <xsd:enumeration value="35/80" />
+            <!-- 35/80 shown in MA only -->
+            <xsd:enumeration value="50/50" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="100/200" />
+            <!-- 100/200 shown in MA only -->
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="200/400" />
+            <!-- 200/400 shown in MA only -->
+            <xsd:enumeration value="200/600" />
+            <!-- 200/600 shown in CT only -->
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="250/1000" />
+            <!-- 250/1000 shown in MA only -->
+            <xsd:enumeration value="300/300" />
+            <xsd:enumeration value="300/500" />
+            <!-- 300/500 shown in MA only -->
+            <xsd:enumeration value="500/500" />
+            <xsd:enumeration value="500/1000" />
+            <!-- 500/1000 Shown in CT,MA only -->
+            <xsd:enumeration value="1000/1000" />
+            <xsd:enumeration value="35 CSL" />
+            <!-- 35 CSL Shown in NJ only -->
+            <xsd:enumeration value="50 CSL" />
+            <!-- 50 CSL Shown in NJ only -->
+            <xsd:enumeration value="55 CSL" />
+            <!-- 55 CSL No longer shown in NJ -->
+            <xsd:enumeration value="100 CSL" />
+            <xsd:enumeration value="300 CSL" />
+            <xsd:enumeration value="500 CSL" />
+            <xsd:enumeration value="600 CSL" />
+            <!-- 600CSL Shown in CT only -->
+            <xsd:enumeration value="1000 CSL" />
+            <!-- 1000 CSL Shown in CT, IN only -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UIMType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="State Minimum" />
+            <xsd:enumeration value="10/20" />
+            <!-- 10/20 shown in FL,LA only -->
+            <xsd:enumeration value="12/25" />
+            <!-- 12/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="12.5/25" />
+            <!-- 12.5/25 No Longer shown in any of the states -->
+            <xsd:enumeration value="15/30" />
+            <!-- 15/30 No Longer shown in OH state -->
+            <xsd:enumeration value="20/40" />
+            <!-- 20/40 shown in CT,IA,MD,MI,MA only -->
+            <xsd:enumeration value="20/50" />
+            <!-- 20/50 shown in MS,MA only-->
+            <xsd:enumeration value="25/25" />
+            <!-- 25/25 No Longer shown in OH, IL & WV state -->
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="25/60" />
+            <!-- 25/60 shown in MA only -->
+            <xsd:enumeration value="25/65" />
+            <!-- 25/65 shown in UT only -->
+            <xsd:enumeration value="30/60" />
+            <!-- 30/60 shown in MN,NC,CA only -->
+            <xsd:enumeration value="35/80" />
+            <!-- 35/80 shown in MA only -->
+            <xsd:enumeration value="50/50" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="100/200" />
+            <!-- 100/200 shown in MA only -->
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="200/400" />
+            <!-- 200/400 shown in MA only -->
+            <xsd:enumeration value="200/600" />
+            <!-- 200/600 shown in CT only -->
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="250/1000" />
+            <!-- 250/1000 shown in MA only -->
+            <xsd:enumeration value="300/300" />
+            <xsd:enumeration value="300/500" />
+            <!-- 300/500 shown in MA only -->
+            <xsd:enumeration value="500/500" />
+            <xsd:enumeration value="500/1000" />
+            <!-- 500/1000 Shown in CT,MA only -->
+            <xsd:enumeration value="1000/1000" />
+            <xsd:enumeration value="35 CSL" />
+            <!-- 35 CSL Shown in NJ only -->
+            <xsd:enumeration value="50 CSL" />
+            <!-- 50 CSL Shown in NJ only -->
+            <xsd:enumeration value="55 CSL" />
+            <!-- 55 CSL No longer shown in NJ -->
+            <xsd:enumeration value="100 CSL" />
+            <xsd:enumeration value="300 CSL" />
+            <xsd:enumeration value="500 CSL" />
+            <xsd:enumeration value="600 CSL" />
+            <!-- 600CSL Shown in CT only -->
+            <xsd:enumeration value="1000 CSL" />
+            <!-- 1000CSL Shown in CT, IN only -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Accept" />
+            <xsd:enumeration value="Reject" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="GeneralCoverageType">
+        <xsd:sequence>
+            <xsd:element name="BI" type="BIType" />
+            <xsd:element name="PD" type="PDType" />
+            <xsd:element name="MP" type="MPType" />
+            <xsd:element name="UM" type="UMType" />
+            <!-- <xsd:element name="UMPD" type="UMPDType" /> Currently in CO,GA,IN,NM,OR,TX,WA now depricated and included in State Specific Sections -->
+            <xsd:element name="UIM" type="UIMType" />
+            <!-- <xsd:element name="PIP" type="PIPType" />  Currently in CO,FL,KY,NY,OR,TX,WA now depricated and included in State Specific Sections -->
+            <xsd:element name="Multipolicy" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="RetirementCommunity" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="AAADiscount" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Multicar" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="OtherCollisionDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="50" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="300" />
+            <!-- 300 is only shown in IL & MA -->
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="750" />
+            <!-- 750 is only shown in NJ & CO -->
+            <xsd:enumeration value="1000" />
+	    <!-- 1500 is only shown in MN & WI -->
+	    <xsd:enumeration value="1500" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="2500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="CollisionDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="50" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="300" />
+            <!-- 300 is only shown in IL & MA -->
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="750" />
+            <!-- 750 is only shown in NJ & CO -->
+            <xsd:enumeration value="1000" />
+	    <!-- 1500 is only shown in MN & WI -->
+	    	<xsd:enumeration value="1500" />
+            <xsd:enumeration value="2000" />           
+            <xsd:enumeration value="2500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="TowingDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25" />
+            <xsd:enumeration value="40" />
+            <!-- 40 shown only in TX -->
+            <xsd:enumeration value="50" />
+            <xsd:enumeration value="75" />
+            <xsd:enumeration value="80" />
+            <!-- 80 shown only in TX -->
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="120" />
+            <!-- 120 shown only in TX -->
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="Unlimited" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="RentalDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="15/450" />
+            <!-- 15/450 Shown only in CT,GA,NC,MA -->
+            <xsd:enumeration value="20/600" />
+            <xsd:enumeration value="25/750" />
+            <!-- 25/750 Shown only in IL,NJ,TX -->
+            <xsd:enumeration value="30/900" />
+            <xsd:enumeration value="35/1050" />
+            <!-- 35/1050 Shown only in TX -->
+            <xsd:enumeration value="40/1200" />
+            <xsd:enumeration value="45/1350" />
+            <!-- 45/1350 Shown only in MA -->
+            <xsd:enumeration value="50/1500" />
+            <xsd:enumeration value="75/2250" />
+            <!-- 25/2250 Shown only in OH -->
+            <xsd:enumeration value="100/3000" />
+            <!-- Shown only in CA,GA,NJ,MA -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PIPAppliesType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Named Insured" />
+            <xsd:enumeration value="Named Insured + Relatives" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="WorkLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Included" />
+            <xsd:enumeration value="Excluded" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- FL Coverages -->
+    <!--Few FLcoverages elements are deprecated and will be ignored beginning with version 2.0.2-->
+    <xsd:complexType name="FL-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="FL-PIPDeductible" type="FL-PIPDeductibleType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FL-PIPApplies" type="PIPAppliesType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FL-WageLoss" type="FL-WageLossType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FL-PIPOptions" type="FL-PIPOptionsType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="FL-StackedUM" type="BooleanType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="FL-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="FL-WageLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Included" />
+            <xsd:enumeration value="Excluded" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="FL-PIPOptionsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Basic" />
+            <xsd:enumeration value="Extended" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End FL Coverages -->
+    <!-- CT Coverages-->
+    <xsd:complexType name="CT-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="CT-BRB" type="CT-BRBType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="CT-WageLoss" type="CT-WageLossType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="CT-UMUIMConversion" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="CT-BRBType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Basic" />
+            <xsd:enumeration value="Basic + 5000" />
+            <xsd:enumeration value="Basic + 10000" />
+            <xsd:enumeration value="Basic + 15000" />
+            <xsd:enumeration value="Basic + 25000" />
+            <xsd:enumeration value="Basic + 50000" />
+            <xsd:enumeration value="Basic + 100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="CT-WageLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="300" />
+            <xsd:enumeration value="400" />
+            <xsd:enumeration value="500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End CT Coverages-->
+    <!-- KY Coverages -->
+    <xsd:complexType name="KY-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="KY-PIP" type="KY-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="KY-APIP" type="KY-APIPType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="KY-PIPDeductible" type="KY-PIPDeductibleType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="KY-TortLimitation" type="KY-TortLimitationType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="KY-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="Basic-10000" />
+            <xsd:enumeration value="20000" />
+            <xsd:enumeration value="30000" />
+            <xsd:enumeration value="40000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="75000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="KY-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="KY-APIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="3000" />
+            <xsd:enumeration value="4000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="KY-TortLimitationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Tort Limitation Not Rejected" />
+            <xsd:enumeration value="Rejected By All Family Members" />
+            <xsd:enumeration value="Rejected By Some Family Members" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End KY Coverages -->
+    <!-- TX Coverages -->
+    <xsd:complexType name="TX-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="TX-PIP" type="TX-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="TX-AutoDeathIndemnity" type="TX-AutoDeathIndemnityType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="TX-UMPD" type="UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="TX-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="2500" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="TX-AutoDeathIndemnityType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End TX Coverages -->
+    <!-- WA Coverages -->
+    <xsd:complexType name="WA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="WA-PIP" type="WA-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="WA-UMPD" type="UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="WA-APIP" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="WA-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="35000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End WA Coverages -->
+    <!-- CA Coverages -->
+    <xsd:complexType name="CA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="CA-UMPD" type="CA-UMPDType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="CA-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="3500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End CA Coverages -->
+    <!-- CO Coverages -->
+    <xsd:complexType name="CO-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="CO-UMPD" type="CO-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="CO-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End CO Coverages -->
+    <!-- GA Coverages -->
+    <xsd:complexType name="GA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="GA-UMPD" type="GA-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="GA-UM-OPTION" type="GA-UM-OPTIONType" minOccurs="0" maxOccurs="1" />
+
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="GA-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="25/250 Ded" />
+            <xsd:enumeration value="50/250 Ded" />
+            <xsd:enumeration value="75/250 Ded" />
+            <xsd:enumeration value="100/250 Ded" />
+            <xsd:enumeration value="25/500 Ded" />
+            <xsd:enumeration value="50/500 Ded" />
+            <xsd:enumeration value="75/500 Ded" />
+            <xsd:enumeration value="100/500 Ded" />
+            <xsd:enumeration value="25/1000 Ded" />
+            <xsd:enumeration value="50/1000 Ded" />
+            <xsd:enumeration value="75/1000 Ded" />
+            <xsd:enumeration value="100/1000 Ded" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="GA-UM-OPTIONType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Add-On" />
+            <xsd:enumeration value="Reduced" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End GA Coverages -->
+    <!-- IL Coverages -->
+    <xsd:complexType name="IL-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="IL-UMPD" type="IL-UMPDType" minOccurs="1" maxOccurs="1" />
+            <!-- cannot be selected with CSL -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="IL-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="20000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End IL Coverages -->
+    <!-- OH Coverages -->
+    <xsd:complexType name="OH-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="OH-UMPD" type="OH-UMPDType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="OH-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="7500" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End OH Coverages -->
+    <!-- OR Coverages -->
+    <xsd:complexType name="OR-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="OR-PIP" type="OR-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="OR-PIPDeductible" type="OR-PIPDeductibleType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="OR-PIPAppliesTo" type="PIPAppliesType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="OR-UMPD" type="UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="OR-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="15000 BASIC" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="OR-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="250" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End OR Coverages -->
+    <!-- UT Coverages -->
+    <xsd:complexType name="UT-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="UT-PIP" type="UT-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="UT-WorkLoss" type="UT-WorkLossType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="UT-UMPD" type="UT-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="UT-APIP" type="UT-APIPType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="UT-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="3000" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UT-WorkLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Accept" />
+            <xsd:enumeration value="Reject" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UT-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="3500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="UT-APIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End UT Coverages -->
+    <!-- PA Coverages -->
+    <xsd:complexType name="PA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="PA-AccidentalDeath" type="PA-ADBType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PA-StackedUM" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PA-StackedUIM" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PA-FuneralExpense" type="PA-FuneralExpType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PA-WorkLoss" type="PA-WorkLossType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PA-TortLimitation" type="PA-TortLimitationType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PA-CombinationFirstParty" type="PA-CFPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PA-FirstParty" type="PA-FirstPartyType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="PA-ExtraMedicalExp" type="PA-ExtraMedicalExpType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="PA-ADBType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="25000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-FuneralExpType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="1500" />
+            <xsd:enumeration value="2500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-WorkLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="1000/5000" />
+            <xsd:enumeration value="1000/15000" />
+            <xsd:enumeration value="1500/25000" />
+            <xsd:enumeration value="2500/50000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-TortLimitationType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Full" />
+            <xsd:enumeration value="Limited" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-CFPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Addl First Party Benefits" />
+            <xsd:enumeration value="Combo First Party Benefits - 50000" />
+            <xsd:enumeration value="Combo First Party Benefits - 100000" />
+            <xsd:enumeration value="Combo First Party Benefits - 177500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-FirstPartyType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PA-ExtraMedicalExpType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+            <xsd:enumeration value="1000000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End PA Coverages -->
+    <!-- NM Coverages -->
+    <xsd:complexType name="NM-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="NM-UMPD" type="UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End NM Coverages -->
+    <!-- IN Coverages -->
+    <xsd:complexType name="IN-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="IN-UMPD" type="UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End IN Coverages -->
+    <!-- AR Coverages -->
+    <xsd:complexType name="AR-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="AR-PIP" type="AR-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="AR-WorkLoss" type="WorkLossType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="AR-UMPD" type="AR-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="AR-AccidentalDeath" type="AR-AccidentalDeathType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="AR-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="AR-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="300000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="AR-AccidentalDeathType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="20000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End AR Coverages -->
+    <!-- KS Coverages -->
+    <xsd:complexType name="KS-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="KS-PIP" type="KS-PIPType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="KS-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Basic - 4500" />
+            <xsd:enumeration value="12500" />
+            <xsd:enumeration value="27500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End KS Coverages -->
+    <!-- MN Coverages -->
+    <xsd:complexType name="MN-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MN-PIPOptions" type="MN-PIPOptionsType" minOccurs="1" maxOccurs="1" />
+            <!-- This field covers PIP with the Basic and Extended options; and APIP too  -->
+            <xsd:element name="MN-PIPStacking" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MN-WorkLoss" type="WorkLossType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MN-PIPDeductible" type="MN-PIPDeductibleType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MN-PIPOptionsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="BASIC" />
+            <xsd:enumeration value="BASIC+10K MED EXP" />
+            <xsd:enumeration value="BASIC+20K MED EXP" />
+            <xsd:enumeration value="BASIC+30K MED EXP" />
+            <xsd:enumeration value="BASIC+30K MED EXP/15K WL" />
+            <xsd:enumeration value="BASIC+55K MED EXP/15K WL" />
+            <xsd:enumeration value="BASIC+80K MED EXP/40K WL" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="MN-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="100 MED/200WL" />
+            <xsd:enumeration value="100 MED" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End MN Coverages -->
+
+    <!-- MS Coverages -->
+    <xsd:complexType name="MS-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MS-UMPD" type="MS-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="MS-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End MS Coverages -->
+  
+    <!-- NC Coverages -->
+    <xsd:complexType name="NC-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="NC-UMPD" type="NC-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="NC-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End NC Coverages -->
+    <!-- NY Coverages -->
+    <xsd:complexType name="NY-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="NY-OBEL" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NY-PIPDeductible" type="NY-PIPDeductibleType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NY-PIPOptions" type="NY-PIPOptionsType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NY-Supplemental" type="NY-SupplementalType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NY-APIP" type="NY-APIPType" minOccurs="0" maxOccurs="1" />
+	    <!-- The element NY-APIP is deprecated as part of EZLynx 3.9.7 portal update and should no longer be used -->
+            <xsd:element name="NY-WorkLoss" type="WorkLossType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NY-AdditionalDeath" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NY-MedicalExpenseExclusion" type="NY-MedicalExpenseExclusionType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NY-SupplementalSpousalLiability" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="NY-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="250" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NY-PIPOptionsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Basic" />
+            <xsd:enumeration value="Basic+25000" />
+            <xsd:enumeration value="Basic+50000" />
+            <xsd:enumeration value="Basic+100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NY-SupplementalType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Basic" />
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="300/300" />
+            <xsd:enumeration value="500/500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NY-APIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="NY-MedicalExpenseExclusionType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="Named Insured Only" />
+            <xsd:enumeration value="Named Insured + Relatives" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End NY Coverages -->
+
+    <!-- MD Coverages -->
+    <xsd:complexType name="MD-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MD-UMPD" type="MD-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MD-PIP" type="MD-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MD-EUIM" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MD-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MD-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Waived" />
+            <xsd:enumeration value="2500 Full Coverage" />
+            <xsd:enumeration value="2500 Excluding Family" />
+            <xsd:enumeration value="5000 Full Coverage" />
+            <xsd:enumeration value="5000 Excluding Family" />
+            <xsd:enumeration value="10000 Full Coverage" />
+            <xsd:enumeration value="10000 Excluding Family" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End MD Coverages -->
+
+    <!-- TN Coverages -->
+    <xsd:complexType name="TN-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="TN-UMPD" type="TN-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TN-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="10000" />
+	    <!-- The enumeration 10000 is deprecated as part of EZLynx 3.9.7 portal update and should no longer be used -->
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="200000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End TN Coverages -->
+
+    <!-- VA Coverages -->
+    <xsd:complexType name="VA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="VA-UMPD" type="VA-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="VA-INCOMELOSS" type="VA-INCOMELOSSType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="VA-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="20000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="VA-INCOMELOSSType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ACCEPT" />
+            <xsd:enumeration value="REJECT" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <!-- End VA Coverages -->
+
+    <!-- NJ Coverages -->
+    <xsd:complexType name="NJ-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="NJ-HEALTHCARE" type="NJ-HEALTHCAREType" minOccurs="0" maxOccurs="1" />
+            <!-- With this Discount Coverage claims can be made to your Medical Insurance provider instead of Auto Insurance provider in case of an accident -->
+            <xsd:element name="NJ-PIP" type="NJ-PIPType" minOccurs="1" maxOccurs="1" />
+            <!-- Also known as Medical Expense in some Carriers -->
+            <xsd:element name="NJ-PIPDEDUCTIBLE" type="NJ-PIPDEDUCTIBLEType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NJ-APIP" type="NJ-APIPType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NJ-THRESHOLD" type="NJ-THRESHOLD" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="NJ-UMPD" type="NJ-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="NJ-EXTENDEDMEDICAL" type="NJ-EXTENDEDMEDICALType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="NJ-HEALTHCAREType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Primary" />
+            <xsd:enumeration value="Secondary" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="15000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="75000" />
+            <xsd:enumeration value="150000" />
+            <xsd:enumeration value="250000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-PIPDEDUCTIBLEType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2000" />
+            <xsd:enumeration value="2500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-APIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="100 - 10400/ LIMITED" />
+            <xsd:enumeration value="125 - 13000/ LIMITED" />
+            <xsd:enumeration value="175 - 18200/ LIMITED" />
+            <xsd:enumeration value="250 - 26000/ LIMITED" />
+            <xsd:enumeration value="400 - 41600/ LIMITED" />
+            <xsd:enumeration value="500 - 52000/ LIMITED" />
+            <xsd:enumeration value="600 - 62400/ LIMITED" />
+            <xsd:enumeration value="700 - 72800/ LIMITED" />
+            <xsd:enumeration value="100/ UNLIMITED" />
+            <xsd:enumeration value="125/ UNLIMITED" />
+            <xsd:enumeration value="175/ UNLIMITED" />
+            <xsd:enumeration value="250/ UNLIMITED" />
+            <xsd:enumeration value="400/ UNLIMITED" />
+            <xsd:enumeration value="500/ UNLIMITED" />
+            <xsd:enumeration value="600/ UNLIMITED" />
+            <xsd:enumeration value="700/ UNLIMITED" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-THRESHOLD">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Verbal Threshold" />
+            <xsd:enumeration value="Zero Threshold" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="35000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="200000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="NJ-EXTENDEDMEDICALType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="10000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End NJ Coverages -->
+
+    <!-- WV Coverages -->
+    <xsd:complexType name="WV-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="WV-UMPD" type="WV-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="WV-UIMPD" type="WV-UIMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="WV-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:simpleType name="WV-UIMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End WV Coverages -->
+
+    <!-- MI Coverages -->
+    <xsd:complexType name="MI-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MI-PropertyProtectionInsurance" type="MI-PropertyProtectionInsuranceType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MI-PIP" type="MI-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MI-PIPDeductible" type="MI-PIPDeductible" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MI-PIPWorkLossWaiver" type="BooleanType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MI-UMPD" type="BooleanType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MI-PropertyProtectionInsuranceType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="1000000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MI-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Full Medical/Full Wage" />
+            <xsd:enumeration value="Medical Excess" />
+            <xsd:enumeration value="Wage Excess" />
+            <xsd:enumeration value="Excess Medical/Excess Wage" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MI-PIPDeductible">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Ded" />
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="300" />
+            <xsd:enumeration value="500" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- End MI Coverages -->
+
+    <!-- DC Coverages -->
+    <xsd:complexType name="DC-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="DC-UMPD" type="DC-UMPDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="DC-MedicalExpense" type="DC-MedicalExpenseType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DC-WorkLoss" type="DC-WorkLossType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="DC-FuneralExpense" type="DC-FuneralExpenseType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DC-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="5000" />
+            <xsd:enumeration value="10000" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="75000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DC-MedicalExpenseType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DC-WorkLossType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="12000" />
+            <xsd:enumeration value="24000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DC-FuneralExpenseType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None" />
+            <xsd:enumeration value="4000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End DC Coverages -->
+
+    <!-- DE Coverages -->
+    <xsd:complexType name="DE-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="DE-PIP" type="DE-PIPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="DE-PIPDeductible" type="DE-PIPDeductibleType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="DE-PIPAppliesTo" type="DE-PIPAppliesToType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="DE-APIP" type="DE-APIPType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DE-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="15/30" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DE-PIPDeductibleType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="0" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="10000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DE-PIPAppliesToType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Named Insured" />
+            <xsd:enumeration value="Named Insured and Relative(S)" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DE-APIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="20 Per Person" />
+            <xsd:enumeration value="35 Per Person" />
+            <xsd:enumeration value="50 Per Person" />
+            <xsd:enumeration value="100 Per Person" />
+            <xsd:enumeration value="300 Per Person" />
+            <xsd:enumeration value="10 Per Person/20 Per Acc" />
+            <xsd:enumeration value="20 Per Person/40 Per Acc" />
+            <xsd:enumeration value="25 Per Person/50 Per Acc" />
+            <xsd:enumeration value="50 Per Person/100 Per Acc" />
+            <xsd:enumeration value="100 Per Person/300 Per Acc" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End DE Coverages -->
+
+    <!-- SC Coverages -->
+    <xsd:complexType name="SC-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="SC-UMPD" type="SC-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="SC-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Reject" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="200000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End SC Coverages -->
+
+    <!-- RI Coverages -->
+    <xsd:complexType name="RI-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="RI-UMPD" type="RI-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="RI-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="250000" />
+            <xsd:enumeration value="300000" />
+            <xsd:enumeration value="500000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End RI Coverages -->
+
+    <!-- MT Coverages -->
+    <xsd:complexType name="MT-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MT-UMPD" type="MT-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MT-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End MT Coverages -->
+	
+	 <!-- ID Coverages -->
+    <xsd:complexType name="ID-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="ID-UMPD" type="ID-UMPDType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ID-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25000" />
+            <xsd:enumeration value="50000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End ID Coverages -->
+	
+	 <!-- LA Coverages -->
+    <xsd:complexType name="LA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="LA-UMPD" type="LA-UMPDType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="LA-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="25000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End LA Coverages -->
+	
+	 <!-- VT Coverages -->
+    <xsd:complexType name="VT-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="VT-UMPD" type="VT-UMPDType" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="VT-UMPDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="10000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- End VT Coverages -->
+	
+
+    <!-- MA Coverages -->
+    <xsd:complexType name="MA-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="MA-VehicleCoverages" type="MA-VehicleCoveragesType" minOccurs="1" maxOccurs="6" />
+            <xsd:element name="MA-ApplySameCoverageLimits" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="MA-VehicleCoveragesType">
+        <xsd:sequence>
+            <xsd:element name="MA-BI" type="BIType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-PD" type="PDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-UM" type="UMType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-UIM" type="UIMType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-MP" type="MPType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-OPTBI" type="MA-OPTBIType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-PIPDED" type="MA-PIPDEDType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="MA-LIMCOLLDED" type="MA-LIMCOLLDEDType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="MA-WAIVECOLLDED" type="BooleanType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+
+    <xsd:simpleType name="MA-OPTBIType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="20/40" />
+            <xsd:enumeration value="20/50" />
+            <xsd:enumeration value="25/50" />
+            <xsd:enumeration value="25/60" />
+            <xsd:enumeration value="35/80" />
+            <xsd:enumeration value="50/100" />
+            <xsd:enumeration value="100/100" />
+            <xsd:enumeration value="100/200" />
+            <xsd:enumeration value="100/300" />
+            <xsd:enumeration value="200/400" />
+            <xsd:enumeration value="250/500" />
+            <xsd:enumeration value="250/1000" />
+            <xsd:enumeration value="300/500" />
+            <xsd:enumeration value="500/500" />
+            <xsd:enumeration value="500/1000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MA-PIPDEDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="FC/0 Ded" />
+            <xsd:enumeration value="100 Insured" />
+            <xsd:enumeration value="250 Insured" />
+            <xsd:enumeration value="500 Insured" />
+            <xsd:enumeration value="1000 Insured" />
+            <xsd:enumeration value="2000 Insured" />
+            <xsd:enumeration value="4000 Insured" />
+            <xsd:enumeration value="8000 Insured" />
+            <xsd:enumeration value="100 Insured And Household Members" />
+            <xsd:enumeration value="250 Insured And Household Members" />
+            <xsd:enumeration value="500 Insured And Household Members" />
+            <xsd:enumeration value="1000 Insured And Household Members" />
+            <xsd:enumeration value="2000 Insured And Household Members" />
+            <xsd:enumeration value="4000 Insured And Household Members" />
+            <xsd:enumeration value="8000 Insured And Household Members" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MA-LIMCOLLDEDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="No Coverage" />
+            <xsd:enumeration value="FC/0 Ded" />
+            <xsd:enumeration value="300" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="1000" />
+            <xsd:enumeration value="2000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- End MA Coverages -->
+	
+	<!-- ND Coverages -->
+    <xsd:complexType name="ND-StateSpecific">
+        <xsd:sequence>
+            <xsd:element name="ND-PIP" type="ND-PIPType" minOccurs="1" maxOccurs="1" />
+         </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ND-PIPType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="30000" />
+            <xsd:enumeration value="40000" />
+            <xsd:enumeration value="50000" />
+            <xsd:enumeration value="80000" />
+            <xsd:enumeration value="100000" />
+            <xsd:enumeration value="110000" />
+        </xsd:restriction>
+    </xsd:simpleType>
+  
+    <!-- End ND Coverages -->
+
+    <xsd:complexType name="StateSpecificCoverageType">
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element type="AR-StateSpecific" name="AR-Coverages" />
+                <xsd:element type="CA-StateSpecific" name="CA-Coverages" />
+                <xsd:element type="CO-StateSpecific" name="CO-Coverages" />
+                <xsd:element type="CT-StateSpecific" name="CT-Coverages" />
+                <xsd:element type="DC-StateSpecific" name="DC-Coverages" />
+                <xsd:element type="DE-StateSpecific" name="DE-Coverages" />
+                <xsd:element type="GA-StateSpecific" name="GA-Coverages" />
+                <xsd:element type="FL-StateSpecific" name="FL-Coverages" />
+                <xsd:element type="IL-StateSpecific" name="IL-Coverages" />
+                <xsd:element type="IN-StateSpecific" name="IN-Coverages" />
+                <xsd:element type="KY-StateSpecific" name="KY-Coverages" />
+                <xsd:element type="KS-StateSpecific" name="KS-Coverages" />
+                <xsd:element type="MA-StateSpecific" name="MA-Coverages" />
+                <xsd:element type="MD-StateSpecific" name="MD-Coverages" />
+                <xsd:element type="MI-StateSpecific" name="MI-Coverages" />
+                <xsd:element type="MN-StateSpecific" name="MN-Coverages" />
+                <xsd:element type="MS-StateSpecific" name="MS-Coverages" />
+                <xsd:element type="MT-StateSpecific" name="MT-Coverages" />
+                <xsd:element type="NC-StateSpecific" name="NC-Coverages" />
+                <xsd:element type="ND-StateSpecific" name="ND-Coverages" />
+                <xsd:element type="NJ-StateSpecific" name="NJ-Coverages" />
+                <xsd:element type="NM-StateSpecific" name="NM-Coverages" />
+                <xsd:element type="NY-StateSpecific" name="NY-Coverages" />
+                <xsd:element type="OH-StateSpecific" name="OH-Coverages" />
+                <xsd:element type="OR-StateSpecific" name="OR-Coverages" />
+                <xsd:element type="PA-StateSpecific" name="PA-Coverages" />
+                <xsd:element type="RI-StateSpecific" name="RI-Coverages" />
+                <xsd:element type="SC-StateSpecific" name="SC-Coverages" />
+                <xsd:element type="TN-StateSpecific" name="TN-Coverages" />
+                <xsd:element type="TX-StateSpecific" name="TX-Coverages" />
+                <xsd:element type="UT-StateSpecific" name="UT-Coverages" />
+                <xsd:element type="VA-StateSpecific" name="VA-Coverages" />
+                <xsd:element type="WA-StateSpecific" name="WA-Coverages" />
+                <xsd:element type="WV-StateSpecific" name="WV-Coverages" />
+		<xsd:element type="VT-StateSpecific" name="VT-Coverages" />
+		<xsd:element type="ID-StateSpecific" name="ID-Coverages" />
+		<xsd:element type="LA-StateSpecific" name="LA-Coverages" />
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="VehicleCoverageType">
+        <xsd:sequence>
+            <xsd:element name="OtherCollisionDeductible" type="OtherCollisionDeductibleType" />
+            <xsd:element name="CollisionDeductible" type="CollisionDeductibleType" />
+            <xsd:element name="FullGlass" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="TowingDeductible" type="TowingDeductibleType" />
+            <xsd:element name="RentalDeductible" type="RentalDeductibleType" />
+            <xsd:element name="LiabilityNotRequired" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="LoanLeaseCoverage" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="StatedAmount" type="int100000" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="ReplacementCost" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="WaiverCollisionDamage" type="BooleanType" minOccurs="0" maxOccurs="1" />
+            <!-- Shown only in CA -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:complexType name="CoveragesType">
+        <xsd:sequence>
+            <xsd:element name="GeneralCoverage" type="GeneralCoverageType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="VehicleCoverage" type="VehicleCoverageType" minOccurs="1" maxOccurs="6" />
+            <xsd:element name="StateSpecificCoverage" type="StateSpecificCoverageType" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="DriverAssignmentType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="id" type="xsd:positiveInteger" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:complexType name="VehicleAssignmentType">
+        <xsd:sequence>
+            <xsd:element name="DriverAssignment" type="DriverAssignmentType" minOccurs="1" maxOccurs="6" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:positiveInteger" />
+    </xsd:complexType>
+    <xsd:complexType name="VehicleAssignmentsType">
+        <xsd:sequence>
+            <xsd:element name="VehicleAssignment" type="VehicleAssignmentType" minOccurs="1" maxOccurs="6" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="GeneralInfoType">
+        <xsd:sequence>
+            <xsd:element name="RatingStateCode" type="StateCodeType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="Comments" type="xsd:string" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="NVPair">
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string"></xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="ExtendedInfoType">
+        <xsd:sequence>
+            <xsd:element name="valuepair" type="NVPair" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+        <xsd:attribute name="typename" type="xsd:string" use="optional"></xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="EZAUTOType">
+        <xsd:sequence>
+            <xsd:element name="Applicant" type="ApplicantType" minOccurs="1" maxOccurs="2" />
+            <xsd:element name="PriorPolicyInfo" type="PriorPolicyInfoType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="PolicyInfo" type="PolicyInfoType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="ResidenceInfo" type="ResidenceInfoType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="Drivers" type="DriversType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="Vehicles" type="VehiclesType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="VehiclesUse" type="VehiclesUseType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="Coverages" type="CoveragesType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="VehicleAssignments" type="VehicleAssignmentsType" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="GeneralInfo" type="GeneralInfoType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="ExtendedInfo" type="ExtendedInfoType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="EZAUTO" type="EZAUTOType"></xsd:element>
+</xsd:schema>

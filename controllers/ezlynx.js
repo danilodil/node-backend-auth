@@ -229,14 +229,14 @@ module.exports = {
     console.log(req.body.Contact);
       const data = jsonxml(req.body.Contact);
 
-      const xml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">' ;
-      const xml_body = xml_head.concat(data, "</EZHOME>");
+      const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="../assets/ezlynx-validation/ezlynxautoV200.xsd" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">` ;
+      const xml_body = xml_head.concat(data, `</EZ${req.params.type.toUpperCase()}>`);
 
       const encodedData = base64.encode(xml_body);
       console.log(format(xml_body));
 
       const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${appConstant.USERNAME}</tem:Username>  <tem:Password>${appConstant.PASSWORD}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
-      const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="xilo" XrefKey="DHO6" DataUploadFlags="4"><v100:FileData Name="EZHome" MimeType="text/xml">`;
+      const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="xilo" XrefKey="DHO6" DataUploadFlags="4"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
       const xml_soap_body_close = `</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>`;
       const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
 
