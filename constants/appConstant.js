@@ -1,7 +1,7 @@
 const ENVIRONMENT = require('./environment');
 
 const nodeEnv = ENVIRONMENT.ENV;
-
+console.log('NODE:', nodeEnv);
 if (nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }

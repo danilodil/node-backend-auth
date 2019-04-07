@@ -4,7 +4,6 @@ const Boom = require('boom');
 const appConstant = require('../constants/appConstant').ezLynx;
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser({ attrkey: "ATTR" });
-const request = require("request");
 const base64 = require('base-64');
 const jsonxml = require('json2xml');
 const format = require('xml-formatter');
@@ -224,11 +223,11 @@ module.exports = {
            "RatingStateCode": "GA"
         }
      };
-    //   const { username } = req.body.decoded_vendor;
-      const username = 'xi_userUAT'
+      const { username } = req.body.decoded_vendor;
 
-    //   const data = jsonxml(JSON.parse(req.body.applicant));
-      const data = jsonxml(JSON.parse(applicant));
+    //   const data = jsonxml(req.body.applicant);
+    console.log(req.body.Contact);
+      const data = jsonxml(req.body.Contact);
 
       const xml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">' ;
       const xml_body = xml_head.concat(data, "</EZHOME>");
@@ -259,9 +258,11 @@ module.exports = {
       req.session.data = {
         title: 'Contact created successfully',
         body: response,
+        xml: format(xml_body)
       };
       return next();
     } catch (error) {
+        console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },

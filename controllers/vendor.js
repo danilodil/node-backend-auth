@@ -29,7 +29,7 @@ module.exports = {
 
       req.session.data = {
         message: 'New vendor created successfully',
-        obj: newVendor,
+        newVendorID: newVendor.id,
       };
       return next();
     } catch (error) {
