@@ -3,7 +3,7 @@ const Boom = require('boom');
 const jsforce = require('jsforce');
 
 module.exports = {
-  addSFProperty: async (req, res, next) => {
+  addProperty: async (req, res, next) => {
     try {
       const { username, password, salesforceAT } = req.body.decoded_vendor;
       const conn = new jsforce.Connection({
@@ -16,7 +16,7 @@ module.exports = {
         return next(Boom.badRequest(`Error creating ${req.body.objectName}`, rets[0].errors));
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: `Salesforce connected and created ${req.body.objectName} successfully`,
         obj: {
           sfAccountId: rets[0].id
@@ -27,7 +27,7 @@ module.exports = {
       return next(Boom.badRequest(`Error creating ${req.body.objectName} on salesforce`));
     }
   },
-  updateSFProperty: async (req, res, next) => {
+  updateProperty: async (req, res, next) => {
     try {
       const { username, password, salesforceAT } = req.body.decoded_vendor;
 
@@ -41,7 +41,7 @@ module.exports = {
         return next(Boom.badRequest(`Error updating ${req.body.objectName}`, rets[0].errors));
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: `Salesforce ${req.body.objectName} updated successfully`,
       };
       return next();
@@ -128,7 +128,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'Salesforce connected and created accounts successfully',
         obj: {
           sfAccountId: rets[0].id,
@@ -214,7 +214,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'Salesforce connected and created accounts successfully',
         obj: {
           sfAccountId: rets[0].id,
@@ -279,7 +279,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'salesforce connecting successfully',
         obj: {
           sfInsuredId: ret3[0].id,
@@ -342,7 +342,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'salesforce connecting successfully',
         obj: {
           sfInsuredId: ret3[0].id,
@@ -382,7 +382,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'salesforce connecting successfully',
         obj: {
           sfVehicleId: rets[0].id,
@@ -486,7 +486,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'salesforce connecting successfully',
         obj: {
           sfPropertyId: rets[0].id,
@@ -523,7 +523,7 @@ module.exports = {
           error: rets[0].errors,
         });
       }
-      req.sessio.data = {
+      req.session.data = {
         message: 'SF Violation created successfully',
       };
       return next();
@@ -629,7 +629,7 @@ module.exports = {
           error: data3[0].errors,
         });
       }
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF Account, Contact, and Insurance Quote updated successfully',
       };
       return next();
@@ -732,7 +732,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF Account, Contact, and Insurance Quote updated successfully',
       };
       return next();
@@ -815,7 +815,7 @@ module.exports = {
           error: data[0].errors,
         });
       }
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF Vehicle updated successfully',
       };
       return next();
@@ -938,7 +938,7 @@ module.exports = {
           error: data[0].errors,
         });
       }
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF property updated successfully',
       };
       return next();
@@ -1014,7 +1014,7 @@ module.exports = {
         });
       }
 
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF Insured updated successfully',
       };
       return next();
@@ -1085,7 +1085,7 @@ module.exports = {
           error: data[0].errors,
         });
       }
-      req.sessio.data = {
+      req.session.data = {
         title: 'SF Insured updated successfully',
       };
       return next();

@@ -6,11 +6,11 @@ const salesforceController = require('../controllers/salesforce');
 const router = express.Router();
 
 router.post('/add/property', asyncHandler(async (req, res, next) => {
-  await salesforceController.addSFProperty(req, res, next);
+  await salesforceController.addProperty(req, res, next);
 }));
 
 router.post('/update/property', asyncHandler(async (req, res, next) => {
-  await salesforceController.updateSFProperty(req, res, next);
+  await salesforceController.updateProperty(req, res, next);
 }));
 
 
