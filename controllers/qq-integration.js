@@ -29,7 +29,7 @@ module.exports = {
 
       req.session.data = {
         title: 'Contact created successfully',
-        body: response,
+        obj: response,
       };
       return next();
     } catch (error) {
@@ -51,7 +51,7 @@ module.exports = {
 
       req.session.data = {
         title: 'Policy created successfully',
-        body: response,
+        obj: response,
       };
       return next();
     } catch (error) {
@@ -73,7 +73,7 @@ module.exports = {
 
       req.session.data = {
         title: 'Quote created successfully',
-        body: response,
+        obj: response,
       };
       return next();
     } catch (error) {
@@ -95,7 +95,7 @@ module.exports = {
 
       req.session.data = {
         title: 'Task created successfully',
-        body: response,
+        obj: response,
       };
       return next();
     } catch (error) {
