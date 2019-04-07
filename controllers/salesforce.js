@@ -3,6 +3,58 @@ const Boom = require('boom');
 const jsforce = require('jsforce');
 
 module.exports = {
+  addSFProperty: async (req, res, next) => {
+    try {
+      const { username, password, salesforceAT } = req.body.decoded_vendor;
+      const conn = new jsforce.Connection({
+        loginUrl: 'https://login.salesforce.com',
+      });
+      await conn.login(username, (`${password} ${salesforceAT}`));
+
+      const rets = await conn.sobject(req.body.objectName).create([req.body.sfProperties]);
+      if (rets[0].success === false) {
+        return next(Boom.badRequest(`Error creating ${req.body.objectName}`, rets[0].errors));
+      }
+
+      req.sessio.data = {
+        title: `Salesforce connected and created ${req.body.objectName} successfully`,
+        obj: {
+          sfAccountId: rets[0].id
+        },
+      };
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest(`Error creating ${req.body.objectName} on salesforce`));
+    }
+  },
+  updateSFProperty: async (req, res, next) => {
+    try {
+      const { username, password, salesforceAT } = req.body.decoded_vendor;
+
+      const conn = new jsforce.Connection({
+        loginUrl: 'https://login.salesforce.com',
+      });
+      await conn.login(username, (`${password} ${salesforceAT}`));
+
+      const rets = await conn.sobject(req.body.objectName).update([req.body.sfProperties]);
+      if (!rets[0].success) {
+        return next(Boom.badRequest(`Error updating ${req.body.objectName}`, rets[0].errors));
+      }
+
+      req.sessio.data = {
+        title: `Salesforce ${req.body.objectName} updated successfully`,
+      };
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest(`Error updating ${req.body.objectName} on salesforce`));
+    }
+  },
+
+  /*
+  
+  OLD SALESFORCE METHODS
+  
+  */
   addSFAccount: async (req, res, next) => {
     try {
       const { username, password, salesforceAT } = req.body.decoded_vendor;
@@ -341,7 +393,7 @@ module.exports = {
       return next(Boom.badRequest('Error creating vehicle on salesforce!'));
     }
   },
-  addSFProperty: async (req, res, next) => {
+  addSFPropertyOld: async (req, res, next) => {
     try {
       const { username, password, salesforceAT } = req.body.decoded_vendor;
       const { client } = req.body.decoded_user;
@@ -771,7 +823,7 @@ module.exports = {
       return next(Boom.badRequest('Error updating vehicle on salesforce!'));
     }
   },
-  updateSFProperty: async (req, res, next) => {
+  updateSFPropertyOld: async (req, res, next) => {
     try {
       const { username, password, salesforceAT } = req.body.decoded_vendor;
 
