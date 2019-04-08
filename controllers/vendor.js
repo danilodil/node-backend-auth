@@ -6,7 +6,7 @@ module.exports = {
   create: async (req, res, next) => {
     try {
       const params = req.body;
-      if (!params.companyId || !params.vendorName || !params.username || !params.password) {
+      if (!params.companyId || !params.vendorName || !params.username) {
         return next(Boom.badRequest('Please send proper data!'));
       }
 
