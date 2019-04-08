@@ -26,7 +26,7 @@ module.exports = {
 
     const response = await request(user.sign(options))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating contact!'));
+        return next(Boom.badRequest('Error creating contact!'));
       });
 
     req.session.data = {
@@ -47,7 +47,7 @@ module.exports = {
 
     const response = await request(user.sign(options))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating policy!'));
+        return next(Boom.badRequest('Error creating policy!'));
       });
 
     req.session.data = {
@@ -68,7 +68,7 @@ module.exports = {
 
     const response = await request(user.sign(options))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating quote!'));
+        return next(Boom.badRequest('Error creating quote!'));
       });
 
     req.session.data = {
@@ -89,7 +89,7 @@ module.exports = {
 
     const response = await request(user.sign(options))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating quote!'));
+        return next(Boom.badRequest('Error creating quote!'));
       });
 
     req.session.data = {

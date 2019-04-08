@@ -10,7 +10,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest(`Error creating ${req.body.objectName} on salesforce`));
+        return next(Boom.badRequest(`Error creating ${req.body.objectName} on salesforce`));
       });
 
     const rets = await conn.sobject(req.body.objectName).create([req.body.sfProperties]);
@@ -34,7 +34,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest(`Error updating ${req.body.objectName} on salesforce`));
+        return next(Boom.badRequest(`Error updating ${req.body.objectName} on salesforce`));
       });
 
     const rets = await conn.sobject(req.body.objectName).update([req.body.sfProperties]);
@@ -60,7 +60,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating account on salesforce!'));
+        return next(Boom.badRequest('Error creating account on salesforce!'));
       });
 
     const name = `${req.body.firstName} ${req.body.lastName}`;
@@ -145,7 +145,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating home account on salesforce!'));
+        return next(Boom.badRequest('Error creating home account on salesforce!'));
       });
 
     const name = `${req.body.firstName} ${req.body.lastName}`;
@@ -232,7 +232,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating insured on salesforce!'));
+        return next(Boom.badRequest('Error creating insured on salesforce!'));
       });
 
     const name = `${req.body.applicantGivenName} ${req.body.applicantSurname}`;
@@ -294,7 +294,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating home insured on salesforce!'));
+        return next(Boom.badRequest('Error creating home insured on salesforce!'));
       });
 
     const name = `${req.body.firstName} ${req.body.lastName}`;
@@ -356,7 +356,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating vehicle on salesforce!'));
+        return next(Boom.badRequest('Error creating vehicle on salesforce!'));
       });
 
     const vehicle = `${req.body.vehicleModelYear} ${req.body.vehicleManufacturer} ${req.body.vehicleModel}`;
@@ -395,7 +395,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating property on salesforce!'));
+        return next(Boom.badRequest('Error creating property on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -498,7 +498,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error creating violation on salesforce!'));
+        return next(Boom.badRequest('Error creating violation on salesforce!'));
       });
 
     const name = (req.body.applicantGivenName && req.body.applicantSurname) ? `${req.body.applicantGivenName} ${req.body.applicantSurname}` : '';
@@ -540,7 +540,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating account on salesforce!'));
+        return next(Boom.badRequest('Error updating account on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -645,7 +645,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating property account on salesforce!'));
+        return next(Boom.badRequest('Error updating property account on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -737,7 +737,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating vehicle on salesforce!'));
+        return next(Boom.badRequest('Error updating vehicle on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -819,7 +819,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating property on salesforce!'));
+        return next(Boom.badRequest('Error updating property on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -951,7 +951,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating insured on salesforce!'));
+        return next(Boom.badRequest('Error updating insured on salesforce!'));
       });
 
     const returnExists = (value) => {
@@ -1026,7 +1026,7 @@ module.exports = {
     });
     await conn.login(username, (`${password} ${salesforceAT}`))
       .catch(() => {
-        throw next(Boom.badRequest('Error updating home insured on salesforce!'));
+        return next(Boom.badRequest('Error updating home insured on salesforce!'));
       });
 
     const returnExists = (value) => {
