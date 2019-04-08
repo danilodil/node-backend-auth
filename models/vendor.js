@@ -18,6 +18,12 @@ const Vendor = sequelize.define('Vendor', {
   salesforceAT: {
     type: DataTypes.STRING,
   },
+  state: {
+    type: DataTypes.STRING
+  },
+  carrier: {
+    type: DataTypes.STRING
+  }
 });
 
 module.exports = Vendor;

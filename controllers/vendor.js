@@ -10,12 +10,18 @@ module.exports = {
         return next(Boom.badRequest('Please send proper data!'));
       }
 
-      const vendor = await vendorModel.findOne({
-        where: {
-          companyId: params.companyId,
-          vendorName: params.vendorName,
-        },
-      });
+      let findObject = {where: {}};
+
+      findObject.where['companyId'] = params.companyId;
+      findObject.where['vendorName'] = params.vendorName;
+
+      if (params.vendorName === 'RATER') {
+        findObject.where['state'] = params.state;
+        findObject.where['carrier'] = params.carrier;
+      }
+
+      const vendor = await vendorModel.findOne(findObject);
+      
       if (vendor) {
         return next(Boom.badRequest('Vendor already exists!'));
       }
@@ -25,6 +31,8 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
+        state: params.state,
+        carrier: params.carrier
       });
 
       req.session.data = {
