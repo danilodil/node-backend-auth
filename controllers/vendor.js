@@ -25,6 +25,7 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
+        salesforceAT: params.vendorName === 'SF' ? params.salesforceAT : '',
       });
 
       req.session.data = {
