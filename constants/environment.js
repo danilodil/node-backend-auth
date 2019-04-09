@@ -9,3 +9,8 @@ exports.DBHOST = process.env.DBHOST;
 exports.DBPORT = process.env.DBPORT;
 exports.DBUSERNAME = process.env.DBUSERNAME;
 exports.DBPASSWORD = process.env.DBPASSWORD;
+
+exports.RADISHOST = process.env.RADISHOST;
+exports.RADISPORT = process.env.RADISPORT;
+exports.RADISPASSWORD = process.env.RADISPASSWORD;
+exports.RADISDB = process.env.RADISDB;
