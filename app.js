@@ -6,9 +6,14 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const session = require('express-session');
+const redis = require("redis");
+const RedisStore = require('connect-redis')(session);
+
+const client = redis.createClient();
 
 const appConfig = require('./lib/appConfig');
 const appConstant = require('./constants/appConstant');
+const { REDIS } = require('./constants/configConstants');
 
 const index = require('./routes/index');
 
@@ -39,6 +44,7 @@ app.use((req, res, next) => {
 
 // Handle request
 app.use(session({
+  store: new RedisStore({ host: REDIS.host, port: REDIS.port, client: client }),
   secret: 'secret',
   saveUninitialized: false, // don't create session until something stored,
   resave: false, // don't save session if unmodified
