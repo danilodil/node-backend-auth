@@ -1,5 +1,7 @@
 # compiled output
 /dist
+.vscode/
+.vscode
 
 # dependencies
 node_modules/
