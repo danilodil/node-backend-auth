@@ -9,3 +9,4 @@ exports.DBHOST = process.env.DBHOST;
 exports.DBPORT = process.env.DBPORT;
 exports.DBUSERNAME = process.env.DBUSERNAME;
 exports.DBPASSWORD = process.env.DBPASSWORD;
+exports.DBURL = process.env.DATABASE_URL
