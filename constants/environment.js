@@ -10,10 +10,3 @@ exports.DBPORT = process.env.DBPORT;
 exports.DBUSERNAME = process.env.DBUSERNAME;
 exports.DBPASSWORD = process.env.DBPASSWORD;
 exports.DBURL = process.env.DATABASE_URL
-
-exports.REDISHOST = process.env.REDISHOST;
-exports.REDISPORT = process.env.REDISPORT;
-exports.REDISPASSWORD = process.env.REDISPASSWORD;
-exports.REDISDB = process.env.REDISDB;
-exports.REDIS_URL = process.env.REDIS_URL;
-
