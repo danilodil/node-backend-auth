@@ -8,22 +8,21 @@ const logger = require('morgan');
 const session = require('express-session');
 const redis = require("redis");
 const RedisStore = require('connect-redis')(session);
-const CONFIG_CONSTANTS = require('./constants/configConstants');
 
-const client;
-const store;
+const appConfig = require('./lib/appConfig');
+const appConstant = require('./constants/appConstant');
+const { REDIS } = require('./constants/configConstants');
 
-if (CONFIG_CONSTANTS.REDIS.url) {
-  client = redis.createClient(CONFIG_CONSTANTS.REDIS.url);
+let client;
+let store;
+
+if (REDIS.url) {
+  client = redis.createClient(REDIS.url);
   store = new RedisStore({ url: REDIS.url, client: client });
 } else {
   client = redis.createClient();
   store = new RedisStore({ host: REDIS.host, port: REDIS.port, client: client });
 }
-
-const appConfig = require('./lib/appConfig');
-const appConstant = require('./constants/appConstant');
-const { REDIS } = require('./constants/configConstants');
 
 const index = require('./routes/index');
 

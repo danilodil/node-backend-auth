@@ -5,7 +5,7 @@ const appConstant = require('../constants/appConstant').ezLynx;
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser({ attrkey: "ATTR" });
 const base64 = require('base-64');
-const jsonxml = require('json2xml');
+const jsonxml = require('jsontoxml');
 const format = require('xml-formatter');
 
 module.exports = {
@@ -222,11 +222,11 @@ module.exports = {
         "GeneralInfo": {
            "RatingStateCode": "GA"
         }
-     };
+      };
       const { username } = req.body.decoded_vendor;
 
     //   const data = jsonxml(req.body.applicant);
-    console.log(req.body.Contact);
+    
       const data = jsonxml(req.body.Contact);
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="../assets/ezlynx-validation/ezlynxautoV200.xsd" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">` ;
@@ -262,6 +262,7 @@ module.exports = {
       };
       return next();
     } catch (error) {
+       console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
