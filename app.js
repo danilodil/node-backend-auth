@@ -6,23 +6,15 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const session = require('express-session');
-const redis = require("redis");
-const RedisStore = require('connect-redis')(session);
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const appConfig = require('./lib/appConfig');
 const appConstant = require('./constants/appConstant');
-const { REDIS } = require('./constants/configConstants');
+const { sequelize } = require('./lib/db');
 
-let client;
-let store;
-
-if (REDIS.url) {
-  client = redis.createClient(REDIS.url);
-  store = new RedisStore({ url: REDIS.url, client: client });
-} else {
-  client = redis.createClient();
-  store = new RedisStore({ host: REDIS.host, port: REDIS.port, client: client });
-}
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+});
 
 const index = require('./routes/index');
 
@@ -53,7 +45,7 @@ app.use((req, res, next) => {
 
 // Handle request
 app.use(session({
-  store: store,
+  store: sessionStore,
   secret: 'secret',
   saveUninitialized: false, // don't create session until something stored,
   resave: false, // don't save session if unmodified
