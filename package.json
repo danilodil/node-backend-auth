@@ -15,7 +15,7 @@
     "boom": "^7.3.0",
     "client-oauth2": "^4.2.3",
     "compression": "^1.7.4",
-    "connect-pg-simple": "^5.0.0",
+    "connect-session-sequelize": "^6.0.0",
     "cookie-parser": "^1.4.4",
     "debug": "^4.1.1",
     "dotenv": "^7.0.0",
