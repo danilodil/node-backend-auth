@@ -6,23 +6,15 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const session = require('express-session');
-const PgSessionStore = require('connect-pg-simple')(session);
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const appConfig = require('./lib/appConfig');
 const appConstant = require('./constants/appConstant');
-const { CONFIG } = require('./constants/configConstants');
+const { sequelize } = require('./lib/db');
 
-let pgStore;
-
-if (CONFIG.dbUrl) {
-  pgStore = new PgSessionStore({
-    conString: CONFIG.dbUrl,
-  });
-} else {
-  pgStore = new PgSessionStore({
-    conString: `pg://${CONFIG.dbUserName}:${CONFIG.dbPassword}@${CONFIG.dbHost}/${CONFIG.dbName}`,
-  });
-}
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+});
 
 const index = require('./routes/index');
 
@@ -53,7 +45,7 @@ app.use((req, res, next) => {
 
 // Handle request
 app.use(session({
-  store: pgStore,
+  store: sessionStore,
   secret: 'secret',
   saveUninitialized: false, // don't create session until something stored,
   resave: false, // don't save session if unmodified
