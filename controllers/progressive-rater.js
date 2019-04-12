@@ -841,7 +841,6 @@ module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      console.log('On login');
       const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
@@ -852,7 +851,6 @@ module.exports = {
       await page.type('#user1', username);
       await page.type('#password1', password);
 
-      // click and wait for navigation
       await page.click('#image1');
       await page.waitForNavigation({ timeout: 0 });
 
@@ -865,7 +863,6 @@ module.exports = {
 
         console.log(JSON.stringify(objArr[i].results))
       }
-
 
       //check for key value of input data
       function checkKeyVal(pathElm, objInp) {
@@ -911,7 +908,7 @@ module.exports = {
           }
         }
 
-        await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' }); // wait until page load
+        await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
         await page.waitForSelector('#QuoteStateList');
         await page.select('#QuoteStateList', 'DE');
         await page.select('#Prds', 'AU');
@@ -956,10 +953,7 @@ module.exports = {
           await pageQuote.type(populatedData['mailingAddress'].element, populatedData['mailingAddress'].value);
           await pageQuote.type(populatedData['city'].element, populatedData['city'].value);
 
-
-          //For selecting a state 
           var states = await pageQuote.evaluate(getSelctVal, `${populatedData['state'].element}>option`);
-          // let state = populatedData['state'].value;
           const state = await pageQuote.evaluate(getValToSelect, states, populatedData['state'].value);
           await pageQuote.select(populatedData['state'].element, state);
 
@@ -967,7 +961,6 @@ module.exports = {
           await pageQuote.type(populatedData['zipCode'].element, populatedData['zipCode'].value, { delay: 200 });
 
           var len_of_res_insd = await pageQuote.evaluate(getSelctVal, `${populatedData['lengthAtAddress'].element}>option`);
-          // var len_of_res = populatedData['lengthAtAddress'].value;
           const len_of_res = await pageQuote.evaluate(getValToSelect, len_of_res_insd, populatedData['lengthAtAddress'].value);
 
           await pageQuote.click(populatedData['lengthAtAddress'].element);
@@ -975,13 +968,11 @@ module.exports = {
           await pageQuote.waitFor(1000);
 
           var prir_ins_ind = await pageQuote.evaluate(getSelctVal, `${populatedData['priorInsurance'].element}>option`);
-          // var prir_ins = populatedData['priorInsurance'].value;
           const prir_ins = await pageQuote.evaluate(getValToSelect, prir_ins_ind, populatedData['priorInsurance'].value);
           await pageQuote.select(populatedData['priorInsurance'].element, prir_ins);
 
           await pageQuote.waitFor(1000);
           var curr_ins_co_cd_dsply = await pageQuote.evaluate(getSelctVal, `${populatedData['priorInsuranceCarrier'].element}>option`);
-          // var curr_ins_co_cd = populatedData['priorInsuranceCarrier'].value;
           const curr_ins_co_cd = await pageQuote.evaluate(getValToSelect, curr_ins_co_cd_dsply, populatedData['priorInsuranceCarrier'].value);
           await pageQuote.select(populatedData['priorInsuranceCarrier'].element, curr_ins_co_cd);
 
@@ -990,12 +981,12 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await vehicleStep(browser, pageQuote, dataObject, populatedData);
         } catch (err) {
-          console.log('err >>> ', err);
-          let response = { error: 'there is some error validations at namedInsuredStep' };
-          dataObject.results = {};
-          dataObject.results.status = false;
-          dataObject.results.response = response;
-          console.log(dataObject, 'final data');
+          console.log('err namedInsuredStep:', err);
+          let response = { error: 'There is some error validations at namedInsuredStep' };
+          dataObject.results = {
+            status: false,
+            response: response
+          };
         }
 
       }
@@ -1009,7 +1000,6 @@ module.exports = {
           await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
 
           var model_years = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleYear${j}`].element}>option`);
-          // var model_year = populatedData[`vehicleYear${j}`].value;
           const model_year = await pageQuote.evaluate(getValToSelect, model_years, populatedData[`vehicleYear${j}`].value);
           await pageQuote.select(populatedData[`vehicleYear${j}`].element, model_year);
 
@@ -1017,19 +1007,16 @@ module.exports = {
 
           await pageQuote.waitFor(1500);
           var vehicles_make = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleMake${j}`].element}>option`);
-          // var vehicle_make = populatedData[`vehicleMake${j}`].value;
           const vehicle_make = await pageQuote.evaluate(getValToSelect, vehicles_make, populatedData[`vehicleMake${j}`].value);
           await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicle_make);
 
           await pageQuote.waitFor(1500);
           var veh_mdl_names = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleModel${j}`].element}>option`);
-          // var veh_mdl_name = populatedData[`vehicleModel${j}`].value;
           const veh_mdl_name = await pageQuote.evaluate(getValToSelect, veh_mdl_names, populatedData[`vehicleModel${j}`].value);
           await pageQuote.select(populatedData[`vehicleModel${j}`].element, veh_mdl_name);
 
           await pageQuote.waitFor(1500);
           var veh_styles = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleBody${j}`].element}>option`);
-          // var veh_style = populatedData[`vehicleBody${j}`].value;
           const veh_style = await pageQuote.evaluate(getValToSelect, veh_styles, populatedData[`vehicleBody${j}`].value);
           await pageQuote.select(populatedData[`vehicleBody${j}`].element, veh_style);
 
@@ -1037,12 +1024,10 @@ module.exports = {
           await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value, { delay: 100 });
 
           var veh_len_of_owns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
-          // var veh_len_of_own = populatedData[`vehicleLengthOfOwnership${j}`].value;
           const veh_len_of_own = await pageQuote.evaluate(getValToSelect, veh_len_of_owns, populatedData[`vehicleLengthOfOwnership${j}`].value);
           await pageQuote.select(populatedData[`vehicleLengthOfOwnership${j}`].element, veh_len_of_own);
 
           var veh_uses = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
-          // var veh_use = populatedData[`vehiclePrimaryUse${j}`].value;
           const veh_use = await pageQuote.evaluate(getValToSelect, veh_uses, populatedData[`vehiclePrimaryUse${j}`].value);
           await pageQuote.select(populatedData[`vehiclePrimaryUse${j}`].element, veh_use);
           await pageQuote.select(populatedData[`vehicleCrossSell${j}`].element, populatedData[`vehicleCrossSell${j}`].value);
@@ -1054,12 +1039,12 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await driverStep(browser, pageQuote, dataObject, populatedData);
         } catch (err) {
-          console.log('err 2 >', err);
-          let response = { error: 'there is some error validations at vehicleStep' };
-          dataObject.results = {};
-          dataObject.results.status = false;
-          dataObject.results.response = response;
-          console.log(dataObject, 'final data');
+          console.log('err vehicleStep:', err);
+          let response = { error: 'There is some error validations at vehicleStep' };
+          dataObject.results = {
+            status: false,
+            response: response
+          };
         }
       }
 
@@ -1080,19 +1065,16 @@ module.exports = {
           await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_lst_nam')).value = text; }, "");
           await pageQuote.type("input[name='DRV.0.drvr_lst_nam']", driver_lastName, { preselect: true });
 
-          // var dob = populatedData[`driverDateOfBirth${j}`].value;
           await pageQuote.type(populatedData[`driverDateOfBirth${j}`].element, populatedData[`driverDateOfBirth${j}`].value, { delay: 100 });
           await pageQuote.waitFor(600);
 
           var genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
-          // var gender = populatedData[`driverGender${j}`].value;
           const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
           await pageQuote.waitFor(600);
           await pageQuote.click(populatedData[`driverGender${j}`].element);
           await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
 
           var maritalStatus_s = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-          // var maritalStatus = populatedData[`driverMaritalStatus${j}`].value;
           const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatus_s, populatedData[`driverMaritalStatus${j}`].value);
           await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
@@ -1101,7 +1083,6 @@ module.exports = {
           await pageQuote.waitFor(600);
 
           var drvr_years_lics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
-          // var drvr_years_lic = populatedData[`driverYearsLicensed${j}`].value;
           const drvr_years_lic = await pageQuote.evaluate(getValToSelect, drvr_years_lics, populatedData[`driverYearsLicensed${j}`].value);
           await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element);
           await pageQuote.waitFor(600);
@@ -1112,14 +1093,12 @@ module.exports = {
 
           await pageQuote.waitFor(600);
           var drvr_empl_stats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-          // var drvr_empl_stat = populatedData[`driverEmployment${j}`].value;
           const drvr_empl_stat = await pageQuote.evaluate(getValToSelect, drvr_empl_stats, populatedData[`driverEmployment${j}`].value);
           await pageQuote.click(populatedData[`driverEmployment${j}`].element);
           await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvr_empl_stat);
           await pageQuote.waitFor(600);
 
           var drvr_ed_lvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
-          // var drvr_ed_lvl = populatedData[`driverEducation${j}`].value;
           const drvr_ed_lvl = await pageQuote.evaluate(getValToSelect, drvr_ed_lvls, populatedData[`driverEducation${j}`].value);
           await pageQuote.select(populatedData[`driverEducation${j}`].element, drvr_ed_lvl);
 
@@ -1128,7 +1107,6 @@ module.exports = {
           await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
           await pageQuote.waitFor(600);
 
-          await pageQuote.waitFor(600);
           await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
           await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
           await pageQuote.waitFor(600);
@@ -1144,19 +1122,16 @@ module.exports = {
             await pageQuote.type("input[name='DRV.1.drvr_lst_nam']", driver_lastName, { preselect: true });
 
             await pageQuote.waitFor(1500);
-            // var dob = populatedData[`driverDateOfBirth${j}`].value;
             await pageQuote.click(populatedData[`driverDateOfBirth${j}`].element);
             await pageQuote.type(populatedData[`driverDateOfBirth${j}`].element, populatedData[`driverDateOfBirth${j}`].value, { delay: 100 });
             await pageQuote.waitFor(1500);
 
             await pageQuote.waitFor(1500);
-            // var dob = populatedData[`driverDateOfBirth${j - 1}`].value;
             await pageQuote.click(populatedData[`driverDateOfBirth${j - 1}`].element);
             await pageQuote.type(populatedData[`driverDateOfBirth${j - 1}`].element, populatedData[`driverDateOfBirth${j - 1}`].value, { delay: 100 });
             await pageQuote.waitFor(1500);
 
             var genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
-            // var gender = populatedData[`driverGender${j}`].value;
             const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
             await pageQuote.waitFor(1500);
             await pageQuote.click(populatedData[`driverGender${j}`].element);
@@ -1164,7 +1139,6 @@ module.exports = {
 
 
             var maritalStatus_s = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-            // var maritalStatus = populatedData[`driverMaritalStatus${j}`].value;
             const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatus_s, populatedData[`driverMaritalStatus${j}`].value);
             await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
@@ -1173,7 +1147,6 @@ module.exports = {
 
             await pageQuote.waitFor(1500);
             var drvr_years_lics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
-            // var drvr_years_lic = populatedData[`driverYearsLicensed${j}`].value;
             const drvr_years_lic = await pageQuote.evaluate(getValToSelect, drvr_years_lics, populatedData[`driverYearsLicensed${j}`].value);
             await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element);
             await pageQuote.waitFor(1500);
@@ -1184,14 +1157,12 @@ module.exports = {
 
             await pageQuote.waitFor(1500);
             var drvr_empl_stats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-            // var drvr_empl_stat = populatedData[`driverEmployment${j}`].value;
             const drvr_empl_stat = await pageQuote.evaluate(getValToSelect, drvr_empl_stats, populatedData[`driverEmployment${j}`].value);
             await pageQuote.click(populatedData[`driverEmployment${j}`].element);
             await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvr_empl_stat);
             await pageQuote.waitFor(1500);
 
             var drvr_ed_lvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
-            // var drvr_ed_lvl = populatedData[`driverEducation${j}`].value;
             const drvr_ed_lvl = await pageQuote.evaluate(getValToSelect, drvr_ed_lvls, populatedData[`driverEducation${j}`].value);
             await pageQuote.select(populatedData[`driverEducation${j}`].element, drvr_ed_lvl);
 
@@ -1200,7 +1171,6 @@ module.exports = {
             await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
             await pageQuote.waitFor(500);
 
-            await pageQuote.waitFor(500);
             await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
             await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
             await pageQuote.waitFor(500);
@@ -1210,12 +1180,12 @@ module.exports = {
           await violationStep(browser, pageQuote, dataObject, populatedData);
 
         } catch (err) {
-          console.log('err 3 >> ', err);
-          let response = { error: 'there is some error validations at driverStep' };
-          dataObject.results = {};
-          dataObject.results.status = false;
-          dataObject.results.response = response;
-          console.log(dataObject, 'final data');
+          console.log('err driverStep:', err);
+          let response = { error: 'There is some error validations at driverStep' };
+          dataObject.results = {
+            status: false,
+            response: response
+          };
         }
       }
 
@@ -1228,7 +1198,6 @@ module.exports = {
           await pageQuote.waitForSelector(populatedData['priorIncident'].element);
 
           var drvr_viol_cdS = await pageQuote.evaluate(getSelctVal, `${populatedData['priorIncident'].element}>option`);
-          // var drvr_viol_cd = populatedData['priorIncident'].value;
           const drvr_viol_cd = await pageQuote.evaluate(getValToSelect, drvr_viol_cdS, populatedData['priorIncident'].value);
           await pageQuote.select(populatedData['priorIncident'].element, drvr_viol_cd);
 
@@ -1238,7 +1207,6 @@ module.exports = {
 
           if (await pageQuote.$(populatedData['priorIncident1'].element) !== null) {
             await pageQuote.select(populatedData['priorIncident1'].element, drvr_viol_cd);
-
             await pageQuote.click(populatedData['priorIncidentDate1'].element);
             await pageQuote.type(populatedData['priorIncidentDate1'].element, prior_incident_date, { delay: 100 });
           }
@@ -1246,12 +1214,12 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await underwritingStep(browser, pageQuote, dataObject, populatedData);
         } catch (err) {
-          console.log('err 4 >>', err);
-          let response = { error: 'there is some error validations at violationStep' }
-          dataObject.results = {};
-          dataObject.results.status = false;
-          dataObject.results.response = response;
-          console.log(dataObject, 'final data');
+          console.log('err violationStep', err);
+          let response = { error: 'There is some error validations at violationStep' }
+          dataObject.results = {
+            status: false,
+            response: response
+          };
         }
       }
 
@@ -1267,7 +1235,6 @@ module.exports = {
           await pageQuote.select(populatedData['priorBiLimits'].element, populatedData['priorBiLimits'].value);
           await pageQuote.waitFor(1500);
 
-          // await pageQuote.waitFor(1500);
           await pageQuote.click(populatedData['priorPolicyTerminationDate'].element);
           await pageQuote.type(populatedData['priorPolicyTerminationDate'].element, populatedData['priorPolicyTerminationDate'].value, { delay: 200 });
 
@@ -1280,23 +1247,20 @@ module.exports = {
           await pageQuote.select(populatedData['rentersLimits'].element, populatedData['rentersLimits'].value);
           await pageQuote.waitFor(1500);
           await pageQuote.select(populatedData['haveAnotherProgressivePolicy'].element, populatedData['haveAnotherProgressivePolicy'].value);
-
-          // var policy_effective_date = populatedData['policyEffectiveDate'].value;
           await pageQuote.waitFor(1500);
-
-
-          await pageQuote.waitFor(1000);
+       
           await pageQuote.click(populatedData['policyEffectiveDate'].element);
           await pageQuote.type(populatedData['policyEffectiveDate'].element, populatedData['policyEffectiveDate'].value, { delay: 200 });
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await FormStep6(browser, pageQuote, dataObject);
         } catch (err) {
-          console.log('err 5 >> ', err);
-          let response = { error: 'there is some error validations at underwritingStep' }
-          dataObject.results.status = false;
-          dataObject.results.response = response;
-          console.log(dataObject, 'final data');
+          console.log('err underwritingStep ', err);
+          let response = { error: 'There is some error validations at underwritingStep' }
+          dataObject.results = {
+            status: false,
+            response: response
+          }
         }
       }
 
@@ -1307,8 +1271,6 @@ module.exports = {
         await FormStep6point1(browser, pageQuote, dataObject);
       }
 
-
-      //Collect final result values
       async function FormStep6point1(browser, pageQuote, dataObject) {
         console.log('FormStep6point1');
         dismissDialog(pageQuote);
@@ -1323,11 +1285,12 @@ module.exports = {
             await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
             await finalOutputFromAnotherPage(browser, pageQuote, dataObject);
           } catch (e) {
-            console.log('err 6.1 >> ', e);
-            let response = { error: 'there is some error validations' }
-            dataObject.results.status = false;
-            dataObject.results.response = response;
-            console.log(dataObject, 'final data');
+            console.log('err FormStep6point1:', e);
+            let response = { error: 'There is some error validations' }
+            dataObject.results = {
+              status : false,
+              response: response
+            }
           }
         }
       }
@@ -1357,10 +1320,10 @@ module.exports = {
           return ress;
         });
 
-        dataObject.results = {};
-
-        dataObject.results.status = true;
-        dataObject.results.response = down_payment;
+        dataObject.results = {
+          status: true,
+          response: down_payment
+        };
       }
 
       async function finalStep(browser, pageQuote) {
@@ -1382,7 +1345,6 @@ module.exports = {
 
         await pageQuote.click('#tot_pol_prem-button');
 
-
         let down_payment = await pageQuote.evaluate(() => {
           let ress = {};
 
@@ -1395,18 +1357,15 @@ module.exports = {
         });
 
         dataObject.results = {};
-
         dataObject.results.status = true;
         dataObject.results.response = down_payment;
         console.log(dataObject, 'final data');
       }
 
-
       //For dimiss alert dialog
       function dismissDialog(page) {
         try {
           page.on('dialog', async dialog => {
-            console.log(dialog.message());
             await dialog.dismiss();
             await browser.close();
           });
@@ -1436,7 +1395,6 @@ module.exports = {
 
         return selected;
       }
-
 
       // Request Body
       function requestBody() {
@@ -1830,7 +1788,6 @@ module.exports = {
       }
       req.session.data = {
         title: "Progressive DE Rate Retrieved Successfully",
-        // obj: dataObject.results.response
         obj: objArr,
       };
 
