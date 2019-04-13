@@ -844,57 +844,92 @@ module.exports = {
       const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
-      //For login
-      await page.setViewport({ width: 1200, height: 720 })
-      await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
-      await page.waitForSelector('#user1');
-      await page.type('#user1', username);
-      await page.type('#password1', password);
-
-      await page.click('#image1');
-      await page.waitForNavigation({ timeout: 0 });
-
       //Request input data    
-      let objArr = requestBody();
-
-      for (var i in objArr) {
-        const populatedData = populateKeyValueData(objArr[i]);
-        await newQuoteStep(browser, page, objArr[i], populatedData);
-
-        console.log(JSON.stringify(objArr[i].results))
-      }
-
-      //check for key value of input data
-      function checkKeyVal(pathElm, objInp) {
-        if (typeof pathElm == 'string') {
-          pathElm = pathElm.split("$");
-        }
-
-        var output = '';
-        if (parseInt(pathElm[0]) == pathElm[0]) {
-          if (pathElm.length > 1) {
-            subPath = pathElm.slice(1);
-            output = checkKeyVal(subPath, objInp[pathElm[0]]);
-          } else {
-            output = objInp[parseInt(pathElm[0])];
+      const data = {
+        firstName: "Test",
+        lastName: "User",
+        dateOfBirth: "12/16/1993",
+        email: "test@mail.com",
+        phone: "302-222-5555",
+        mailingAddress: "216 Humphreys Dr",
+        city: "Dover",
+        state: "Delaware",
+        zipCode: "19934",
+        lengthAtAddress: "1 year or more",
+        priorInsurance: "Yes",
+        priorInsuranceCarrier: "USAA",
+        // must always agree to closure
+        vehicles: [
+          {
+            // Vehicle Type will always be 1981 or newer
+            vehicleVin: "1FTSF30L61EC23425",
+            year: "2015",
+            make: "FORD",
+            model: "F350",
+            body: "EXT CAB (8CYL 4x2)",
+            zipCode: "19934",
+            lengthOfOwnership: "At least 1 year but less than 3 years",
+            primaryUse: "Commute",
+          },
+          {
+            vehicleVin: "KMHDH6AE1DU001708",
+            year: "2013",
+            make: "HYUNDAI",
+            model: "ELANTRA",
+            body: "2DR 4CYL",
+            zipCode: "19934",
+            lengthOfOwnership: "5 years or more",
+            primaryUse: "Commute",
           }
-        } else if (typeof objInp == 'object') {
-          if (objInp.hasOwnProperty(pathElm[0])) {
-            if (pathElm.length > 1) {
-              subPath = pathElm.slice(1);
-              output = checkKeyVal(subPath, objInp[pathElm[0]]);
-            } else {
-              output = objInp[pathElm[0]];
-            }
+        ],
+        drivers: [
+          {
+            firstName: "Test",
+            lastName: "User",
+            dateOfBirth: "12/16/1993",
+            gender: "Male",
+            maritalStatus: "Married",
+            yearsLicensed: "3 years or more",
+            employment: "Student (full-time)",
+            education: "College Degree",
+          },
+          {
+            firstName: "Tester",
+            lastName: "User",
+            dateOfBirth: "12/18/1993",
+            gender: "Female",
+            maritalStatus: "Married",
+            yearsLicensed: "3 years or more",
+            employment: "Student (full-time)",
+            education: "College Degree",
           }
-        }
+        ],
+        priorIncident: "AAD - At Fault Accident",
+        priorIncidentDate: "12/16/2012",
+        policyEffectiveDate: "01/01/2018",
+        priorPolicyTerminationDate: "03/15/2019",
+        yearsWithPriorInsurance: "5 years or more",
+        ownOrRentPrimaryResidence: "Rent",
+        numberOfResidentsInHome: "3",
+        rentersLimits: "Greater Than 300,000",
+        haveAnotherProgressivePolicy: "No"
+      };
+      let objArr = data;
 
-        if (output == undefined) {
-          output = '';
-        }
+      //For login
+      await loginStep(browser, page);
 
-        return output;
+      // For Login
+      async function loginStep(browser, page) {
+        await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+        await page.waitForSelector('#user1');
+        await page.type('#user1', username);
+        await page.type('#password1', password);
 
+        await page.click('#image1');
+        await page.waitForNavigation({ timeout: 0 });
+        const populatedData = populateKeyValueData(objArr);
+        await newQuoteStep(browser, page, objArr, populatedData);
       }
 
       //For redirect to new quoate form
@@ -909,9 +944,9 @@ module.exports = {
         }
 
         await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-        await page.waitForSelector('#QuoteStateList');
-        await page.select('#QuoteStateList', 'DE');
-        await page.select('#Prds', 'AU');
+        await page.waitForSelector(populatedData['newQuoteState'].element);
+        await page.select(populatedData['newQuoteState'].element, populatedData['newQuoteState'].value);
+        await page.select(populatedData['newQuoteProduct'].element, populatedData['newQuoteProduct'].value);
 
         await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
 
@@ -991,51 +1026,72 @@ module.exports = {
 
       }
 
+      //For Add Multiple Vehicles 
+      async function addMoreVehicles(browser, pageQuote, dataObject, populatedData) {
+        for (let j in dataObject.vehicles) {
+          console.log('on j > ', j);
+          if (j < dataObject.vehicles.length - 1) {
+            console.log('in j > ', j);
+            const addElement = await pageQuote.$('[id="VEH.0.add"]');
+            await addElement.click();
+            await pageQuote.waitFor(5000);
+          }
+        }
+      }
+
       //For Vehicles Form  	
       async function vehicleStep(browser, pageQuote, dataObject, populatedData) {
         console.log('vehicleStep');
-        const j = 0;
         try {
           await pageQuote.waitFor(2000);
-          await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
+          for (let j in dataObject.vehicles) {
+            if (j < dataObject.vehicles.length - 1) {
+              const addElement = await pageQuote.$('[id="VEH.0.add"]');
+              await addElement.click();
+              await pageQuote.waitFor(1000);
+            }
+          }
 
-          var model_years = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleYear${j}`].element}>option`);
-          const model_year = await pageQuote.evaluate(getValToSelect, model_years, populatedData[`vehicleYear${j}`].value);
-          await pageQuote.select(populatedData[`vehicleYear${j}`].element, model_year);
+          for (let j in dataObject.vehicles) {
+            await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
+            var model_years = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleYear${j}`].element}>option`);
+            const model_year = await pageQuote.evaluate(getValToSelect, model_years, populatedData[`vehicleYear${j}`].value);
+            await pageQuote.select(populatedData[`vehicleYear${j}`].element, model_year);
 
-          dismissDialog(pageQuote);
+            dismissDialog(pageQuote);
 
-          await pageQuote.waitFor(1500);
-          var vehicles_make = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleMake${j}`].element}>option`);
-          const vehicle_make = await pageQuote.evaluate(getValToSelect, vehicles_make, populatedData[`vehicleMake${j}`].value);
-          await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicle_make);
+            await pageQuote.waitFor(1500);
+            var vehicles_make = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleMake${j}`].element}>option`);
+            const vehicle_make = await pageQuote.evaluate(getValToSelect, vehicles_make, populatedData[`vehicleMake${j}`].value);
+            await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicle_make);
 
-          await pageQuote.waitFor(1500);
-          var veh_mdl_names = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleModel${j}`].element}>option`);
-          const veh_mdl_name = await pageQuote.evaluate(getValToSelect, veh_mdl_names, populatedData[`vehicleModel${j}`].value);
-          await pageQuote.select(populatedData[`vehicleModel${j}`].element, veh_mdl_name);
+            await pageQuote.waitFor(1500);
+            var veh_mdl_names = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleModel${j}`].element}>option`);
+            const veh_mdl_name = await pageQuote.evaluate(getValToSelect, veh_mdl_names, populatedData[`vehicleModel${j}`].value);
+            await pageQuote.select(populatedData[`vehicleModel${j}`].element, veh_mdl_name);
 
-          await pageQuote.waitFor(1500);
-          var veh_styles = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleBody${j}`].element}>option`);
-          const veh_style = await pageQuote.evaluate(getValToSelect, veh_styles, populatedData[`vehicleBody${j}`].value);
-          await pageQuote.select(populatedData[`vehicleBody${j}`].element, veh_style);
+            await pageQuote.waitFor(1500);
+            var veh_styles = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleBody${j}`].element}>option`);
+            const veh_style = await pageQuote.evaluate(getValToSelect, veh_styles, populatedData[`vehicleBody${j}`].value);
+            await pageQuote.select(populatedData[`vehicleBody${j}`].element, veh_style);
 
-          await pageQuote.waitFor(1500);
-          await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value, { delay: 100 });
+            await pageQuote.waitFor(1500);
+            await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value, { delay: 100 });
 
-          var veh_len_of_owns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
-          const veh_len_of_own = await pageQuote.evaluate(getValToSelect, veh_len_of_owns, populatedData[`vehicleLengthOfOwnership${j}`].value);
-          await pageQuote.select(populatedData[`vehicleLengthOfOwnership${j}`].element, veh_len_of_own);
+            var veh_len_of_owns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
+            const veh_len_of_own = await pageQuote.evaluate(getValToSelect, veh_len_of_owns, populatedData[`vehicleLengthOfOwnership${j}`].value);
+            await pageQuote.select(populatedData[`vehicleLengthOfOwnership${j}`].element, veh_len_of_own);
 
-          var veh_uses = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
-          const veh_use = await pageQuote.evaluate(getValToSelect, veh_uses, populatedData[`vehiclePrimaryUse${j}`].value);
-          await pageQuote.select(populatedData[`vehiclePrimaryUse${j}`].element, veh_use);
-          await pageQuote.select(populatedData[`vehicleCrossSell${j}`].element, populatedData[`vehicleCrossSell${j}`].value);
+            var veh_uses = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
+            const veh_use = await pageQuote.evaluate(getValToSelect, veh_uses, populatedData[`vehiclePrimaryUse${j}`].value);
+            await pageQuote.select(populatedData[`vehiclePrimaryUse${j}`].element, veh_use);
+            await pageQuote.select(populatedData[`vehicleCrossSell${j}`].element, populatedData[`vehicleCrossSell${j}`].value);
 
-          await pageQuote.waitFor(1500);
-          await pageQuote.waitForSelector(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element);
-          await pageQuote.select(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element, populatedData[`vehiclePrimaryUsedForDelivery${j}`].value);
+            await pageQuote.waitFor(1500);
+            await pageQuote.waitForSelector(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element);
+            await pageQuote.select(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element, populatedData[`vehiclePrimaryUsedForDelivery${j}`].value);
 
+          }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await driverStep(browser, pageQuote, dataObject, populatedData);
         } catch (err) {
@@ -1048,132 +1104,94 @@ module.exports = {
         }
       }
 
-      //For driver Form
+      //For driver Form      
       async function driverStep(browser, pageQuote, dataObject, populatedData) {
         console.log('driverStep');
-        let j = 0;
         try {
-          await pageQuote.waitForSelector('input[name="DRV.0.drvr_frst_nam"]');
-          // await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);		
-          await pageQuote.waitFor(600);
+          await pageQuote.waitFor(2000);
 
-          var driver_firstName = checkKeyVal('drivers$0$firstName', dataObject);
-          await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_frst_nam')).value = text; }, "");
-          await pageQuote.type("input[name='DRV.0.drvr_frst_nam']", driver_firstName, { preselect: true });
+          for (let j in dataObject.drivers) {
+            if (j < dataObject.drivers.length - 1) {
+              const addElement = await pageQuote.$('[id="DRV.0.add"]');
+              await addElement.click();
+              await pageQuote.waitFor(1000);
+            }
+          }
+          for (let j in dataObject.drivers) {
+            await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            await pageQuote.waitFor(600);
 
-          var driver_lastName = checkKeyVal('drivers$0$lastName', dataObject);
-          await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_lst_nam')).value = text; }, "");
-          await pageQuote.type("input[name='DRV.0.drvr_lst_nam']", driver_lastName, { preselect: true });
+            var driver_firstName = populatedData[`driverFirstName${j}`].value;
+            if (j === '0') {
+              await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_frst_nam')).value = text; }, "");
+            }
+            await pageQuote.type(populatedData[`driverFirstName${j}`].element, driver_firstName, { preselect: true });
 
-          await pageQuote.type(populatedData[`driverDateOfBirth${j}`].element, populatedData[`driverDateOfBirth${j}`].value, { delay: 100 });
-          await pageQuote.waitFor(600);
+            var driver_lastName = populatedData[`driverLastName${j}`].value;
+            if (j === '0') {
+              await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_lst_nam')).value = text; }, "");
+            }
+            await pageQuote.type(populatedData[`driverLastName${j}`].element, driver_lastName, { preselect: true });
 
-          var genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
-          const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
-          await pageQuote.waitFor(600);
-          await pageQuote.click(populatedData[`driverGender${j}`].element);
-          await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
-
-          var maritalStatus_s = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-          const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatus_s, populatedData[`driverMaritalStatus${j}`].value);
-          await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
-
-          await pageQuote.waitFor(600);
-          await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
-          await pageQuote.waitFor(600);
-
-          var drvr_years_lics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
-          const drvr_years_lic = await pageQuote.evaluate(getValToSelect, drvr_years_lics, populatedData[`driverYearsLicensed${j}`].value);
-          await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element);
-          await pageQuote.waitFor(600);
-          await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element, drvr_years_lic);
-          await pageQuote.waitFor(600);
-
-          await pageQuote.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
-
-          await pageQuote.waitFor(600);
-          var drvr_empl_stats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-          const drvr_empl_stat = await pageQuote.evaluate(getValToSelect, drvr_empl_stats, populatedData[`driverEmployment${j}`].value);
-          await pageQuote.click(populatedData[`driverEmployment${j}`].element);
-          await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvr_empl_stat);
-          await pageQuote.waitFor(600);
-
-          var drvr_ed_lvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
-          const drvr_ed_lvl = await pageQuote.evaluate(getValToSelect, drvr_ed_lvls, populatedData[`driverEducation${j}`].value);
-          await pageQuote.select(populatedData[`driverEducation${j}`].element, drvr_ed_lvl);
-
-          await pageQuote.waitFor(600);
-          await pageQuote.click(populatedData[`driverStateFiling${j}`].element);
-          await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
-          await pageQuote.waitFor(600);
-
-          await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
-          await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
-          await pageQuote.waitFor(600);
-
-          if (maritalStatus == 'M') {
-            j = 1;
-            var driver_firstName = checkKeyVal('drivers$1$firstName', dataObject);
-            await pageQuote.evaluate((text) => { (document.getElementById('DRV.1.drvr_frst_nam')).value = text; }, "");
-            await pageQuote.type("input[name='DRV.1.drvr_frst_nam']", driver_firstName, { preselect: true });
-
-            var driver_lastName = checkKeyVal('drivers$1$lastName', dataObject);
-            await pageQuote.evaluate((text) => { (document.getElementById('DRV.1.drvr_lst_nam')).value = text; }, "");
-            await pageQuote.type("input[name='DRV.1.drvr_lst_nam']", driver_lastName, { preselect: true });
-
-            await pageQuote.waitFor(1500);
-            await pageQuote.click(populatedData[`driverDateOfBirth${j}`].element);
             await pageQuote.type(populatedData[`driverDateOfBirth${j}`].element, populatedData[`driverDateOfBirth${j}`].value, { delay: 100 });
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
 
-            await pageQuote.waitFor(1500);
-            await pageQuote.click(populatedData[`driverDateOfBirth${j - 1}`].element);
-            await pageQuote.type(populatedData[`driverDateOfBirth${j - 1}`].element, populatedData[`driverDateOfBirth${j - 1}`].value, { delay: 100 });
-            await pageQuote.waitFor(1500);
+            if (j === '1') {
+              await pageQuote.click(populatedData[`driverDateOfBirth${j - 1}`].element);
+              await pageQuote.type(populatedData[`driverDateOfBirth${j - 1}`].element, populatedData[`driverDateOfBirth${j - 1}`].value, { delay: 100 });
+              await pageQuote.waitFor(600);
+            }
 
             var genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
             const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
             await pageQuote.click(populatedData[`driverGender${j}`].element);
             await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
-
 
             var maritalStatus_s = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
             const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatus_s, populatedData[`driverMaritalStatus${j}`].value);
             await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
+            if (populatedData[`driverRelationship${j}`]) {
+              const drvr_relationships = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverRelationship${j}`].element}>option`);
+              const drvr_relationship = await pageQuote.evaluate(getValToSelect, drvr_relationships, populatedData[`driverRelationship${j}`].value);
+              await pageQuote.select(populatedData[`driverRelationship${j}`].element);
+              await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvr_relationship);
+              await pageQuote.waitFor(600);
+            }
+
             await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
+            await pageQuote.waitFor(600);
 
-            await pageQuote.waitFor(1500);
             var drvr_years_lics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
             const drvr_years_lic = await pageQuote.evaluate(getValToSelect, drvr_years_lics, populatedData[`driverYearsLicensed${j}`].value);
             await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element);
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element, drvr_years_lic);
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
 
             await pageQuote.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
 
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
             var drvr_empl_stats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
             const drvr_empl_stat = await pageQuote.evaluate(getValToSelect, drvr_empl_stats, populatedData[`driverEmployment${j}`].value);
             await pageQuote.click(populatedData[`driverEmployment${j}`].element);
             await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvr_empl_stat);
-            await pageQuote.waitFor(1500);
+            await pageQuote.waitFor(600);
 
             var drvr_ed_lvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
             const drvr_ed_lvl = await pageQuote.evaluate(getValToSelect, drvr_ed_lvls, populatedData[`driverEducation${j}`].value);
             await pageQuote.select(populatedData[`driverEducation${j}`].element, drvr_ed_lvl);
 
-            await pageQuote.waitFor(500);
+            await pageQuote.waitFor(600);
             await pageQuote.click(populatedData[`driverStateFiling${j}`].element);
             await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
-            await pageQuote.waitFor(500);
+            await pageQuote.waitFor(600);
 
             await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
             await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
-            await pageQuote.waitFor(500);
+            await pageQuote.waitFor(600);
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
@@ -1195,20 +1213,22 @@ module.exports = {
         console.log('violationStep');
 
         try {
-          await pageQuote.waitForSelector(populatedData['priorIncident'].element);
+          await pageQuote.waitForSelector(populatedData['priorIncident0'].element);
 
-          var drvr_viol_cdS = await pageQuote.evaluate(getSelctVal, `${populatedData['priorIncident'].element}>option`);
-          const drvr_viol_cd = await pageQuote.evaluate(getValToSelect, drvr_viol_cdS, populatedData['priorIncident'].value);
-          await pageQuote.select(populatedData['priorIncident'].element, drvr_viol_cd);
+          var drvr_viol_cdS = await pageQuote.evaluate(getSelctVal, `${populatedData['priorIncident0'].element}>option`);
+          const drvr_viol_cd = await pageQuote.evaluate(getValToSelect, drvr_viol_cdS, populatedData['priorIncident0'].value);
+          // await pageQuote.select(populatedData['priorIncident0'].element, drvr_viol_cd);
 
-          var prior_incident_date = populatedData['priorIncidentDate'].value;
-          await pageQuote.click(populatedData['priorIncidentDate'].element);
-          await pageQuote.type(populatedData['priorIncidentDate'].element, prior_incident_date, { delay: 100 });
+          var prior_incident_date = populatedData['priorIncidentDate0'].value;
+          // await pageQuote.click(populatedData['priorIncidentDate0'].element);
+          // await pageQuote.type(populatedData['priorIncidentDate0'].element, prior_incident_date, { delay: 100 });
 
-          if (await pageQuote.$(populatedData['priorIncident1'].element) !== null) {
-            await pageQuote.select(populatedData['priorIncident1'].element, drvr_viol_cd);
-            await pageQuote.click(populatedData['priorIncidentDate1'].element);
-            await pageQuote.type(populatedData['priorIncidentDate1'].element, prior_incident_date, { delay: 100 });
+          for (let j in dataObject.drivers) {
+            if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
+              await pageQuote.select(populatedData[`priorIncident${j}`].element, drvr_viol_cd);
+              await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
+              await pageQuote.type(populatedData[`priorIncidentDate${j}`].element, prior_incident_date, { delay: 100 });
+            }
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
@@ -1248,7 +1268,7 @@ module.exports = {
           await pageQuote.waitFor(1500);
           await pageQuote.select(populatedData['haveAnotherProgressivePolicy'].element, populatedData['haveAnotherProgressivePolicy'].value);
           await pageQuote.waitFor(1500);
-       
+
           await pageQuote.click(populatedData['policyEffectiveDate'].element);
           await pageQuote.type(populatedData['policyEffectiveDate'].element, populatedData['policyEffectiveDate'].value, { delay: 200 });
 
@@ -1268,12 +1288,12 @@ module.exports = {
         console.log('FormStep6');
         await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         dismissDialog(pageQuote);
-        await FormStep6point1(browser, pageQuote, dataObject);
-      }
+        //   await FormStep6point1(browser, pageQuote, dataObject);
+        // }
 
-      async function FormStep6point1(browser, pageQuote, dataObject) {
-        console.log('FormStep6point1');
-        dismissDialog(pageQuote);
+        // async function FormStep6point1(browser, pageQuote, dataObject) {
+        //   console.log('FormStep6point1');
+        // dismissDialog(pageQuote);
 
         dataObject.results = {};
         try {
@@ -1283,32 +1303,32 @@ module.exports = {
         } catch (err) {
           try {
             await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
-            await finalOutputFromAnotherPage(browser, pageQuote, dataObject);
+            await processDataStep(browser, pageQuote, dataObject);
           } catch (e) {
-            console.log('err FormStep6point1:', e);
+            console.log('err FormStep6 :', e);
             let response = { error: 'There is some error validations' }
             dataObject.results = {
-              status : false,
+              status: false,
               response: response
             }
           }
         }
       }
 
-      async function finalOutputFromAnotherPage(browser, pageQuote, dataObject) {
-        console.log('finalOutputFromAnotherPage');
+      async function processDataStep(browser, pageQuote, dataObject) {
+        console.log('processDataStep');
         let down_payment = await pageQuote.evaluate(() => {
 
           let Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td')
           let ress = {};
-          ress.total_premium = Elements[2].textContent;
-          ress.down_pmt_amt = Elements[3].textContent;
-          ress.term = Elements[1].textContent;
+          ress.total_premium = Elements[2].textContent.replace(/\n/g, '').trim();
+          ress.down_pmt_amt = Elements[3].textContent.replace(/\n/g, '').trim();
+          ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
 
           let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
           while (true) {
             if (previousElement.querySelector('th')) {
-              ress.plan = previousElement.querySelector('th').textContent;
+              ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
               break;
             }
             if (previousElement.previousElementSibling.tagName == 'TR') {
@@ -1396,175 +1416,17 @@ module.exports = {
         return selected;
       }
 
-      // Request Body
-      function requestBody() {
-        let Client = [{
-          firstName: "Test",
-          lastName: "User",
-          dateOfBirth: "12/16/1993",
-          email: "test@mail.com",
-          phone: "302-222-5555",
-          mailingAddress: "216 Humphreys Dr",
-          city: "Dover",
-          state: "Delaware",
-          zipCode: "19934",
-          lengthAtAddress: "1 year or more",
-          priorInsurance: "Yes",
-          priorInsuranceCarrier: "USAA",
-          // must always agree to closure
-          vehicles: [
-            {
-              // Vehicle Type will always be 1981 or newer
-              vehicleVin: "1FTSF30L61EC23425",
-              year: "2015",
-              make: "FORD",
-              model: "F350",
-              body: "EXT CAB (8CYL 4x2)",
-              zipCode: "19934",
-              lengthOfOwnership: "At least 1 year but less than 3 years",
-              primaryUse: "Commute",
-              // Vehicle never used for transport of person for fee
-              primaryUse: "Commute",
-              // No toys to quote
-              //Need functionality for adding another vehicle
-            },
-            {
-              vehicleVin: "KMHDH6AE1DU001708",
-              year: "2013",
-              make: "HYUNDAI",
-              model: "ELANTRA",
-              body: "2DR 4CYL",
-              zipCode: "19934",
-              lengthOfOwnership: "5 years or more",
-              primaryUse: "Commute",
-              // Vehicle never used for transport of person for fee
-              primaryUse: "Commute",
-              // No toys to quote
-              //Need functionality for adding another vehicle
-            }
-          ],
-          drivers: [
-            {
-              firstName: "Test",
-              lastName: "User",
-              dateOfBirth: "12/16/1993",
-              gender: "Male",
-              maritalStatus: "Married",
-              // License status always Valid
-              yearsLicensed: "3 years or more",
-              employment: "Student (full-time)",
-              education: "College Degree",
-              // Must be able to add or fill in more drivers. Especially if the marital status is "Married" as its required to add a 2nd driver
-            },
-            {
-              firstName: "Tester",
-              lastName: "User",
-              dateOfBirth: "12/18/1993",
-              gender: "Female",
-              maritalStatus: "Married",
-              // License status always Valid
-              yearsLicensed: "3 years or more",
-              employment: "Student (full-time)",
-              education: "College Degree",
-            }
-          ],
-          priorIncident: "AAD - At Fault Accident",
-          priorIncidentDate: "12/16/2012",
-          policyEffectiveDate: "01/01/2018",
-          priorPolicyTerminationDate: "03/15/2019",
-          yearsWithPriorInsurance: "5 years or more",
-          ownOrRentPrimaryResidence: "Rent",
-          numberOfResidentsInHome: "2",
-          rentersLimits: "Greater Than 300,000",
-          haveAnotherProgressivePolicy: "No"
-          // Final task is to be able to change the Vehicle Coverages and then hit recalc next to Total Premium at bottom then retrieve new rate
-          /* }, {
-            firstName: "Test",
-            lastName: "User",
-            dateOfBirth: "12/16/1993",
-            email: "test@mail.com",
-            phone: "302-222-5555",
-            mailingAddress: "216 Humphreys Dr",
-            city: "Dover",
-            state: "Delaware",
-            zipCode: "19934",
-            lengthAtAddress: "1 year or more",
-            priorInsurance: "Yes",
-            priorInsuranceCarrier: "USAA",
-            // must always agree to closure
-            vehicles: [
-              {
-                // Vehicle Type will always be 1981 or newer
-                vehicleVin: "1FTSF30L61EC23425",
-                year: "2015",
-                make: "FORD",
-                model: "F350",
-                body: "EXT CAB (8CYL 4x2)",
-                zipCode: "19934",
-                lengthOfOwnership: "At least 1 year but less than 3 years",
-                primaryUse: "Commute",
-                // Vehicle never used for transport of person for fee
-                primaryUse: "Commute",
-                // No toys to quote
-                //Need functionality for adding another vehicle
-              },
-              {
-                vehicleVin: "KMHDH6AE1DU001708",
-                year: "2013",
-                make: "HYUNDAI",
-                model: "ELANTRA",
-                body: "2DR 4CYL",
-                zipCode: "19934",
-                lengthOfOwnership: "5 years or more",
-                primaryUse: "Commute",
-                // Vehicle never used for transport of person for fee
-                primaryUse: "Commute",
-                // No toys to quote
-                //Need functionality for adding another vehicle
-              }
-            ],
-            drivers: [
-              {
-                firstName: "Test",
-                lastName: "User",
-                dateOfBirth: "12/16/1993",
-                gender: "Male",
-                maritalStatus: "Married",
-                // License status always Valid
-                yearsLicensed: "3 years or more",
-                employment: "Student (full-time)",
-                education: "College Degree",
-                // Must be able to add or fill in more drivers. Especially if the marital status is "Married" as its required to add a 2nd driver
-              },
-              {
-                firstName: "Tester",
-                lastName: "User",
-                dateOfBirth: "12/18/1993",
-                gender: "Female",
-                maritalStatus: "Married",
-                // License status always Valid
-                yearsLicensed: "3 years or more",
-                employment: "Student (full-time)",
-                education: "College Degree",
-              }
-            ],
-            priorIncident: "AAD - At Fault Accident",
-            priorIncidentDate: "12/16/2012",
-            policyEffectiveDate: "01/01/2018",
-            priorPolicyTerminationDate: "03/15/2019",
-            yearsWithPriorInsurance: "5 years or more",
-            ownOrRentPrimaryResidence: "Rent",
-            numberOfResidentsInHome: "2",
-            rentersLimits: "Greater Than 300,000",
-            haveAnotherProgressivePolicy: "No" */
-          // Final task is to be able to change the Vehicle Coverages and then hit recalc next to Total Premium at bottom then retrieve new rate
-        }];
-
-        return Client;
-      }
-
       function populateKeyValueData(objArr) {
         const clientInputSelect = {
+          newQuoteState: {
+            element: '#QuoteStateList',
+            value: 'DE',
+          },
+          newQuoteProduct: {
+            element: '#Prds',
+            value: 'AU',
+          },
+
           firstName: {
             element: `input[name='DRV.0.drvr_frst_nam']`,
             value: objArr.firstName || '',
@@ -1626,7 +1488,7 @@ module.exports = {
             value: 'Y',
           },
 
-          priorIncident: {
+          /* priorIncident: {
             element: `select[name='DRV.0.VIO.0.drvr_viol_cd`,
             value: objArr.priorIncident || '',
           },
@@ -1641,7 +1503,7 @@ module.exports = {
           priorIncidentDate1: {
             element: `input[name="DRV.1.VIO.0.drvr_viol_dt_dsply"]`,
             value: objArr.priorIncidentDate || '',
-          },
+          }, */
 
           policyEffectiveDate: {
             element: `input[name="prir_ins_eff_dt"]`,
@@ -1730,11 +1592,11 @@ module.exports = {
         if (objArr.hasOwnProperty('drivers') && objArr.drivers.length > 0) {
           for (let j in objArr.drivers) {
             clientInputSelect[`driverFirstName${j}`] = {
-              element: `input[name='DRV.${j}.drvr_frst_nam]`,
+              element: `input[name='DRV.${j}.drvr_frst_nam']`,
               value: objArr.drivers[j].firstName || '',
             };
             clientInputSelect[`driverLastName${j}`] = {
-              element: `input[name='DRV.${j}.drvr_lst_nam]`,
+              element: `input[name='DRV.${j}.drvr_lst_nam']`,
               value: objArr.drivers[j].lastName || '',
             };
             clientInputSelect[`driverDateOfBirth${j}`] = {
@@ -1777,15 +1639,29 @@ module.exports = {
               element: `select[name='DRV.${j}.drvr_stat_dsply']`,
               value: 'R',
             };
+
+            if (objArr.drivers[j].relationship) {
+              clientInputSelect[`driverRelationship${j}`] = {
+                element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
+                value: objArr.drivers[j].relationship,
+              };
+            }
+
+            clientInputSelect[`priorIncident${j}`] = {
+              element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
+              value: objArr.priorIncident || '',
+            };
+            clientInputSelect[`priorIncidentDate${j}`] = {
+              element: `input[name="DRV.${j}.VIO.0.drvr_viol_dt_dsply"]`,
+              value: objArr.priorIncidentDate || '',
+            };
           }
         }
 
         return clientInputSelect;
       }
 
-      for (var i in objArr) {
-        console.log('final result >> ', JSON.stringify(objArr[i].results));
-      }
+      console.log('final result >> ', JSON.stringify(objArr.results));
       req.session.data = {
         title: "Progressive DE Rate Retrieved Successfully",
         obj: objArr,
