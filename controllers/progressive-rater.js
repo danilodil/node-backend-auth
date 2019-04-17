@@ -1254,6 +1254,11 @@ module.exports = {
 
         try {
           await pageQuote.waitForSelector(populatedData['priorInsuredInd'].element);
+          await pageQuote.waitFor(1500);
+          var curr_ins_co_cd_dsply = await pageQuote.evaluate(getSelctVal, `${populatedData['priorInsuranceCarrier'].element}>option`);
+          const curr_ins_co_cd = await pageQuote.evaluate(getValToSelect, curr_ins_co_cd_dsply, populatedData['priorInsuranceCarrier'].value);
+          await pageQuote.select(populatedData['priorInsuranceCarrier'].element, curr_ins_co_cd);
+
           await pageQuote.select(populatedData['priorInsuredInd'].element, populatedData['priorInsuredInd'].value);
           await pageQuote.waitFor(1500);
           await pageQuote.select(populatedData['priorBiLimits'].element, populatedData['priorBiLimits'].value);
