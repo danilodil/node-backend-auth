@@ -23,5 +23,10 @@ exports.qqCatalyst = {
 exports.ezLynx = {
   USERNAME: 'xi_uploadUAT',
   PASSWORD: 'Cojoanin93',
-  UPLOAD_PATH: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx'
+  UPLOAD_PATH: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx',
+};
+
+exports.rater = {
+  LOGIN_URL: 'https://www.foragentsonly.com/login/',
+  NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
 };
