@@ -835,7 +835,7 @@ module.exports = {
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { rater } = require('../constants/appConstant');
+const { rater, cseRater } = require('../constants/appConstant');
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
@@ -1671,5 +1671,648 @@ module.exports = {
       console.log('error >> ', error);
       return next(Boom.badRequest('Error retrieving progressive DE rate'));
     }
+  },
+  cseRating: async (req, res, next) => {
+    console.log('Inside cseRating');
+
+    //const { username, password } = req.body.decoded_vendor;
+    const username = 'alexfong ';
+    const password = 'CSE-quoting577'
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 600 });
+    let bodyData = req.body.data;
+
+    //For login
+    await loginStep(browser, page);
+
+    // For Login
+    async function loginStep(browser, page) {
+      await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+      await page.waitForSelector('#frmLogin > div > div.signInTile');
+      await page.type('#j_username', username);
+      await page.type('#j_password', password);
+
+      await page.click('#SignIn');
+      await page.waitForNavigation({ timeout: 0 });
+      //const populatedData = await populateKeyValueData(bodyData);
+      await newQuoteStep(browser, page);
+    }
+
+    async function newQuoteStep(browser, page, dataObject, populatedData) {
+      console.log('newQuoteStep');
+
+      let AllPages = await browser.pages();
+      if (AllPages.length > 2) {
+        for (var i = 2; i < AllPages.length; i++) {
+          await AllPages[i].close();
+        }
+      }
+
+      //await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
+      await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
+      await page.click('#NewQuote');
+
+      // product selction
+      const productSelection = [
+        {
+          element: 'BasicPolicy.EffectiveDt',
+          value: '04/30/2019'
+        },
+        {
+          element: 'BasicPolicy.ControllingStateCd',
+          value: 'CA'
+        },
+        {
+          element: 'ProductSelectionGroupCd',
+          value: 'PL-PREF-AUTO'
+        },
+      ];
+      await page.waitForSelector('#Main > div');
+      await page.evaluate((productSelection) => {
+
+        productSelection.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        })
+
+      }, productSelection);
+
+      await page.click('#Continue');
+      await page.waitFor(1000);
+      await page.waitForSelector('#ProductSelectionList');
+      await page.click('#ProductSelectionList > table > tbody > tr > td > a');
+
+      // Underwriting Status
+      const underwriting = [
+        {
+          title: 'Expiration Date',
+          element: 'BasicPolicy.RenewalTermCd',
+          value: '1 Year',
+        },
+        {
+          title: 'Prior CSE Policy Number',
+          element: 'BasicPolicy.PriorCSEPolicyNumber',
+          value: '12345678',
+        },
+        {
+          title: 'Continuous Coverage with CSE Since',
+          element: 'BasicPolicy.PersistencyDiscountDt',
+          value: '04/30/2019',
+        },
+        {
+          title: 'Program',
+          element: 'BasicPolicy.ProgramInd',
+          value: 'Affinity Group',
+        },
+        {
+          title: 'Affinity Group',
+          element: 'BasicPolicy.AffinityGroupCd',
+          value: 'AAGCA',
+        },
+        {
+          title: 'First Name',
+          element: 'InsuredName.GivenName',
+          value: 'test Name',
+        },
+        {
+          title: 'MI',
+          element: 'InsuredName.OtherGivenName',
+          value: 'middle name',
+        },
+        {
+          title: 'Last Name',
+          element: 'InsuredName.Surname',
+          value: 'last name',
+        },
+        {
+          title: 'Suffix',
+          element: 'InsuredName.SuffixCd',
+          value: 'xxxx',
+        },
+        {
+          title: 'Name',
+          element: 'InsuredName.CommercialName',
+          value: 'test User',
+        },
+
+        {
+          title: 'Birth Date',
+          element: 'InsuredPersonal.BirthDt',
+          value: '04/25/1989',
+        },
+        {
+          title: 'SSN',
+          element: 'InsuredTaxInfo.SSN',
+          value: '123456789',
+        },
+        {
+          title: 'Number',
+          element: 'InsuredLookupAddr.PrimaryNumber',
+          value: '112',
+        },
+        {
+          title: 'Direction',
+          element: 'InsuredLookupAddr.PreDirectional',
+          value: 'west',
+        },
+        {
+          title: 'Suffix Name',
+          element: 'InsuredLookupAddr.StreetName',
+          value: 'gandhi street',
+        },
+        {
+          title: 'Suffix Suffix',
+          element: 'InsuredLookupAddr.Suffix',
+          value: 'CT',
+        },
+        {
+          title: 'Post-Directional',
+          element: 'InsuredLookupAddr.PostDirectional',
+          value: 'behind',
+        },
+        {
+          title: 'Unit Type',
+          element: 'InsuredLookupAddr.SecondaryDesignator',
+          value: 'APT',
+        },
+        {
+          title: 'Uniy Number',
+          element: 'InsuredLookupAddr.SecondaryNumber',
+          value: '110',
+        },
+        {
+          title: 'City',
+          element: 'InsuredLookupAddr.City',
+          value: 'Los Angeles',
+        },
+        {
+          title: 'State',
+          element: 'InsuredLookupAddr.StateProvCd',
+          value: 'CA',
+        },
+        {
+          title: 'Zip',
+          element: 'InsuredLookupAddr.PostalCode',
+          value: '90001',
+        },
+        {
+          title: 'Primary Phone',
+          element: 'InsuredPhonePrimary.PhoneName',
+          value: 'Mobile',
+        },
+        {
+          title: 'Primary Phone',
+          element: 'InsuredPhonePrimary.PhoneNumber',
+          value: '1234567890',
+        },
+        {
+          title: 'Delivery Preference',
+          element: 'Insured.PreferredDeliveryMethod',
+          value: 'Email',
+        },
+        {
+          title: 'Primary Phone',
+          element: 'InsuredEmail.EmailAddr',
+          value: 'developer.patoliya@gmail.com',
+        },
+      ];
+
+      await page.waitFor(1000);
+      await page.waitForSelector('#ProviderNumber');
+      //page.on('console', consoleObj => console.log(consoleObj.text()));
+      await page.waitFor(1000);
+      await page.evaluate((underwriting) => {
+
+        underwriting.forEach(oneElement => {
+          if (oneElement.value === 'AAGCA') {
+            setTimeout(() => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+              document.getElementById('AffinityGroupCdDisplay').value = oneElement.value;
+            }, 1000);
+          } else {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          }
+        });
+
+      }, underwriting);
+
+      await page.click('#DefaultAddress');
+      await page.waitFor(1000);
+      await page.click('#NextPage');
+      await page.waitForSelector('#Question_Acknowledgement');
+      await page.waitFor(1000);
+      await page.evaluate(() => {
+        document.getElementById('Question_Acknowledgement').value = 'YES';
+        document.getElementById('Question_cserules_isForRent').value = 'No';
+        document.getElementById('Question_cserules_isResidence').value = 'No';
+        document.getElementById('Question_cserules_notStreetLic').value = 'No';
+        document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+        //document.getElementById('Question_cserules_physDamWithPriorLiability').value = 'No';
+        //document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+      });
+      await page.click('#NextPage');
+
+      //for add vehicle
+      const vehicles = [
+        {
+          title: 'Registered State',
+          element: 'Vehicle.RegistrationStateProvCd',
+          value: 'CA',
+        },
+        // {
+        //   title:'VIN',
+        //   element:'Vehicle.VehIdentificationNumber',
+        //   value:'1 Year',
+        // },
+        {
+          title: 'Model Year',
+          element: 'Vehicle.ModelYr',
+          value: '2017',
+        },
+        {
+          title: 'Make',
+          element: 'Vehicle.Manufacturer',
+          value: 'AUDI',
+        },
+        {
+          title: 'Model',
+          element: 'Vehicle.Model',
+          value: 'A3 2.0T PREMIUM',
+        },
+        {
+          title: 'Purchased New or Used',
+          element: 'Vehicle.NewOrUsedInd',
+          value: 'Used',
+        },
+        {
+          title: 'Purchase/Lease',
+          element: 'Vehicle.LeasedVehInd',
+          value: 'Purchased',
+        },
+        {
+          title: '',
+          element: 'Vehicle.PurchaseDt',
+          value: '04/30/2017',
+        },
+        {
+          title: 'Anti-Theft Device',
+          element: 'Vehicle.AntiTheftCd',
+          value: 'Active Devices',
+        },
+        {
+          title: 'Body Style',
+          element: 'Vehicle.VehBodyTypeCd',
+          value: 'Pickup',
+        },
+        {
+          title: 'Performance',
+          element: 'Vehicle.PerformanceCd',
+          value: 'Standard',
+        },
+        {
+          title: 'Restraints',
+          element: 'Vehicle.RestraintCd',
+          value: 'Driver Side Airbag/Passenger Passive',
+        },
+        {
+          title: ' Cost New',
+          element: 'Vehicle.CostNewAmt',
+          value: '50000',
+        }
+      ]
+
+      await page.waitForSelector('#VehicleSelectionController');
+      await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
+      await page.waitFor(1000);
+      await page.waitForSelector('#Main > div:nth-child(18)');
+
+
+      await page.evaluate((vehicles) => {
+
+        vehicles.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        });
+
+      }, vehicles);
+
+      const vehicleUse = 'Business' //Work // Pleasure //Farm
+
+      await page.select('select[name="Vehicle.Mileage"]', 'Estimated'); //Estimated //Recommended
+      await page.waitFor(1000);
+      await page.select('select[name="Vehicle.VehUseCd"]', 'Business');
+      const vehicleMilage = {
+        other: [
+          {
+            title: 'Insured estimated annual miles driven',
+            element: 'Vehicle.OriginalEstimatedAnnualMiles',
+            value: '15000',
+          },
+          {
+            title: 'Prior Odometer Reading',
+            element: 'Vehicle.OdometerReadingPrior',
+            value: '45000',
+          },
+          {
+            title: 'Prior Odometer Date',
+            element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+            value: '01/20/2018',
+          },
+          {
+            title: 'Current Odometer Reading',
+            element: 'Vehicle.OdometerReading',
+            value: '65000',
+          },
+          {
+            title: 'Odometer Date',
+            element: 'Vehicle.ReportedMileageNonSaveDt',
+            value: '04/22/2019',
+          },
+        ],
+        Work: [
+          {
+            title: 'Distance home to work',
+            element: 'Vehicle.EstimatedWorkDistance',
+            value: '20',
+          },
+          {
+            title: 'Number of days per week commute',
+            element: 'Vehicle.DaysPerWeekDriven',
+            value: '5',
+          },
+          {
+            title: 'Number of days per week commute',
+            element: 'Vehicle.EstimatedNonCommuteMiles',
+            value: '2000',
+          },
+          {
+            title: 'Insured estimated annual miles driven',
+            element: 'Vehicle.OriginalEstimatedAnnualMiles',
+            value: '12000',
+          },
+          {
+            title: 'Prior Odometer Reading',
+            element: 'Vehicle.OdometerReadingPrior',
+            value: '45000',
+          },
+          {
+            title: 'Prior Odometer Date',
+            element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+            value: '01/20/2018',
+          },
+          {
+            title: 'Current Odometer Reading',
+            element: 'Vehicle.OdometerReading',
+            value: '65000',
+          },
+          {
+            title: 'Odometer Date',
+            element: 'Vehicle.ReportedMileageNonSaveDt',
+            value: '04/22/2019',
+          },
+          {
+            title: 'Insured Work Address',
+            element: 'VehicleCommuteAddr.Addr1',
+            value: 'test address',
+          },
+          {
+            title: 'City',
+            element: 'VehicleCommuteAddr.City',
+            value: 'Los Angeles',
+          },
+          {
+            title: 'State',
+            element: 'VehicleCommuteAddr.StateProvCd',
+            value: 'CA',
+          },
+          {
+            title: 'Zip',
+            element: 'VehicleCommuteAddr.PostalCode',
+            value: '90001',
+          },
+
+        ]
+      };
+
+      if (vehicleUse == 'Work') {
+
+        await page.evaluate((vehicleMilage) => {
+
+          vehicleMilage.forEach(oneElement => {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          });
+
+        }, vehicleMilage[vehicleUse]);
+
+      }
+      else {
+        await page.evaluate((vehicleMilage) => {
+          console.log('vehicleMilage', vehicleMilage['other']);
+          vehicleMilage.forEach(oneElement => {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          });
+
+        }, vehicleMilage['other']);
+      }
+
+
+      const vehiclesCoverage = [
+        {
+          title: 'Bundle',
+          element: 'Vehicle.Bundle',
+          value: 'PickandChoose',
+        },
+        {
+          title: 'Comprehensive',
+          element: 'Vehicle.ComprehensiveDed',
+          value: '500',
+        },
+        {
+          title: 'Collision',
+          element: 'Vehicle.CollisionDed',
+          value: '500',
+        },
+        {
+          title: 'Enhanced Rental Reimbursement',
+          element: 'Vehicle.RentalReimbursementInd',
+          value: '35/900',
+        },
+        {
+          title: 'Medical Parts and Accessibility',
+          element: 'Vehicle.MedicalPartsAccessibility',
+          value: '500',
+        },
+        {
+          title: 'Waive Liability',
+          element: 'Vehicle.LiabilityWaiveInd',
+          value: 'No',
+        },
+        {
+          title: 'With the exception of any encumbrances, is this vehicle in whole or in part owned by or registered to someone other than the named insured or the spouse of the named insured',
+          element: 'Question_OtherOwners',
+          value: 'NO',
+        },
+        {
+          title: 'Does this vehicle have special modifications or equipment, or is it a specially built or customized car, van, or pickup?',
+          element: 'Question_SpecialModificationsEquipment',
+          value: 'NO',
+        },
+        {
+          title: 'Does this vehicle have existing body or glass damage?',
+          element: 'Question_ExistingDamage',
+          value: 'NO',
+        }
+      ]
+      await page.evaluate((vehiclesCoverage) => {
+
+        vehiclesCoverage.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        });
+
+      }, vehiclesCoverage);
+
+      await page.click('#Save');
+      await page.waitFor(3000);
+      // await page.waitForSelector('#NextPage');
+      await page.click('#NextPage');
+
+      // Policy Coverage
+      const policyCoverage = [
+        {
+          title: 'Bodily Injury',
+          element: 'Line.BILimit',
+          value: '25000/50000',
+        },
+        {
+          title: 'Property Damage',
+          element: 'Line.PDLimit',
+          value: '10000',
+        },
+        {
+          title: 'Medical Payments',
+          element: 'Line.MedPayLimit',
+          value: '2000',
+        },
+        {
+          title: 'Un/Under-insured Motorist - Bodily Injury',
+          element: 'Line.UMBILimit',
+          value: '15000/30000',
+        },
+        {
+          title: 'UM-PD / WCD Applies',
+          element: 'Line.UMPDWCDInd',
+          value: 'No',
+        },
+        {
+          title: 'Apply Multi-Car Discount to Single Car',
+          element: 'Line.MultiCarDiscountInd',
+          value: 'No',
+        },
+        {
+          title: 'Multi-Policy Discount-Property',
+          element: 'Line.MultiPolicyDiscountInd',
+          value: 'HO3',
+        },
+        {
+          title: 'Multi-Policy Discount-Umbrella',
+          element: 'Line.MultiPolicyDiscount2Ind',
+          value: 'No',
+        },
+      ];
+
+      await page.waitFor(3000);
+      //await page.waitForSelector('#Main > div:nth-child(5)');
+      //await page.waitForSelector('#Main > div:nth-child(7)');
+
+      await page.evaluate((policyCoverage) => {
+
+        policyCoverage.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        });
+
+      }, policyCoverage);
+
+      await page.click('#NextPage');
+      await page.waitFor(1000);
+
+
+      // Add driver/ Non driver
+
+      await page.waitForSelector('#EditLink');
+      await page.click('#EditLink');
+      //Driver Detail Edit
+      const editDriverDetails = [
+        {
+          title: 'Driver Status',
+          element: 'DriverInfo.DriverStatusCd',
+          value: 'Primary',
+        },
+        {
+          title: 'Gender',
+          element: 'PersonInfo.GenderCd',
+          value: 'Male',
+        },
+        {
+          title: 'Date Licensed',
+          element: 'DriverInfo.LicenseDt',
+          value: '04/03/2013',
+        },
+        {
+          title: 'License Number',
+          element: 'DriverInfo.LicenseNumber',
+          value: '123456789',
+        },
+        {
+          title: 'Driver Status',
+          element: 'DriverInfo.DriverStatusCd',
+          value: 'Primary',
+        },
+      ];
+      await page.waitFor(1000);
+      await page.waitForSelector('#Main > div:nth-child(4)');
+      await page.evaluate((editDriverDetails) => {
+
+        editDriverDetails.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        });
+
+      }, editDriverDetails);
+
+      await page.click('#Save');
+      await page.waitFor(1000);
+      await page.click('#NextPage');
+
+      await page.waitFor(1000);
+      await page.waitForSelector('#NextPage');
+      await page.click('#NextPage');
+      await page.waitFor(1000);
+
+      await page.waitForSelector('#NextPage');
+      await page.click('#NextPage');
+      await page.waitFor(1000);
+
+      await page.waitForSelector('#NextPage');
+      await page.click('#NextPage');
+      await page.waitFor(1000);
+      const premiumDetails = await page.evaluate(() => {
+
+        const details = {
+          totalPolicyTermPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
+          TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
+          totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
+          transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText
+        };
+        // details.totalPolicyTermPremium =details.totalPolicyTermPremium = document.getElementById('PremInfo_TotalPolicyTermPremium').innerText;
+        // details.TransactionApRp = details.totalPolicyTermPremium = document.getElementById('PremInfo_Trans_AP_RP').innerText;
+        // details.totalCommission  =details.totalPolicyTermPremium = document.getElementById('PremInfo_TotalCommission').innerText;
+        // details.transactionCommission =details.totalPolicyTermPremium = document.getElementById('PremInfo_TransactionCommission').innerText;
+
+        return details;
+      });
+      req.session.data = {
+        premiumDetails: premiumDetails
+      };
+    }
+
+    return next();
   }
 };
