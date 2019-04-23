@@ -21,9 +21,9 @@ exports.qqCatalyst = {
 };
 
 exports.ezLynx = {
-  USERNAME: 'xi_uploadUAT',
+  USERNAME: 'wxi_uploadPROD',
   PASSWORD: 'Cojoanin93',
-  UPLOAD_PATH: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx',
+  UPLOAD_PATH: 'https://services.ezlynx.com/EzLynxWebService/EzLynxFileUpload.asmx',
 };
 
 exports.rater = {
