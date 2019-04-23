@@ -24,6 +24,9 @@ exports.ezLynx = {
   USERNAME: 'wxi_uploadPROD',
   PASSWORD: 'Cojoanin93',
   UPLOAD_PATH: 'https://services.ezlynx.com/EzLynxWebService/EzLynxFileUpload.asmx',
+  USERNAME_DEV: 'xi_uploadUAT',
+  PASSWORD_DEV: 'Cojoanin93',
+  UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx'
 };
 
 exports.rater = {
