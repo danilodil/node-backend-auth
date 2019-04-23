@@ -1675,13 +1675,86 @@ module.exports = {
   cseRating: async (req, res, next) => {
     console.log('Inside cseRating');
 
-    //const { username, password } = req.body.decoded_vendor;
-    const username = 'alexfong ';
-    const password = 'CSE-quoting577'
+    const { username, password } = req.body.decoded_vendor;
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 600 });
-    let bodyData = req.body.data;
+    await page.setViewport({ width: 1200, height: 920 });
+
+    /* const bodyData = {
+      firstName: "Test",
+      lastName: "User",
+      birthDate: "12/16/1993",
+      email: "test@mail.com",
+      phone: "3026075611",
+      addressStreetName: "Market St",
+      addressStreetNumber: "969",
+      city: "San Diego",
+      state: "CA",
+      zipCode: "92101",
+      lengthAtAddress: "1 year or more",
+      priorInsurance: "Yes",
+      priorInsuranceCarrier: "USAA",
+      // must always agree to closure
+      vehicles: [
+        {
+          // Vehicle Type will always be 1981 or newer
+          vehicleVin: "1FTSF30L61EC23425",
+          vehicleModelYear: "2015",
+          vehicleManufacturer: "FORD",
+          vehicleModel: "F350",
+          body: "EXT CAB (8CYL 4x2)",
+          zipCode: "19934",
+          lengthOfOwnership: "At least 1 year but less than 3 years",
+          primaryUse: "Commute",
+        },
+        {
+          vehicleVin: "KMHDH6AE1DU001708",
+          vehicleModelYear: "2013",
+          vehicleManufacturer: "HYUNDAI",
+          vehicleModel: "ELANTRA",
+          body: "2DR 4CYL",
+          zipCode: "19934",
+          lengthOfOwnership: "5 years or more",
+          primaryUse: "Commute",
+        }
+      ],
+      drivers: [
+        {
+          firstName: "Test",
+          lastName: "User",
+          birthDate: "12/16/1993",
+          gender: "Male",
+          maritalStatus: "Married",
+          yearsLicensed: "3 years or more",
+          licenseDt: "12/20/2013",
+          licenseNumber: "123456789",
+          employment: "Student (full-time)",
+          education: "College Degree",
+        },
+        {
+          firstName: "Tester",
+          lastName: "User",
+          birthDate: "12/18/1993",
+          gender: "Female",
+          maritalStatus: "Married",
+          yearsLicensed: "3 years or more",
+          licenseDt: "12/20/2013",
+          licenseNumber: "123456789",
+          employment: "Student (full-time)",
+          education: "College Degree",
+        }
+      ],
+      priorIncident: "AAD - At Fault Accident",
+      priorIncidentDate: "12/16/2012",
+      policyEffectiveDate: "01/01/2018",
+      priorPolicyTerminationDate: "03/15/2019",
+      yearsWithPriorInsurance: "5 years or more",
+      ownOrRentPrimaryResidence: "Rent",
+      numberOfResidentsInHome: "3",
+      rentersLimits: "Greater Than 300,000",
+      haveAnotherProgressivePolicy: "No"
+    }; */
+    const bodyData = req.body.data;
 
     //For login
     await loginStep(browser, page);
@@ -1709,16 +1782,11 @@ module.exports = {
         }
       }
 
-      //await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
       await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
       await page.click('#NewQuote');
 
       // product selction
       const productSelection = [
-        {
-          element: 'BasicPolicy.EffectiveDt',
-          value: '04/30/2019'
-        },
         {
           element: 'BasicPolicy.ControllingStateCd',
           value: 'CA'
@@ -1750,110 +1818,59 @@ module.exports = {
           value: '1 Year',
         },
         {
-          title: 'Prior CSE Policy Number',
-          element: 'BasicPolicy.PriorCSEPolicyNumber',
-          value: '12345678',
-        },
-        {
-          title: 'Continuous Coverage with CSE Since',
-          element: 'BasicPolicy.PersistencyDiscountDt',
-          value: '04/30/2019',
-        },
-        {
           title: 'Program',
           element: 'BasicPolicy.ProgramInd',
-          value: 'Affinity Group',
-        },
-        {
-          title: 'Affinity Group',
-          element: 'BasicPolicy.AffinityGroupCd',
-          value: 'AAGCA',
+          value: 'Civil Servant',
         },
         {
           title: 'First Name',
           element: 'InsuredName.GivenName',
-          value: 'test Name',
+          value: bodyData.firstName || '',
         },
         {
           title: 'MI',
           element: 'InsuredName.OtherGivenName',
-          value: 'middle name',
+          value: bodyData.middleName || '',
         },
         {
           title: 'Last Name',
           element: 'InsuredName.Surname',
-          value: 'last name',
+          value: bodyData.lastName || '',
         },
         {
           title: 'Suffix',
           element: 'InsuredName.SuffixCd',
-          value: 'xxxx',
+          value: bodyData.suffixName || '',
         },
-        {
-          title: 'Name',
-          element: 'InsuredName.CommercialName',
-          value: 'test User',
-        },
-
         {
           title: 'Birth Date',
           element: 'InsuredPersonal.BirthDt',
-          value: '04/25/1989',
-        },
-        {
-          title: 'SSN',
-          element: 'InsuredTaxInfo.SSN',
-          value: '123456789',
+          value: bodyData.birthDate || '',
         },
         {
           title: 'Number',
           element: 'InsuredLookupAddr.PrimaryNumber',
-          value: '112',
+          value: bodyData.addressStreetNumber || '',
         },
         {
-          title: 'Direction',
-          element: 'InsuredLookupAddr.PreDirectional',
-          value: 'west',
-        },
-        {
-          title: 'Suffix Name',
+          title: 'Street Name',
           element: 'InsuredLookupAddr.StreetName',
-          value: 'gandhi street',
-        },
-        {
-          title: 'Suffix Suffix',
-          element: 'InsuredLookupAddr.Suffix',
-          value: 'CT',
-        },
-        {
-          title: 'Post-Directional',
-          element: 'InsuredLookupAddr.PostDirectional',
-          value: 'behind',
-        },
-        {
-          title: 'Unit Type',
-          element: 'InsuredLookupAddr.SecondaryDesignator',
-          value: 'APT',
-        },
-        {
-          title: 'Uniy Number',
-          element: 'InsuredLookupAddr.SecondaryNumber',
-          value: '110',
+          value: bodyData.addressStreetName || '',
         },
         {
           title: 'City',
           element: 'InsuredLookupAddr.City',
-          value: 'Los Angeles',
+          value: bodyData.city || '',
         },
         {
           title: 'State',
           element: 'InsuredLookupAddr.StateProvCd',
-          value: 'CA',
+          value: bodyData.state || '',
         },
         {
           title: 'Zip',
           element: 'InsuredLookupAddr.PostalCode',
-          value: '90001',
+          value: bodyData.zipCode || '',
         },
         {
           title: 'Primary Phone',
@@ -1863,7 +1880,7 @@ module.exports = {
         {
           title: 'Primary Phone',
           element: 'InsuredPhonePrimary.PhoneNumber',
-          value: '1234567890',
+          value: bodyData.phone || '',
         },
         {
           title: 'Delivery Preference',
@@ -1873,7 +1890,7 @@ module.exports = {
         {
           title: 'Primary Phone',
           element: 'InsuredEmail.EmailAddr',
-          value: 'developer.patoliya@gmail.com',
+          value: bodyData.email || '',
         },
       ];
 
@@ -1896,6 +1913,8 @@ module.exports = {
 
       }, underwriting);
 
+      await page.click('#ResetCommercialName');
+      await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
       await page.click('#DefaultAddress');
       await page.waitFor(1000);
       await page.click('#NextPage');
@@ -1913,327 +1932,320 @@ module.exports = {
       await page.click('#NextPage');
 
       //for add vehicle
-      const vehicles = [
-        {
-          title: 'Registered State',
-          element: 'Vehicle.RegistrationStateProvCd',
-          value: 'CA',
-        },
-        // {
-        //   title:'VIN',
-        //   element:'Vehicle.VehIdentificationNumber',
-        //   value:'1 Year',
-        // },
-        {
-          title: 'Model Year',
-          element: 'Vehicle.ModelYr',
-          value: '2017',
-        },
-        {
-          title: 'Make',
-          element: 'Vehicle.Manufacturer',
-          value: 'AUDI',
-        },
-        {
-          title: 'Model',
-          element: 'Vehicle.Model',
-          value: 'A3 2.0T PREMIUM',
-        },
-        {
-          title: 'Purchased New or Used',
-          element: 'Vehicle.NewOrUsedInd',
-          value: 'Used',
-        },
-        {
-          title: 'Purchase/Lease',
-          element: 'Vehicle.LeasedVehInd',
-          value: 'Purchased',
-        },
-        {
-          title: '',
-          element: 'Vehicle.PurchaseDt',
-          value: '04/30/2017',
-        },
-        {
-          title: 'Anti-Theft Device',
-          element: 'Vehicle.AntiTheftCd',
-          value: 'Active Devices',
-        },
-        {
-          title: 'Body Style',
-          element: 'Vehicle.VehBodyTypeCd',
-          value: 'Pickup',
-        },
-        {
-          title: 'Performance',
-          element: 'Vehicle.PerformanceCd',
-          value: 'Standard',
-        },
-        {
-          title: 'Restraints',
-          element: 'Vehicle.RestraintCd',
-          value: 'Driver Side Airbag/Passenger Passive',
-        },
-        {
-          title: ' Cost New',
-          element: 'Vehicle.CostNewAmt',
-          value: '50000',
-        }
-      ]
-
-      await page.waitForSelector('#VehicleSelectionController');
-      await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
-      await page.waitFor(1000);
-      await page.waitForSelector('#Main > div:nth-child(18)');
-
-
-      await page.evaluate((vehicles) => {
-
-        vehicles.forEach(oneElement => {
-          document.getElementById(oneElement.element).value = oneElement.value;
-        });
-
-      }, vehicles);
-
-      const vehicleUse = 'Business' //Work // Pleasure //Farm
-
-      await page.select('select[name="Vehicle.Mileage"]', 'Estimated'); //Estimated //Recommended
-      await page.waitFor(1000);
-      await page.select('select[name="Vehicle.VehUseCd"]', 'Business');
-      const vehicleMilage = {
-        other: [
+      for (let j in bodyData.vehicles) {
+        const vehicles = [
           {
-            title: 'Insured estimated annual miles driven',
-            element: 'Vehicle.OriginalEstimatedAnnualMiles',
-            value: '15000',
-          },
-          {
-            title: 'Prior Odometer Reading',
-            element: 'Vehicle.OdometerReadingPrior',
-            value: '45000',
-          },
-          {
-            title: 'Prior Odometer Date',
-            element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-            value: '01/20/2018',
-          },
-          {
-            title: 'Current Odometer Reading',
-            element: 'Vehicle.OdometerReading',
-            value: '65000',
-          },
-          {
-            title: 'Odometer Date',
-            element: 'Vehicle.ReportedMileageNonSaveDt',
-            value: '04/22/2019',
-          },
-        ],
-        Work: [
-          {
-            title: 'Distance home to work',
-            element: 'Vehicle.EstimatedWorkDistance',
-            value: '20',
-          },
-          {
-            title: 'Number of days per week commute',
-            element: 'Vehicle.DaysPerWeekDriven',
-            value: '5',
-          },
-          {
-            title: 'Number of days per week commute',
-            element: 'Vehicle.EstimatedNonCommuteMiles',
-            value: '2000',
-          },
-          {
-            title: 'Insured estimated annual miles driven',
-            element: 'Vehicle.OriginalEstimatedAnnualMiles',
-            value: '12000',
-          },
-          {
-            title: 'Prior Odometer Reading',
-            element: 'Vehicle.OdometerReadingPrior',
-            value: '45000',
-          },
-          {
-            title: 'Prior Odometer Date',
-            element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-            value: '01/20/2018',
-          },
-          {
-            title: 'Current Odometer Reading',
-            element: 'Vehicle.OdometerReading',
-            value: '65000',
-          },
-          {
-            title: 'Odometer Date',
-            element: 'Vehicle.ReportedMileageNonSaveDt',
-            value: '04/22/2019',
-          },
-          {
-            title: 'Insured Work Address',
-            element: 'VehicleCommuteAddr.Addr1',
-            value: 'test address',
-          },
-          {
-            title: 'City',
-            element: 'VehicleCommuteAddr.City',
-            value: 'Los Angeles',
-          },
-          {
-            title: 'State',
-            element: 'VehicleCommuteAddr.StateProvCd',
+            title: 'Registered State',
+            element: 'Vehicle.RegistrationStateProvCd',
             value: 'CA',
           },
           {
-            title: 'Zip',
-            element: 'VehicleCommuteAddr.PostalCode',
-            value: '90001',
+            title: 'Model Year',
+            element: 'Vehicle.ModelYr',
+            value: bodyData.vehicles[j].vehicleModelYear || '',
           },
-
+          {
+            title: 'Make',
+            element: 'Vehicle.Manufacturer',
+            value: bodyData.vehicles[j].vehicleManufacturer || '',
+          },
+          {
+            title: 'Model',
+            element: 'Vehicle.Model',
+            value: bodyData.vehicles[j].vehicleModel || '',
+          },
+          {
+            title: 'Purchased New or Used',
+            element: 'Vehicle.NewOrUsedInd',
+            value: 'Used',
+          },
+          {
+            title: 'Purchase/Lease',
+            element: 'Vehicle.LeasedVehInd',
+            value: 'Purchased',
+          },
+          {
+            title: '',
+            element: 'Vehicle.PurchaseDt',
+            value: '04/30/2017',
+          },
+          {
+            title: 'Anti-Theft Device',
+            element: 'Vehicle.AntiTheftCd',
+            value: 'Active Devices',
+          },
+          {
+            title: 'Body Style',
+            element: 'Vehicle.VehBodyTypeCd',
+            value: 'Pickup',
+          },
+          {
+            title: 'Performance',
+            element: 'Vehicle.PerformanceCd',
+            value: 'Standard',
+          },
+          {
+            title: 'Restraints',
+            element: 'Vehicle.RestraintCd',
+            value: 'Driver Side Airbag/Passenger Passive',
+          },
+          {
+            title: 'Cost New',
+            element: 'Vehicle.CostNewAmt',
+            value: '50000',
+          }
         ]
-      };
 
-      if (vehicleUse == 'Work') {
+        await page.waitForSelector('#VehicleSelectionController');
+        await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
+        await page.waitFor(1000);
+        await page.waitForSelector('#Main > div:nth-child(18)');
 
-        await page.evaluate((vehicleMilage) => {
 
-          vehicleMilage.forEach(oneElement => {
+        await page.evaluate((vehicles) => {
+
+          vehicles.forEach(oneElement => {
             document.getElementById(oneElement.element).value = oneElement.value;
           });
 
-        }, vehicleMilage[vehicleUse]);
+        }, vehicles);
 
-      }
-      else {
-        await page.evaluate((vehicleMilage) => {
-          console.log('vehicleMilage', vehicleMilage['other']);
-          vehicleMilage.forEach(oneElement => {
-            document.getElementById(oneElement.element).value = oneElement.value;
-          });
+        const vehicleUse = 'Business' //Work // Pleasure //Farm
 
-        }, vehicleMilage['other']);
-      }
+        await page.select('select[name="Vehicle.Mileage"]', 'Estimated'); //Estimated //Recommended
+        await page.waitFor(1000);
+        await page.select('select[name="Vehicle.VehUseCd"]', vehicleUse);
+        const vehicleMilage = {
+          other: [
+            {
+              title: 'Insured estimated annual miles driven',
+              element: 'Vehicle.OriginalEstimatedAnnualMiles',
+              value: '15000',
+            },
+            {
+              title: 'Prior Odometer Reading',
+              element: 'Vehicle.OdometerReadingPrior',
+              value: '45000',
+            },
+            {
+              title: 'Prior Odometer Date',
+              element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+              value: '01/20/2018',
+            },
+            {
+              title: 'Current Odometer Reading',
+              element: 'Vehicle.OdometerReading',
+              value: '65000',
+            },
+            {
+              title: 'Odometer Date',
+              element: 'Vehicle.ReportedMileageNonSaveDt',
+              value: '04/22/2019',
+            },
+          ],
+          Work: [
+            {
+              title: 'Distance home to work',
+              element: 'Vehicle.EstimatedWorkDistance',
+              value: '20',
+            },
+            {
+              title: 'Number of days per week commute',
+              element: 'Vehicle.DaysPerWeekDriven',
+              value: '5',
+            },
+            {
+              title: 'Number of days per week commute',
+              element: 'Vehicle.EstimatedNonCommuteMiles',
+              value: '2000',
+            },
+            {
+              title: 'Insured estimated annual miles driven',
+              element: 'Vehicle.OriginalEstimatedAnnualMiles',
+              value: '12000',
+            },
+            {
+              title: 'Prior Odometer Reading',
+              element: 'Vehicle.OdometerReadingPrior',
+              value: '45000',
+            },
+            {
+              title: 'Prior Odometer Date',
+              element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+              value: '01/20/2018',
+            },
+            {
+              title: 'Current Odometer Reading',
+              element: 'Vehicle.OdometerReading',
+              value: '65000',
+            },
+            {
+              title: 'Odometer Date',
+              element: 'Vehicle.ReportedMileageNonSaveDt',
+              value: '04/22/2019',
+            },
+            {
+              title: 'Insured Work Address',
+              element: 'VehicleCommuteAddr.Addr1',
+              value: 'test address',
+            },
+            {
+              title: 'City',
+              element: 'VehicleCommuteAddr.City',
+              value: 'Los Angeles',
+            },
+            {
+              title: 'State',
+              element: 'VehicleCommuteAddr.StateProvCd',
+              value: 'CA',
+            },
+            {
+              title: 'Zip',
+              element: 'VehicleCommuteAddr.PostalCode',
+              value: '90001',
+            },
 
+          ]
+        };
 
-      const vehiclesCoverage = [
-        {
-          title: 'Bundle',
-          element: 'Vehicle.Bundle',
-          value: 'PickandChoose',
-        },
-        {
-          title: 'Comprehensive',
-          element: 'Vehicle.ComprehensiveDed',
-          value: '500',
-        },
-        {
-          title: 'Collision',
-          element: 'Vehicle.CollisionDed',
-          value: '500',
-        },
-        {
-          title: 'Enhanced Rental Reimbursement',
-          element: 'Vehicle.RentalReimbursementInd',
-          value: '35/900',
-        },
-        {
-          title: 'Medical Parts and Accessibility',
-          element: 'Vehicle.MedicalPartsAccessibility',
-          value: '500',
-        },
-        {
-          title: 'Waive Liability',
-          element: 'Vehicle.LiabilityWaiveInd',
-          value: 'No',
-        },
-        {
-          title: 'With the exception of any encumbrances, is this vehicle in whole or in part owned by or registered to someone other than the named insured or the spouse of the named insured',
-          element: 'Question_OtherOwners',
-          value: 'NO',
-        },
-        {
-          title: 'Does this vehicle have special modifications or equipment, or is it a specially built or customized car, van, or pickup?',
-          element: 'Question_SpecialModificationsEquipment',
-          value: 'NO',
-        },
-        {
-          title: 'Does this vehicle have existing body or glass damage?',
-          element: 'Question_ExistingDamage',
-          value: 'NO',
+        if (vehicleUse == 'Work') {
+
+          await page.evaluate((vehicleMilage) => {
+
+            vehicleMilage.forEach(oneElement => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+
+          }, vehicleMilage[vehicleUse]);
+
         }
-      ]
-      await page.evaluate((vehiclesCoverage) => {
+        else {
+          await page.evaluate((vehicleMilage) => {
+            console.log('vehicleMilage', vehicleMilage['other']);
+            vehicleMilage.forEach(oneElement => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
 
-        vehiclesCoverage.forEach(oneElement => {
-          document.getElementById(oneElement.element).value = oneElement.value;
-        });
+          }, vehicleMilage['other']);
+        }
 
-      }, vehiclesCoverage);
 
-      await page.click('#Save');
-      await page.waitFor(3000);
-      // await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
+        const vehiclesCoverage = [
+          {
+            title: 'Bundle',
+            element: 'Vehicle.Bundle',
+            value: 'PickandChoose',
+          },
+          {
+            title: 'Comprehensive',
+            element: 'Vehicle.ComprehensiveDed',
+            value: '500',
+          },
+          {
+            title: 'Collision',
+            element: 'Vehicle.CollisionDed',
+            value: '500',
+          },
+          {
+            title: 'Enhanced Rental Reimbursement',
+            element: 'Vehicle.RentalReimbursementInd',
+            value: '35/900',
+          },
+          {
+            title: 'Medical Parts and Accessibility',
+            element: 'Vehicle.MedicalPartsAccessibility',
+            value: '500',
+          },
+          {
+            title: 'Waive Liability',
+            element: 'Vehicle.LiabilityWaiveInd',
+            value: 'No',
+          },
+          {
+            title: 'With the exception of any encumbrances, is this vehicle in whole or in part owned by or registered to someone other than the named insured or the spouse of the named insured',
+            element: 'Question_OtherOwners',
+            value: 'NO',
+          },
+          {
+            title: 'Does this vehicle have special modifications or equipment, or is it a specially built or customized car, van, or pickup?',
+            element: 'Question_SpecialModificationsEquipment',
+            value: 'NO',
+          },
+          {
+            title: 'Does this vehicle have existing body or glass damage?',
+            element: 'Question_ExistingDamage',
+            value: 'NO',
+          }
+        ]
+        await page.evaluate((vehiclesCoverage) => {
 
-      // Policy Coverage
-      const policyCoverage = [
-        {
-          title: 'Bodily Injury',
-          element: 'Line.BILimit',
-          value: '25000/50000',
-        },
-        {
-          title: 'Property Damage',
-          element: 'Line.PDLimit',
-          value: '10000',
-        },
-        {
-          title: 'Medical Payments',
-          element: 'Line.MedPayLimit',
-          value: '2000',
-        },
-        {
-          title: 'Un/Under-insured Motorist - Bodily Injury',
-          element: 'Line.UMBILimit',
-          value: '15000/30000',
-        },
-        {
-          title: 'UM-PD / WCD Applies',
-          element: 'Line.UMPDWCDInd',
-          value: 'No',
-        },
-        {
-          title: 'Apply Multi-Car Discount to Single Car',
-          element: 'Line.MultiCarDiscountInd',
-          value: 'No',
-        },
-        {
-          title: 'Multi-Policy Discount-Property',
-          element: 'Line.MultiPolicyDiscountInd',
-          value: 'HO3',
-        },
-        {
-          title: 'Multi-Policy Discount-Umbrella',
-          element: 'Line.MultiPolicyDiscount2Ind',
-          value: 'No',
-        },
-      ];
+          vehiclesCoverage.forEach(oneElement => {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          });
 
-      await page.waitFor(3000);
-      //await page.waitForSelector('#Main > div:nth-child(5)');
-      //await page.waitForSelector('#Main > div:nth-child(7)');
+        }, vehiclesCoverage);
 
-      await page.evaluate((policyCoverage) => {
+        await page.click('#Save');
+        await page.waitFor(3000);
+        // await page.waitForSelector('#NextPage');
+        await page.click('#NextPage');
 
-        policyCoverage.forEach(oneElement => {
-          document.getElementById(oneElement.element).value = oneElement.value;
-        });
+        // Policy Coverage
+        const policyCoverage = [
+          {
+            title: 'Bodily Injury',
+            element: 'Line.BILimit',
+            value: '25000/50000',
+          },
+          {
+            title: 'Property Damage',
+            element: 'Line.PDLimit',
+            value: '10000',
+          },
+          {
+            title: 'Medical Payments',
+            element: 'Line.MedPayLimit',
+            value: '2000',
+          },
+          {
+            title: 'Un/Under-insured Motorist - Bodily Injury',
+            element: 'Line.UMBILimit',
+            value: '15000/30000',
+          },
+          {
+            title: 'UM-PD / WCD Applies',
+            element: 'Line.UMPDWCDInd',
+            value: 'No',
+          },
+          {
+            title: 'Apply Multi-Car Discount to Single Car',
+            element: 'Line.MultiCarDiscountInd',
+            value: 'No',
+          },
+          {
+            title: 'Multi-Policy Discount-Property',
+            element: 'Line.MultiPolicyDiscountInd',
+            value: 'HO3',
+          },
+          {
+            title: 'Multi-Policy Discount-Umbrella',
+            element: 'Line.MultiPolicyDiscount2Ind',
+            value: 'No',
+          },
+        ];
 
-      }, policyCoverage);
+        await page.waitFor(3000);
+        await page.evaluate((policyCoverage) => {
 
-      await page.click('#NextPage');
-      await page.waitFor(1000);
+          policyCoverage.forEach(oneElement => {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          });
 
+        }, policyCoverage);
+
+        await page.click('#NextPage');
+        await page.waitFor(1000);
+      }
 
       // Add driver/ Non driver
 
@@ -2249,17 +2261,17 @@ module.exports = {
         {
           title: 'Gender',
           element: 'PersonInfo.GenderCd',
-          value: 'Male',
+          value: bodyData.drivers[0].applicantGenderCd || '',
         },
         {
           title: 'Date Licensed',
           element: 'DriverInfo.LicenseDt',
-          value: '04/03/2013',
+          value: bodyData.drivers[0].driverLicensedDt || '',
         },
         {
           title: 'License Number',
           element: 'DriverInfo.LicenseNumber',
-          value: '123456789',
+          value: bodyData.drivers[0].driverLicenseNumber || '',
         },
         {
           title: 'Driver Status',
@@ -2267,7 +2279,7 @@ module.exports = {
           value: 'Primary',
         },
       ];
-      await page.waitFor(1000);
+      await page.waitFor(5000);
       await page.waitForSelector('#Main > div:nth-child(4)');
       await page.evaluate((editDriverDetails) => {
 
@@ -2301,11 +2313,6 @@ module.exports = {
           totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
           transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText
         };
-        // details.totalPolicyTermPremium =details.totalPolicyTermPremium = document.getElementById('PremInfo_TotalPolicyTermPremium').innerText;
-        // details.TransactionApRp = details.totalPolicyTermPremium = document.getElementById('PremInfo_Trans_AP_RP').innerText;
-        // details.totalCommission  =details.totalPolicyTermPremium = document.getElementById('PremInfo_TotalCommission').innerText;
-        // details.transactionCommission =details.totalPolicyTermPremium = document.getElementById('PremInfo_TransactionCommission').innerText;
-
         return details;
       });
       req.session.data = {
