@@ -1723,11 +1723,11 @@ module.exports = {
           firstName: "Test",
           lastName: "User",
           birthDate: "12/16/1993",
-          gender: "Male",
+          applicantGenderCd: "Male",
           maritalStatus: "Married",
           yearsLicensed: "3 years or more",
-          licenseDt: "12/20/2013",
-          licenseNumber: "123456789",
+          driverLicensedDt: "12/20/2013",
+          driverLicenseNumber: "123456789",
           employment: "Student (full-time)",
           education: "College Degree",
         },
@@ -1735,11 +1735,11 @@ module.exports = {
           firstName: "Tester",
           lastName: "User",
           birthDate: "12/18/1993",
-          gender: "Female",
+          applicantGenderCd: "Female",
           maritalStatus: "Married",
           yearsLicensed: "3 years or more",
-          licenseDt: "12/20/2013",
-          licenseNumber: "123456789",
+          driverLicensedDt: "12/20/2013",
+          driverLicenseNumber: "123456789",
           employment: "Student (full-time)",
           education: "College Degree",
         }
@@ -1768,11 +1768,12 @@ module.exports = {
 
       await page.click('#SignIn');
       await page.waitForNavigation({ timeout: 0 });
-      //const populatedData = await populateKeyValueData(bodyData);
-      await newQuoteStep(browser, page);
+      const populatedData = await populateKeyValueData(bodyData);
+
+      await newQuoteStep(browser, page, populatedData);
     }
 
-    async function newQuoteStep(browser, page, dataObject, populatedData) {
+    async function newQuoteStep(browser, page, populatedData) {
       console.log('newQuoteStep');
 
       let AllPages = await browser.pages();
@@ -1786,16 +1787,7 @@ module.exports = {
       await page.click('#NewQuote');
 
       // product selction
-      const productSelection = [
-        {
-          element: 'BasicPolicy.ControllingStateCd',
-          value: 'CA'
-        },
-        {
-          element: 'ProductSelectionGroupCd',
-          value: 'PL-PREF-AUTO'
-        },
-      ];
+      const productSelection = populatedData.productSelection;
       await page.waitForSelector('#Main > div');
       await page.evaluate((productSelection) => {
 
@@ -1811,88 +1803,7 @@ module.exports = {
       await page.click('#ProductSelectionList > table > tbody > tr > td > a');
 
       // Underwriting Status
-      const underwriting = [
-        {
-          title: 'Expiration Date',
-          element: 'BasicPolicy.RenewalTermCd',
-          value: '1 Year',
-        },
-        {
-          title: 'Program',
-          element: 'BasicPolicy.ProgramInd',
-          value: 'Civil Servant',
-        },
-        {
-          title: 'First Name',
-          element: 'InsuredName.GivenName',
-          value: bodyData.firstName || '',
-        },
-        {
-          title: 'MI',
-          element: 'InsuredName.OtherGivenName',
-          value: bodyData.middleName || '',
-        },
-        {
-          title: 'Last Name',
-          element: 'InsuredName.Surname',
-          value: bodyData.lastName || '',
-        },
-        {
-          title: 'Suffix',
-          element: 'InsuredName.SuffixCd',
-          value: bodyData.suffixName || '',
-        },
-        {
-          title: 'Birth Date',
-          element: 'InsuredPersonal.BirthDt',
-          value: bodyData.birthDate || '',
-        },
-        {
-          title: 'Number',
-          element: 'InsuredLookupAddr.PrimaryNumber',
-          value: bodyData.addressStreetNumber || '',
-        },
-        {
-          title: 'Street Name',
-          element: 'InsuredLookupAddr.StreetName',
-          value: bodyData.addressStreetName || '',
-        },
-        {
-          title: 'City',
-          element: 'InsuredLookupAddr.City',
-          value: bodyData.city || '',
-        },
-        {
-          title: 'State',
-          element: 'InsuredLookupAddr.StateProvCd',
-          value: bodyData.state || '',
-        },
-        {
-          title: 'Zip',
-          element: 'InsuredLookupAddr.PostalCode',
-          value: bodyData.zipCode || '',
-        },
-        {
-          title: 'Primary Phone',
-          element: 'InsuredPhonePrimary.PhoneName',
-          value: 'Mobile',
-        },
-        {
-          title: 'Primary Phone',
-          element: 'InsuredPhonePrimary.PhoneNumber',
-          value: bodyData.phone || '',
-        },
-        {
-          title: 'Delivery Preference',
-          element: 'Insured.PreferredDeliveryMethod',
-          value: 'Email',
-        },
-        {
-          title: 'Primary Phone',
-          element: 'InsuredEmail.EmailAddr',
-          value: bodyData.email || '',
-        },
-      ];
+      const underwriting = populatedData.underwriting;
 
       await page.waitFor(1000);
       await page.waitForSelector('#ProviderNumber');
@@ -1927,74 +1838,17 @@ module.exports = {
         document.getElementById('Question_cserules_notStreetLic').value = 'No';
         document.getElementById('Question_cserules_useBusiness').value = 'Yes';
         //document.getElementById('Question_cserules_physDamWithPriorLiability').value = 'No';
-        //document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+        document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
       });
       await page.click('#NextPage');
+      await vehicleStep(browser, page, populatedData);
+    }
 
-      //for add vehicle
+    //for add vehicle
+    async function vehicleStep(browser, page, populatedData) {
+      console.log('vehicleStep');
       for (let j in bodyData.vehicles) {
-        const vehicles = [
-          {
-            title: 'Registered State',
-            element: 'Vehicle.RegistrationStateProvCd',
-            value: 'CA',
-          },
-          {
-            title: 'Model Year',
-            element: 'Vehicle.ModelYr',
-            value: bodyData.vehicles[j].vehicleModelYear || '',
-          },
-          {
-            title: 'Make',
-            element: 'Vehicle.Manufacturer',
-            value: bodyData.vehicles[j].vehicleManufacturer || '',
-          },
-          {
-            title: 'Model',
-            element: 'Vehicle.Model',
-            value: bodyData.vehicles[j].vehicleModel || '',
-          },
-          {
-            title: 'Purchased New or Used',
-            element: 'Vehicle.NewOrUsedInd',
-            value: 'Used',
-          },
-          {
-            title: 'Purchase/Lease',
-            element: 'Vehicle.LeasedVehInd',
-            value: 'Purchased',
-          },
-          {
-            title: '',
-            element: 'Vehicle.PurchaseDt',
-            value: '04/30/2017',
-          },
-          {
-            title: 'Anti-Theft Device',
-            element: 'Vehicle.AntiTheftCd',
-            value: 'Active Devices',
-          },
-          {
-            title: 'Body Style',
-            element: 'Vehicle.VehBodyTypeCd',
-            value: 'Pickup',
-          },
-          {
-            title: 'Performance',
-            element: 'Vehicle.PerformanceCd',
-            value: 'Standard',
-          },
-          {
-            title: 'Restraints',
-            element: 'Vehicle.RestraintCd',
-            value: 'Driver Side Airbag/Passenger Passive',
-          },
-          {
-            title: 'Cost New',
-            element: 'Vehicle.CostNewAmt',
-            value: '50000',
-          }
-        ]
+        const vehicles = populatedData[`vehicles${j}`];
 
         await page.waitForSelector('#VehicleSelectionController');
         await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
@@ -2010,103 +1864,12 @@ module.exports = {
 
         }, vehicles);
 
-        const vehicleUse = 'Business' //Work // Pleasure //Farm
+        const vehicleUse = populatedData['vehicleUse'].value; //Business //Work // Pleasure //Farm
 
-        await page.select('select[name="Vehicle.Mileage"]', 'Estimated'); //Estimated //Recommended
+        await page.select(populatedData['vehicleMilageType'].element, populatedData['vehicleMilageType'].value); //Estimated //Recommended
         await page.waitFor(1000);
-        await page.select('select[name="Vehicle.VehUseCd"]', vehicleUse);
-        const vehicleMilage = {
-          other: [
-            {
-              title: 'Insured estimated annual miles driven',
-              element: 'Vehicle.OriginalEstimatedAnnualMiles',
-              value: '15000',
-            },
-            {
-              title: 'Prior Odometer Reading',
-              element: 'Vehicle.OdometerReadingPrior',
-              value: '45000',
-            },
-            {
-              title: 'Prior Odometer Date',
-              element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-              value: '01/20/2018',
-            },
-            {
-              title: 'Current Odometer Reading',
-              element: 'Vehicle.OdometerReading',
-              value: '65000',
-            },
-            {
-              title: 'Odometer Date',
-              element: 'Vehicle.ReportedMileageNonSaveDt',
-              value: '04/22/2019',
-            },
-          ],
-          Work: [
-            {
-              title: 'Distance home to work',
-              element: 'Vehicle.EstimatedWorkDistance',
-              value: '20',
-            },
-            {
-              title: 'Number of days per week commute',
-              element: 'Vehicle.DaysPerWeekDriven',
-              value: '5',
-            },
-            {
-              title: 'Number of days per week commute',
-              element: 'Vehicle.EstimatedNonCommuteMiles',
-              value: '2000',
-            },
-            {
-              title: 'Insured estimated annual miles driven',
-              element: 'Vehicle.OriginalEstimatedAnnualMiles',
-              value: '12000',
-            },
-            {
-              title: 'Prior Odometer Reading',
-              element: 'Vehicle.OdometerReadingPrior',
-              value: '45000',
-            },
-            {
-              title: 'Prior Odometer Date',
-              element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-              value: '01/20/2018',
-            },
-            {
-              title: 'Current Odometer Reading',
-              element: 'Vehicle.OdometerReading',
-              value: '65000',
-            },
-            {
-              title: 'Odometer Date',
-              element: 'Vehicle.ReportedMileageNonSaveDt',
-              value: '04/22/2019',
-            },
-            {
-              title: 'Insured Work Address',
-              element: 'VehicleCommuteAddr.Addr1',
-              value: 'test address',
-            },
-            {
-              title: 'City',
-              element: 'VehicleCommuteAddr.City',
-              value: 'Los Angeles',
-            },
-            {
-              title: 'State',
-              element: 'VehicleCommuteAddr.StateProvCd',
-              value: 'CA',
-            },
-            {
-              title: 'Zip',
-              element: 'VehicleCommuteAddr.PostalCode',
-              value: '90001',
-            },
-
-          ]
-        };
+        await page.select(populatedData['vehicleUse'].element, vehicleUse);
+        const vehicleMilage = populatedData[`vehicleMilage${j}`];
 
         if (vehicleUse == 'Work') {
 
@@ -2121,7 +1884,6 @@ module.exports = {
         }
         else {
           await page.evaluate((vehicleMilage) => {
-            console.log('vehicleMilage', vehicleMilage['other']);
             vehicleMilage.forEach(oneElement => {
               document.getElementById(oneElement.element).value = oneElement.value;
             });
@@ -2129,54 +1891,7 @@ module.exports = {
           }, vehicleMilage['other']);
         }
 
-
-        const vehiclesCoverage = [
-          {
-            title: 'Bundle',
-            element: 'Vehicle.Bundle',
-            value: 'PickandChoose',
-          },
-          {
-            title: 'Comprehensive',
-            element: 'Vehicle.ComprehensiveDed',
-            value: '500',
-          },
-          {
-            title: 'Collision',
-            element: 'Vehicle.CollisionDed',
-            value: '500',
-          },
-          {
-            title: 'Enhanced Rental Reimbursement',
-            element: 'Vehicle.RentalReimbursementInd',
-            value: '35/900',
-          },
-          {
-            title: 'Medical Parts and Accessibility',
-            element: 'Vehicle.MedicalPartsAccessibility',
-            value: '500',
-          },
-          {
-            title: 'Waive Liability',
-            element: 'Vehicle.LiabilityWaiveInd',
-            value: 'No',
-          },
-          {
-            title: 'With the exception of any encumbrances, is this vehicle in whole or in part owned by or registered to someone other than the named insured or the spouse of the named insured',
-            element: 'Question_OtherOwners',
-            value: 'NO',
-          },
-          {
-            title: 'Does this vehicle have special modifications or equipment, or is it a specially built or customized car, van, or pickup?',
-            element: 'Question_SpecialModificationsEquipment',
-            value: 'NO',
-          },
-          {
-            title: 'Does this vehicle have existing body or glass damage?',
-            element: 'Question_ExistingDamage',
-            value: 'NO',
-          }
-        ]
+        const vehiclesCoverage = populatedData[`vehiclesCoverage${j}`];
         await page.evaluate((vehiclesCoverage) => {
 
           vehiclesCoverage.forEach(oneElement => {
@@ -2187,11 +1902,219 @@ module.exports = {
 
         await page.click('#Save');
         await page.waitFor(3000);
-        // await page.waitForSelector('#NextPage');
-        await page.click('#NextPage');
+        if (j === (bodyData.vehicles.length - 1).toString()) {
+          await page.click('#NextPage');
+        } else {
+          await page.click('#Return');
+        }
+      }
+      await policyStep(browser, page, populatedData);
+    }
+
+    //for add policy
+    async function policyStep(browser, page, populatedData) {
+      console.log('policyStep');
+      // Policy Coverage
+      const policyCoverage = populatedData['policyCoverage'];
+      await page.waitFor(3000);
+      await page.evaluate((policyCoverage) => {
+
+        policyCoverage.forEach(oneElement => {
+          document.getElementById(oneElement.element).value = oneElement.value;
+        });
+
+      }, policyCoverage);
+
+      await page.click('#NextPage');
+      await page.waitFor(1000);
+      await driverStep(browser, page, populatedData);
+    }
+
+    // Add driver/ Non driver
+    async function driverStep(browser, page, populatedData) {
+      console.log('driverStep');
+      await page.waitForSelector('#EditLink');
+      await page.click('#EditLink');
+      //Driver Detail Edit
+      for (let j in bodyData.drivers) {
+        const editDriverDetails = populatedData[`editDriverDetails${j}`];
+        if (j === '0') {
+          await page.waitFor(5000);
+          await page.waitForSelector('#Main > div:nth-child(4)');
+          await page.evaluate((editDriverDetails) => {
+
+            editDriverDetails.forEach(oneElement => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+
+          }, editDriverDetails['driver']);
+          if (bodyData.vehicles.length > 1) {
+            const primarilyDrives = await page.evaluate(getSelctVal, `select[name='DriverInfo.AttachedVehicleRef']>option`);
+            await page.select(`select[name='DriverInfo.AttachedVehicleRef']`, primarilyDrives[1].value);
+          }
+        } else {
+          await page.waitFor(1000);
+          await page.evaluate((editDriverDetails) => {
+
+            editDriverDetails.forEach(oneElement => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+
+          }, editDriverDetails['nonDriver']);
+        }
+
+        await page.click('#Save');
+        await page.waitFor(1000);
+        if (j === (bodyData.drivers.length - 1).toString()) {
+          await page.click('#NextPage');
+        } else {
+          await page.click('#Return');
+          await page.waitForSelector('#DriverSelectionController');
+          await page.select('#DriverSelectionController', 'Non-Driver');
+        }
+      }
+    }
+
+    await page.waitFor(3000);
+    // await page.click('#NextPage');
+
+    await page.waitFor(1000);
+    await page.waitForSelector('#NextPage');
+    await page.click('#NextPage');
+    await page.waitFor(2000);
+
+    await page.waitForSelector('#NextPage');
+    await page.click('#NextPage');
+    await page.waitFor(2000);
+
+    await page.waitForSelector('#NextPage');
+    await page.click('#NextPage');
+    await page.waitFor(2000);
+    const premiumDetails = await page.evaluate(() => {
+
+      const details = {
+        totalPolicyTermPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
+        TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
+        totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
+        transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText
+      };
+      return details;
+    });
+    req.session.data = {
+      premiumDetails: premiumDetails
+    };
+
+    //For get all select options texts and values
+    function getSelctVal(inputID) {
+      optVals = [];
+
+      document.querySelectorAll(inputID).forEach(opt => {
+        optVals.push({ name: opt.innerText, value: opt.value });
+      });
+
+      return optVals;
+    }
+
+    function populateKeyValueData(bodyData) {
+      const clientInputSelect = {
+        // product selction
+        productSelection: [
+          {
+            element: 'BasicPolicy.ControllingStateCd',
+            value: 'CA'
+          },
+          {
+            element: 'ProductSelectionGroupCd',
+            value: 'PL-PREF-AUTO'
+          },
+        ],
+
+        // Underwriting Status
+        underwriting: [
+          {
+            title: 'Expiration Date',
+            element: 'BasicPolicy.RenewalTermCd',
+            value: '1 Year',
+          },
+          {
+            title: 'Program',
+            element: 'BasicPolicy.ProgramInd',
+            value: 'Civil Servant',
+          },
+          {
+            title: 'First Name',
+            element: 'InsuredName.GivenName',
+            value: bodyData.firstName || '',
+          },
+          {
+            title: 'MI',
+            element: 'InsuredName.OtherGivenName',
+            value: bodyData.middleName || '',
+          },
+          {
+            title: 'Last Name',
+            element: 'InsuredName.Surname',
+            value: bodyData.lastName || '',
+          },
+          {
+            title: 'Suffix',
+            element: 'InsuredName.SuffixCd',
+            value: bodyData.suffixName || '',
+          },
+          {
+            title: 'Birth Date',
+            element: 'InsuredPersonal.BirthDt',
+            value: bodyData.birthDate || '',
+          },
+          {
+            title: 'Number',
+            element: 'InsuredLookupAddr.PrimaryNumber',
+            value: bodyData.addressStreetNumber || '',
+          },
+          {
+            title: 'Street Name',
+            element: 'InsuredLookupAddr.StreetName',
+            value: bodyData.addressStreetName || '',
+          },
+          {
+            title: 'City',
+            element: 'InsuredLookupAddr.City',
+            value: bodyData.city || '',
+          },
+          {
+            title: 'State',
+            element: 'InsuredLookupAddr.StateProvCd',
+            value: bodyData.state || '',
+          },
+          {
+            title: 'Zip',
+            element: 'InsuredLookupAddr.PostalCode',
+            value: bodyData.zipCode || '',
+          },
+          {
+            title: 'Primary Phone',
+            element: 'InsuredPhonePrimary.PhoneName',
+            value: 'Mobile',
+          },
+          {
+            title: 'Primary Phone',
+            element: 'InsuredPhonePrimary.PhoneNumber',
+            value: bodyData.phone || '',
+          },
+          {
+            title: 'Delivery Preference',
+            element: 'Insured.PreferredDeliveryMethod',
+            value: 'Email',
+          },
+          {
+            title: 'Primary Phone',
+            element: 'InsuredEmail.EmailAddr',
+            value: bodyData.email || '',
+          },
+        ],
 
         // Policy Coverage
-        const policyCoverage = [
+        policyCoverage: [
           {
             title: 'Bodily Injury',
             element: 'Line.BILimit',
@@ -2232,92 +2155,299 @@ module.exports = {
             element: 'Line.MultiPolicyDiscount2Ind',
             value: 'No',
           },
-        ];
+        ],
+      };
 
-        await page.waitFor(3000);
-        await page.evaluate((policyCoverage) => {
+      // vehicle
+      if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
+        clientInputSelect['vehicleMilageType'] = {
+          title: 'Mileage Type',
+          element: 'select[name="Vehicle.Mileage"]',
+          value: 'Estimated',
+        };
+        clientInputSelect['vehicleUse'] = {
+          title: 'Vehicle Use',
+          element: 'select[name="Vehicle.VehUseCd"]',
+          value: 'Business',
+        };
+        for (let j in bodyData.vehicles) {
+          clientInputSelect[`vehicles${j}`] = [
+            {
+              title: 'Registered State',
+              element: 'Vehicle.RegistrationStateProvCd',
+              value: 'CA',
+            },
+            {
+              title: 'Model Year',
+              element: 'Vehicle.ModelYr',
+              value: bodyData.vehicles[j].vehicleModelYear || '',
+            },
+            {
+              title: 'Make',
+              element: 'Vehicle.Manufacturer',
+              value: bodyData.vehicles[j].vehicleManufacturer || '',
+            },
+            {
+              title: 'Model',
+              element: 'Vehicle.Model',
+              value: bodyData.vehicles[j].vehicleModel || '',
+            },
+            {
+              title: 'Purchased New or Used',
+              element: 'Vehicle.NewOrUsedInd',
+              value: 'Used',
+            },
+            {
+              title: 'Purchase/Lease',
+              element: 'Vehicle.LeasedVehInd',
+              value: 'Purchased',
+            },
+            {
+              title: '',
+              element: 'Vehicle.PurchaseDt',
+              value: '04/30/2017',
+            },
+            {
+              title: 'Anti-Theft Device',
+              element: 'Vehicle.AntiTheftCd',
+              value: 'Active Devices',
+            },
+            {
+              title: 'Body Style',
+              element: 'Vehicle.VehBodyTypeCd',
+              value: 'Pickup',
+            },
+            {
+              title: 'Performance',
+              element: 'Vehicle.PerformanceCd',
+              value: 'Standard',
+            },
+            {
+              title: 'Restraints',
+              element: 'Vehicle.RestraintCd',
+              value: 'Driver Side Airbag/Passenger Passive',
+            },
+            {
+              title: 'Cost New',
+              element: 'Vehicle.CostNewAmt',
+              value: '50000',
+            }
+          ];
+          clientInputSelect[`vehicleMilage${j}`] = {
+            other: [
+              {
+                title: 'Insured estimated annual miles driven',
+                element: 'Vehicle.OriginalEstimatedAnnualMiles',
+                value: '15000',
+              },
+              {
+                title: 'Prior Odometer Reading',
+                element: 'Vehicle.OdometerReadingPrior',
+                value: '45000',
+              },
+              {
+                title: 'Prior Odometer Date',
+                element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+                value: '01/20/2018',
+              },
+              {
+                title: 'Current Odometer Reading',
+                element: 'Vehicle.OdometerReading',
+                value: '65000',
+              },
+              {
+                title: 'Odometer Date',
+                element: 'Vehicle.ReportedMileageNonSaveDt',
+                value: '04/22/2019',
+              },
+            ],
+            Work: [
+              {
+                title: 'Distance home to work',
+                element: 'Vehicle.EstimatedWorkDistance',
+                value: '20',
+              },
+              {
+                title: 'Number of days per week commute',
+                element: 'Vehicle.DaysPerWeekDriven',
+                value: '5',
+              },
+              {
+                title: 'Number of days per week commute',
+                element: 'Vehicle.EstimatedNonCommuteMiles',
+                value: '2000',
+              },
+              {
+                title: 'Insured estimated annual miles driven',
+                element: 'Vehicle.OriginalEstimatedAnnualMiles',
+                value: '12000',
+              },
+              {
+                title: 'Prior Odometer Reading',
+                element: 'Vehicle.OdometerReadingPrior',
+                value: '45000',
+              },
+              {
+                title: 'Prior Odometer Date',
+                element: 'Vehicle.ReportedMileageNonSaveDtPrior',
+                value: '01/20/2018',
+              },
+              {
+                title: 'Current Odometer Reading',
+                element: 'Vehicle.OdometerReading',
+                value: '65000',
+              },
+              {
+                title: 'Odometer Date',
+                element: 'Vehicle.ReportedMileageNonSaveDt',
+                value: '04/22/2019',
+              },
+              {
+                title: 'Insured Work Address',
+                element: 'VehicleCommuteAddr.Addr1',
+                value: 'test address',
+              },
+              {
+                title: 'City',
+                element: 'VehicleCommuteAddr.City',
+                value: bodyData.city || '',
+              },
+              {
+                title: 'State',
+                element: 'VehicleCommuteAddr.StateProvCd',
+                value: bodyData.state || '',
+              },
+              {
+                title: 'Zip',
+                element: 'VehicleCommuteAddr.PostalCode',
+                value: bodyData.zipCode || '',
+              },
 
-          policyCoverage.forEach(oneElement => {
-            document.getElementById(oneElement.element).value = oneElement.value;
-          });
+            ]
+          };
+          clientInputSelect[`vehiclesCoverage${j}`] = [
+            {
+              title: 'Bundle',
+              element: 'Vehicle.Bundle',
+              value: 'PickandChoose',
+            },
+            {
+              title: 'Comprehensive',
+              element: 'Vehicle.ComprehensiveDed',
+              value: '500',
+            },
+            {
+              title: 'Collision',
+              element: 'Vehicle.CollisionDed',
+              value: '500',
+            },
+            {
+              title: 'Enhanced Rental Reimbursement',
+              element: 'Vehicle.RentalReimbursementInd',
+              value: '35/900',
+            },
+            {
+              title: 'Medical Parts and Accessibility',
+              element: 'Vehicle.MedicalPartsAccessibility',
+              value: '500',
+            },
+            {
+              title: 'Waive Liability',
+              element: 'Vehicle.LiabilityWaiveInd',
+              value: 'No',
+            },
+            {
+              title: 'With the exception of any encumbrances, is this vehicle in whole or in part owned by or registered to someone other than the named insured or the spouse of the named insured',
+              element: 'Question_OtherOwners',
+              value: 'NO',
+            },
+            {
+              title: 'Does this vehicle have special modifications or equipment, or is it a specially built or customized car, van, or pickup?',
+              element: 'Question_SpecialModificationsEquipment',
+              value: 'NO',
+            },
+            {
+              title: 'Does this vehicle have existing body or glass damage?',
+              element: 'Question_ExistingDamage',
+              value: 'NO',
+            }
+          ];
 
-        }, policyCoverage);
-
-        await page.click('#NextPage');
-        await page.waitFor(1000);
+        }
       }
 
-      // Add driver/ Non driver
-
-      await page.waitForSelector('#EditLink');
-      await page.click('#EditLink');
       //Driver Detail Edit
-      const editDriverDetails = [
-        {
-          title: 'Driver Status',
-          element: 'DriverInfo.DriverStatusCd',
-          value: 'Primary',
-        },
-        {
-          title: 'Gender',
-          element: 'PersonInfo.GenderCd',
-          value: bodyData.drivers[0].applicantGenderCd || '',
-        },
-        {
-          title: 'Date Licensed',
-          element: 'DriverInfo.LicenseDt',
-          value: bodyData.drivers[0].driverLicensedDt || '',
-        },
-        {
-          title: 'License Number',
-          element: 'DriverInfo.LicenseNumber',
-          value: bodyData.drivers[0].driverLicenseNumber || '',
-        },
-        {
-          title: 'Driver Status',
-          element: 'DriverInfo.DriverStatusCd',
-          value: 'Primary',
-        },
-      ];
-      await page.waitFor(5000);
-      await page.waitForSelector('#Main > div:nth-child(4)');
-      await page.evaluate((editDriverDetails) => {
-
-        editDriverDetails.forEach(oneElement => {
-          document.getElementById(oneElement.element).value = oneElement.value;
-        });
-
-      }, editDriverDetails);
-
-      await page.click('#Save');
-      await page.waitFor(1000);
-      await page.click('#NextPage');
-
-      await page.waitFor(1000);
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(1000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(1000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(1000);
-      const premiumDetails = await page.evaluate(() => {
-
-        const details = {
-          totalPolicyTermPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
-          TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
-          totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
-          transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText
-        };
-        return details;
-      });
-      req.session.data = {
-        premiumDetails: premiumDetails
-      };
+      if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
+        for (let j in bodyData.drivers) {
+          clientInputSelect[`editDriverDetails${j}`] = {
+            driver: [
+              {
+                title: 'Driver Status',
+                element: 'DriverInfo.DriverStatusCd',
+                value: 'Primary',
+              },
+              {
+                title: 'Gender',
+                element: 'PersonInfo.GenderCd',
+                value: bodyData.drivers[j].applicantGenderCd || '',
+              },
+              {
+                title: 'Date Licensed',
+                element: 'DriverInfo.LicenseDt',
+                value: bodyData.drivers[j].driverLicensedDt || '',
+              },
+              {
+                title: 'License Number',
+                element: 'DriverInfo.LicenseNumber',
+                value: bodyData.drivers[j].driverLicenseNumber || '',
+              },
+              {
+                title: 'Driver Status',
+                element: 'DriverInfo.DriverStatusCd',
+                value: 'Primary',
+              },
+            ],
+            nonDriver: [
+              {
+                title: 'First Name',
+                element: 'NameInfo.GivenName',
+                value: bodyData.drivers[j].firstName || '',
+              },
+              {
+                title: 'Last',
+                element: 'NameInfo.Surname',
+                value: bodyData.drivers[j].lastName || '',
+              },
+              {
+                title: 'Gender',
+                element: 'PersonInfo.GenderCd',
+                value: bodyData.drivers[j].applicantGenderCd || '',
+              },
+              {
+                title: 'Birth Date',
+                element: 'PersonInfo.BirthDt',
+                value: bodyData.drivers[j].birthDate || '',
+              },
+              {
+                title: 'Marital Status',
+                element: 'PersonInfo.MaritalStatusCd',
+                value: bodyData.drivers[j].maritalStatus || '',
+              },
+              {
+                title: `Rel'n to Insured`,
+                element: 'DriverInfo.RelationshipToInsuredCd',
+                value: 'Other',
+              },
+              {
+                title: 'Non-Driver Type',
+                element: 'DriverInfo.DriverTypeCd',
+                value: 'Excluded',
+              },
+            ],
+          };
+        }
+      }
+      return clientInputSelect;
     }
 
     return next();
