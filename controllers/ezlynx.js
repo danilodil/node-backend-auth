@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const appConstant = require('../constants/appConstant').ezLynx;
+const configConstant = require('../constants/configConstants').CONFIG;
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser({ attrskey: 'ATTR' });
 const base64 = require('base-64');
@@ -270,7 +271,7 @@ module.exports = {
 
       const encodedData = base64.encode(xml_body);
 
-      const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${appConstant.USERNAME}</tem:Username>  <tem:Password>${appConstant.PASSWORD}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
+      const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
       const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.body.clientId}" DataUploadFlags="4"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
       const xml_soap_body_close = `</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>`;
       const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
@@ -301,7 +302,7 @@ module.exports = {
 
       const options = { 
         method: 'POST',
-        url: appConstant.UPLOAD_PATH,
+        url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
         qs: { WSDL: '' },
         headers: 
             { 
@@ -329,7 +330,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-       console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
