@@ -24,9 +24,16 @@ exports.ezLynx = {
   USERNAME: 'wxi_uploadPROD',
   PASSWORD: 'Cojoanin93',
   UPLOAD_PATH: 'https://services.ezlynx.com/EzLynxWebService/EzLynxFileUpload.asmx',
+  USERNAME_DEV: 'xi_uploadUAT',
+  PASSWORD_DEV: 'Cojoanin93',
+  UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx'
 };
 
 exports.rater = {
   LOGIN_URL: 'https://www.foragentsonly.com/login/',
   NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
 };
+
+exports.cseRater = {
+  LOGIN_URL: 'https://spinn.csespi.com/innovation',
+}
