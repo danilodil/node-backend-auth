@@ -14,7 +14,6 @@ router.post('/update/property', asyncHandler(async (req, res, next) => {
 }));
 
 
-
 /* OLD SF CODE */
 router.post('/add-account', asyncHandler(async (req, res, next) => {
   await salesforceController.addSFAccount(req, res, next);

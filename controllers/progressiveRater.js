@@ -842,7 +842,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ headless: false });
-      const page = await browser.newPage();
+      let page = await browser.newPage();
 
       // Request input data
       /* const bodyData = {
@@ -853,7 +853,7 @@ module.exports = {
         phone: "302-222-5555",
         mailingAddress: "216 Humphreys Dr",
         city: "Dover",
-        state: "Delaware",
+        state: "DE",
         zipCode: "19934",
         lengthAtAddress: "1 year or more",
         priorInsurance: "Yes",
@@ -888,26 +888,28 @@ module.exports = {
             lastName: "User",
             dateOfBirth: "12/16/1993",
             gender: "Male",
-            maritalStatus: "Married",
+            applicantMaritalStatusCd: "Married",
             yearsLicensed: "3 years or more",
             employment: "Student (full-time)",
             education: "College Degree",
+            relationship:'Other'
           },
           {
             firstName: "Tester",
             lastName: "User",
             dateOfBirth: "12/18/1993",
             gender: "Female",
-            maritalStatus: "Married",
+            applicantMaritalStatusCd: "Married",
             yearsLicensed: "3 years or more",
             employment: "Student (full-time)",
             education: "College Degree",
+            relationship:'Child'
           }
         ],
         priorIncident: "AAD - At Fault Accident",
         priorIncidentDate: "12/16/2012",
-        policyEffectiveDate: "01/01/2018",
-        priorPolicyTerminationDate: "03/15/2019",
+        policyEffectiveDate: "04/26/2019",
+        priorPolicyTerminationDate: "05/30/2019",
         yearsWithPriorInsurance: "5 years or more",
         ownOrRentPrimaryResidence: "Rent",
         numberOfResidentsInHome: "3",
@@ -915,7 +917,6 @@ module.exports = {
         haveAnotherProgressivePolicy: "No"
       }; */
       const bodyData = req.body.data;
-
       // For login
       await loginStep(browser, page);
 
@@ -927,13 +928,14 @@ module.exports = {
         await page.type('#password1', password);
 
         await page.click('#image1');
-        await page.waitForNavigation({ timeout: 0 });
+        await page.waitFor(1000);
+        // await page.waitForNavigation({ timeout: 0 });
         const populatedData = await populateKeyValueData(bodyData);
-        await newQuoteStep(browser, page, bodyData, populatedData);
+        await newQuoteStep(populatedData);
       }
 
       // For redirect to new quoate form
-      async function newQuoteStep(browser, page, dataObject, populatedData) {
+      async function newQuoteStep(populatedData) {
         console.log('newQuoteStep');
 
         const AllPages = await browser.pages();
@@ -944,80 +946,137 @@ module.exports = {
         }
 
         await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-        await page.waitForSelector(populatedData.newQuoteState.element);
-        await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
-        await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
 
+        await page.waitForSelector('#QuoteStateList');
+        await page.select('#QuoteStateList', 'DE');
+        await page.select('#Prds', 'AU');
+        await page.waitFor(1000);
         await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
 
-        let pageQuote = '';
+
         while (true) {
           await page.waitFor(1000);
-          pageQuote = await browser.pages();
+          const pageQuote = await browser.pages();
           if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
+            page = pageQuote[2];
             break;
           }
         }
-
-        await namedInsuredStep(browser, pageQuote, dataObject, populatedData);
+        await namedInsuredStep(populatedData);
       }
 
-
       // For Named Insured Form
-      async function namedInsuredStep(browser, pageQuote, dataObject, populatedData) {
+      async function namedInsuredStep(populatedData) {
         console.log('namedInsuredStep');
         try {
-          await pageQuote.waitForSelector('#policy');
-          await pageQuote.waitFor(1000);
+          await page.waitForSelector('#policy');
+          page.on('console', console.log);
+          await page.waitFor(1000);
 
-          await pageQuote.type(populatedData.firstName.element, populatedData.firstName.value);
-          await pageQuote.type(populatedData.middleName.element, populatedData.middleName.value);
-          await pageQuote.type(populatedData.lastName.element, populatedData.lastName.value);
-          await pageQuote.select(populatedData.suffixName.element, populatedData.suffixName.value);
+          const namedInsured = [
+            {
+              title: 'Policy Effective Date',
+              element: 'pol_eff_dt',
+              value: '04/30/2019',
+            },
+            {
+              title: 'Is this a Named Operator policy',
+              element: 'nam_opr',
+              value: 'N',
+            },
+            {
+              title: 'First Name',
+              element: 'DRV.0.drvr_frst_nam',
+              value: bodyData.firstName || 'Test',
+            },
+            {
+              title: 'Middle Initial:',
+              element: 'DRV.0.drvr_mid_nam',
+              value: bodyData.middleName || 'test',
+            },
+            {
+              title: 'Last Name',
+              element: 'DRV.0.drvr_lst_nam',
+              value: bodyData.lastName || 'User',
+            },
+            {
+              title: 'Suffix',
+              element: 'DRV.0.drvr_sfx_nam',
+              value: bodyData.suffixName || 'SR',
+            },
+            {
+              title: 'Date of Birth',
+              element: 'DRV.0.drvr_dob',
+              value: bodyData.birthDate || '08/08/1993',
+            },
+            {
+              title: 'Customer E-Mail',
+              element: 'email_adr',
+              value: bodyData.email || 'test@gmail.com',
+            },
+            {
+              title: 'Phone Type',
+              element: 'INSDPHONE.0.insd_phn_typ',
+              value: 'M',
+            },
+            {
+              title: 'Phone Number',
+              element: 'INSDPHONE.0.insd_phn_nbr',
+              value: bodyData.phone || '1234567890',
+            },
+            {
+              title: 'Mailing Address Line 1',
+              element: 'insd_str',
+              value: bodyData.mailingAddress || '8 The Green',
+            },
+            {
+              title: 'City',
+              element: 'insd_city_cd',
+              value: bodyData.city || 'Delaware',
+            },
+            {
+              title: 'State',
+              element: 'insd_st_cd',
+              value: bodyData.state || 'DE',
+            },
+            {
+              title: 'ZIP Code',
+              element: 'insd_zip_cd',
+              value: bodyData.zipCode || '19901',
+            },
+            {
+              title: 'Check this box if the current mailing address is a P.O. Box or a Military address ',
+              element: 'mailing_zip_type_display',
+              value: 'Y',
+            },
 
-          await pageQuote.click(populatedData.dateOfBirth.element);
-          await pageQuote.type(populatedData.dateOfBirth.element, populatedData.dateOfBirth.value, { delay: 100 });
+          ];
+          await page.evaluate((namedInsured) => {
+            namedInsured.forEach((oneElement) => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+          }, namedInsured);
 
-          await pageQuote.type(populatedData.email.element, populatedData.email.value);
-          await pageQuote.click(populatedData.phone.element);
+          const lenOfResInsd = await page.evaluate(getSelctVal, `${populatedData.lengthAtAddress.element}>option`);
+          const lenOfRes = await page.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
+          await page.select(populatedData.lengthAtAddress.element, lenOfRes);
+          await page.waitFor(500);
 
-          // let phoneNo = populatedData.phone.value;
-          // phoneNo = phoneNo.replace('-', '');
+          const prirInsInd = await page.evaluate(getSelctVal, `${populatedData.priorInsurance.element}>option`);
+          const prirIns = await page.evaluate(getValToSelect, prirInsInd, populatedData.priorInsurance.value);
+          await page.select(populatedData.priorInsurance.element, prirIns);
 
-          await pageQuote.type(populatedData.phone.element, populatedData.phone.value, { delay: 200 });
-          await pageQuote.type(populatedData.mailingAddress.element, populatedData.mailingAddress.value);
-          await pageQuote.type(populatedData.city.element, populatedData.city.value);
+          await page.waitFor(500);
+          const currInsCoCdDsply = await page.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
+          const currInsCoCd = await page.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
+          await page.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
 
-          const states = await pageQuote.evaluate(getSelctVal, `${populatedData.state.element}>option`);
-          const state = await pageQuote.evaluate(getValToSelect, states, populatedData.state.value);
-          await pageQuote.select(populatedData.state.element, state);
+          await page.waitFor(500);
+          await page.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
-          await pageQuote.click(populatedData.zipCode.element);
-          await pageQuote.type(populatedData.zipCode.element, populatedData.zipCode.value, { delay: 300 });
-
-          const lenOfResInsd = await pageQuote.evaluate(getSelctVal, `${populatedData.lengthAtAddress.element}>option`);
-          const lenOfRes = await pageQuote.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
-
-          await pageQuote.click(populatedData.lengthAtAddress.element);
-          await pageQuote.select(populatedData.lengthAtAddress.element, lenOfRes);
-          await pageQuote.waitFor(1000);
-
-          const prirInsInd = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsurance.element}>option`);
-          const prirIns = await pageQuote.evaluate(getValToSelect, prirInsInd, populatedData.priorInsurance.value);
-          await pageQuote.select(populatedData.priorInsurance.element, prirIns);
-
-          await pageQuote.waitFor(1000);
-          const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
-          const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
-          await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
-
-          await pageQuote.waitFor(1000);
-          await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await vehicleStep(browser, pageQuote, dataObject, populatedData);
+          await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await vehicleStep(populatedData);
         } catch (err) {
-          console.log('err namedInsuredStep:', err);
           const response = { error: 'There is some error validations at namedInsuredStep' };
           dataObject.results = {
             status: false,
@@ -1027,59 +1086,80 @@ module.exports = {
       }
 
       // For Vehicles Form
-      async function vehicleStep(browser, pageQuote, dataObject, populatedData) {
+      async function vehicleStep(populatedData) {
         console.log('vehicleStep');
         try {
-          await pageQuote.waitFor(2000);
-          for (const j in dataObject.vehicles) {
-            if (j < dataObject.vehicles.length - 1) {
-              const addElement = await pageQuote.$('[id="VEH.0.add"]');
+          await page.waitFor(2000);
+          await page.waitForSelector('#VEH\\.0\\.add');
+          for (const j in bodyData.vehicles) {
+            if (j < bodyData.vehicles.length - 1) {
+              const addElement = await page.$('[id="VEH.0.add"]');
               await addElement.click();
-              await pageQuote.waitFor(1000);
+              await page.waitFor(1000);
             }
           }
 
-          for (const j in dataObject.vehicles) {
-            await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
-            const modelYears = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleYear${j}`].element}>option`);
-            const modelYear = await pageQuote.evaluate(getValToSelect, modelYears, populatedData[`vehicleYear${j}`].value);
-            await pageQuote.select(populatedData[`vehicleYear${j}`].element, modelYear);
+          for (const j in bodyData.vehicles) {
+            const vehicle = [
+              {
+                title: 'Is this a trailer',
+                element: `VEH.${j}.veh_trailer_ind`,
+                value: 'N',
+              },
+              {
+                title: 'Vehicle Type',
+                element: `VEH.${j}.veh_typ_cd`,
+                value: 'A',
+              },
+              {
+                title: 'Vehicle Used for Delivery',
+                element: `VEH.${j}.veh_use_dlvry`,
+                value: 'N',
+              },
+              {
+                title: 'Any Toys to Quote',
+                element: 'prompt_sl_cross_sell',
+                value: 'N',
+              },
 
-            dismissDialog(pageQuote);
+            ];
+            dismissDialog(page);
+            await page.evaluate((vehicle) => {
+              vehicle.forEach((oneElement) => {
+                document.getElementById(oneElement.element).value = oneElement.value;
+              });
+            }, vehicle);
 
-            await pageQuote.waitFor(1500);
-            const vehiclesMake = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleMake${j}`].element}>option`);
-            const vehicleMake = await pageQuote.evaluate(getValToSelect, vehiclesMake, populatedData[`vehicleMake${j}`].value);
-            await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicleMake);
+            const yesrDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_yr']>option`);
+            const yearSelected = await page.evaluate(getValToSelect, yesrDisplay, bodyData.vehicles[j].year);
+            await page.select(`select[id='VEH.${j}.veh_mdl_yr']`, yearSelected);
+            await page.waitFor(500);
 
-            await pageQuote.waitFor(1500);
-            const vehMdlNames = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleModel${j}`].element}>option`);
-            const vehMdlName = await pageQuote.evaluate(getValToSelect, vehMdlNames, populatedData[`vehicleModel${j}`].value);
-            await pageQuote.select(populatedData[`vehicleModel${j}`].element, vehMdlName);
+            const makeDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_make']>option`);
+            const makeSelected = await page.evaluate(getValToSelect, makeDisplay, bodyData.vehicles[j].make);
+            await page.select(`select[id='VEH.${j}.veh_make']`, makeSelected);
+            await page.waitFor(500);
 
-            await pageQuote.waitFor(1500);
-            const vehStyles = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleBody${j}`].element}>option`);
-            const vehStyle = await pageQuote.evaluate(getValToSelect, vehStyles, populatedData[`vehicleBody${j}`].value);
-            await pageQuote.select(populatedData[`vehicleBody${j}`].element, vehStyle);
+            const modelDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_nam']>option`);
+            const modelSelected = await page.evaluate(getValToSelect, modelDisplay, bodyData.vehicles[j].model);
+            await page.select(`select[id='VEH.${j}.veh_mdl_nam']`, modelSelected);
+            await page.waitFor(500);
 
-            await pageQuote.waitFor(1500);
-            await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value, { delay: 100 });
+            const bodyDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
+            const bodySelected = await page.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].year);
+            await page.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
 
-            const vehLenOfOwns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
-            const vehLenOfOwn = await pageQuote.evaluate(getValToSelect, vehLenOfOwns, populatedData[`vehicleLengthOfOwnership${j}`].value);
-            await pageQuote.select(populatedData[`vehicleLengthOfOwnership${j}`].element, vehLenOfOwn);
+            const vehLenOfOwns = await page.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
+            const vehLenOfOwn = await page.evaluate(getValToSelect, vehLenOfOwns, populatedData[`vehicleLengthOfOwnership${j}`].value);
+            await page.select(populatedData[`vehicleLengthOfOwnership${j}`].element, vehLenOfOwn);
 
-            const vehUses = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
-            const vehUse = await pageQuote.evaluate(getValToSelect, vehUses, populatedData[`vehiclePrimaryUse${j}`].value);
-            await pageQuote.select(populatedData[`vehiclePrimaryUse${j}`].element, vehUse);
-            await pageQuote.select(populatedData[`vehicleCrossSell${j}`].element, populatedData[`vehicleCrossSell${j}`].value);
-
-            await pageQuote.waitFor(1500);
-            await pageQuote.waitForSelector(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element);
-            await pageQuote.select(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element, populatedData[`vehiclePrimaryUsedForDelivery${j}`].value);
+            const vehUses = await page.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
+            const vehUse = await page.evaluate(getValToSelect, vehUses, populatedData[`vehiclePrimaryUse${j}`].value);
+            await page.select(populatedData[`vehiclePrimaryUse${j}`].element, vehUse);
           }
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await driverStep(browser, pageQuote, dataObject, populatedData);
+          await page.waitFor(2000);
+          await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await driverStep(populatedData);
         } catch (err) {
           console.log('err vehicleStep:', err);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -1091,100 +1171,111 @@ module.exports = {
       }
 
       // For driver Form
-      async function driverStep(browser, pageQuote, dataObject, populatedData) {
+      async function driverStep(populatedData) {
         console.log('driverStep');
         try {
-          await pageQuote.waitFor(2000);
-
-          for (const j in dataObject.drivers) {
-            if (j < dataObject.drivers.length - 1) {
-              const addElement = await pageQuote.$('[id="DRV.0.add"]');
-              await addElement.click();
-              await pageQuote.waitFor(1000);
+          await page.waitFor(2000);
+          await page.waitForSelector('#DRV\\.0\\.add');
+          for (const j in bodyData.drivers) {
+            if (j < bodyData.drivers.length - 1) {
+              await page.click('#DRV\\.0\\.add');
+              // const addElement = await page.click('[id="DRV.0.add"]');
+              // await addElement.click();
+              await page.waitFor(1000);
             }
           }
-          for (const j in dataObject.drivers) {
-            await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
-            await pageQuote.waitFor(600);
+          for (const j in bodyData.drivers) {
+            await page.waitForSelector(`#DRV\\.${j}\\.drvr_frst_nam`);
+            await page.waitFor(600);
 
-            const driverFirstName = populatedData[`driverFirstName${j}`].value;
-            if (j === '0') {
-              await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_frst_nam')).value = text; }, '');
-            }
-            await pageQuote.type(populatedData[`driverFirstName${j}`].element, driverFirstName, { preselect: true });
+            const driver = [
+              {
+                element: `DRV.${j}.drvr_frst_nam`,
+                value: bodyData.drivers[j].firstName || '',
+              },
+              {
+                element: 'DRV.0.drvr_mid_nam',
+                value: bodyData.drivers[j].middleName || '',
+              },
+              {
+                element: `DRV.${j}.drvr_lst_nam`,
+                value: bodyData.drivers[j].lastName || '',
+              },
+              {
+                element: `DRV.${j}.drvr_sfx_nam`,
+                value: 'SR',
+              },
+              {
+                element: `DRV.${j}.drvr_dob`,
+                value: bodyData.drivers[j].dateOfBirth || '',
+              },
 
-            const driverLastName = populatedData[`driverLastName${j}`].value;
-            if (j === '0') {
-              await pageQuote.evaluate((text) => { (document.getElementById('DRV.0.drvr_lst_nam')).value = text; }, '');
-            }
-            await pageQuote.type(populatedData[`driverLastName${j}`].element, driverLastName, { preselect: true });
+            ];
+            // console.log('driver >>>',driver);
+            await page.evaluate((driver) => {
+              driver.forEach((oneElement) => {
+                // console.log(JSON.stringify(oneElement));
+                document.getElementById(oneElement.element).value = oneElement.value;
+              });
+            }, driver);
 
-            await pageQuote.waitFor(600);
-            await pageQuote.type(populatedData[`driverDateOfBirth${j}`].element, populatedData[`driverDateOfBirth${j}`].value, { delay: 200 });
-            await pageQuote.waitFor(600);
+            const genders = await page.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
+            const gender = await page.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
+            await page.waitFor(600);
+            await page.click(populatedData[`driverGender${j}`].element);
+            await page.select(populatedData[`driverGender${j}`].element, gender);
 
-            if (j === '1') {
-              await pageQuote.click(populatedData[`driverDateOfBirth${j - 1}`].element);
-              await pageQuote.type(populatedData[`driverDateOfBirth${j - 1}`].element, populatedData[`driverDateOfBirth${j - 1}`].value, { delay: 200 });
-              await pageQuote.waitFor(600);
-            }
+            const maritalStatuss = await page.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
+            const maritalStatus = await page.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
+            await page.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
-            const genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
-            const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
-            await pageQuote.waitFor(600);
-            await pageQuote.click(populatedData[`driverGender${j}`].element);
-            await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
-
-            const maritalStatuss = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-            const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
-            await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
             if (populatedData[`driverRelationship${j}`]) {
-              const drvrRelationships = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverRelationship${j}`].element}>option`);
-              const drvrRelationship = await pageQuote.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
-              await pageQuote.select(populatedData[`driverRelationship${j}`].element);
-              await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
-              await pageQuote.waitFor(600);
+              const drvrRelationships = await page.evaluate(getSelctVal, `${populatedData[`driverRelationship${j}`].element}>option`);
+              const drvrRelationship = await page.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
+              // await page.select(populatedData[`driverRelationship${j}`].element);
+              await page.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
+              // await page.waitFor(600);
             }
 
-            await pageQuote.waitFor(600);
-            await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
-            await pageQuote.waitFor(600);
+            // await page.waitFor(600);
+            await page.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
+            // await page.waitFor(600);
 
-            const drvrYearsLics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
-            const drvrYearsLic = await pageQuote.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
-            await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element);
-            await pageQuote.waitFor(600);
-            await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
-            await pageQuote.waitFor(600);
+            const drvrYearsLics = await page.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
+            const drvrYearsLic = await page.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
+            await page.select(populatedData[`driverYearsLicensed${j}`].element);
+            // await page.waitFor(600);
+            await page.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
+            await page.waitFor(600);
 
-            await pageQuote.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
+            await page.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
 
-            await pageQuote.waitFor(600);
-            const drvrEmplStats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-            const drvrEmplStat = await pageQuote.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
-            await pageQuote.waitFor(300);
-            await pageQuote.click(populatedData[`driverEmployment${j}`].element);
-            await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
-            await pageQuote.waitFor(600);
+            await page.waitFor(600);
+            const drvrEmplStats = await page.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
+            const drvrEmplStat = await page.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
+            await page.waitFor(300);
 
-            const drvrEdLvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
-            const drvrEdLvl = await pageQuote.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
-            await pageQuote.waitFor(300);
-            await pageQuote.select(populatedData[`driverEducation${j}`].element, drvrEdLvl);
+            await page.click(populatedData[`driverEmployment${j}`].element);
+            await page.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
+            await page.waitFor(600);
 
-            await pageQuote.waitFor(600);
-            await pageQuote.click(populatedData[`driverStateFiling${j}`].element);
-            await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
-            await pageQuote.waitFor(600);
+            const drvrEdLvls = await page.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
+            const drvrEdLvl = await page.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
+            await page.waitFor(300);
+            await page.select(populatedData[`driverEducation${j}`].element, drvrEdLvl);
 
-            await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
-            await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
-            await pageQuote.waitFor(600);
+            // await page.waitFor(600);
+            await page.click(populatedData[`driverStateFiling${j}`].element);
+            await page.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
+            // await page.waitFor(600);
+
+            await page.click(populatedData[`driverAdvTraining${j}`].element);
+            await page.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
+            // await page.waitFor(600);
           }
-
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await violationStep(browser, pageQuote, dataObject, populatedData);
+          await page.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await violationStep(browser, page, bodyData, populatedData);
         } catch (err) {
           console.log('err driverStep:', err);
           const response = { error: 'There is some error validations at driverStep' };
@@ -1215,7 +1306,7 @@ module.exports = {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
-              await pageQuote.type(populatedData[`priorIncidentDate${j}`].element, priorIncidentDate, { delay: 100 });
+              await pageQuote.type(populatedData[`priorIncidentDate${j}`].element, priorIncidentDate);
             }
           }
 
@@ -1238,35 +1329,35 @@ module.exports = {
 
         try {
           await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
-          await pageQuote.waitFor(1500);
+          // await pageQuote.waitFor(1500);
           const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
           const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
           await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
 
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
-          await pageQuote.waitFor(1500);
+          await pageQuote.waitFor(700);
           await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
-          await pageQuote.waitFor(1500);
+          await pageQuote.waitFor(700);
 
           await pageQuote.click(populatedData.priorPolicyTerminationDate.element);
-          await pageQuote.type(populatedData.priorPolicyTerminationDate.element, populatedData.priorPolicyTerminationDate.value, { delay: 200 });
+          await pageQuote.type(populatedData.priorPolicyTerminationDate.element, populatedData.priorPolicyTerminationDate.value);
 
-          await pageQuote.waitFor(1500);
+          await pageQuote.waitFor(1200);
           await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
           await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
-          await pageQuote.waitFor(1500);
+          await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
-          await pageQuote.waitFor(1500);
+          await pageQuote.waitFor(500);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
-          await pageQuote.waitFor(1500);
+          // await pageQuote.waitFor(1000);
 
           await pageQuote.click(populatedData.policyEffectiveDate.element);
-          await pageQuote.type(populatedData.policyEffectiveDate.element, populatedData.policyEffectiveDate.value, { delay: 200 });
+          await pageQuote.type(populatedData.policyEffectiveDate.element, populatedData.policyEffectiveDate.value);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await FormStep6(browser, pageQuote, dataObject);
+          await coveragesStep(browser, pageQuote, dataObject);
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -1276,29 +1367,20 @@ module.exports = {
           };
         }
       }
-
-      async function FormStep6(browser, pageQuote, dataObject) {
-        console.log('FormStep6');
+      async function coveragesStep(browser, pageQuote, dataObject) {
+        console.log('coveragesStep');
         await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         dismissDialog(pageQuote);
-        //   await FormStep6point1(browser, pageQuote, dataObject);
-        // }
-
-        // async function FormStep6point1(browser, pageQuote, dataObject) {
-        //   console.log('FormStep6point1');
-        // dismissDialog(pageQuote);
-
         dataObject.results = {};
         try {
           await pageQuote.waitFor(2500);
           await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
-          await finalStep(browser, pageQuote, dataObject);
         } catch (err) {
           try {
             await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
             await processDataStep(browser, pageQuote, dataObject);
           } catch (e) {
-            console.log('err FormStep6 :', e);
+            console.log('err coveragesStep :', e);
             const response = { error: 'There is some error validations' };
             dataObject.results = {
               status: false,
@@ -1307,7 +1389,6 @@ module.exports = {
           }
         }
       }
-
       async function processDataStep(browser, pageQuote, dataObject) {
         console.log('processDataStep');
         const downPayment = await pageQuote.evaluate(() => {
@@ -1338,47 +1419,13 @@ module.exports = {
         };
       }
 
-      async function finalStep(browser, pageQuote) {
-        console.log('final step');
-
-        await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
-
-        const bipd = '191006-200103';
-        await pageQuote.select('select[name="VEH.0.COMP"]', bipd);
-
-        await pageQuote.waitFor(2000);
-        const comp = '210106';
-        await pageQuote.select('select[name="VEH.0.COMP"]', comp);
-
-        await pageQuote.waitFor(2000);
-        const coll = '210303';
-        await pageQuote.select('select[name="VEH.0.COLL"]', coll);
-        await pageQuote.waitFor(2000);
-
-        await pageQuote.click('#tot_pol_prem-button');
-
-        const downPayment = await pageQuote.evaluate(() => {
-          const ress = {};
-
-          ress.total_premium = document.querySelector('#tot_pol_prem').textContent;
-          ress.down_pmt_amt = document.querySelector('#down_pmt_amt').textContent;
-          ress.term = document.querySelector('#pol_term_cnt > option[selected]').textContent;
-          ress.plan = document.querySelector('#pmt_optn_desc_presto > option[selected]').textContent;
-          return ress;
-        });
-
-        dataObject.results = {};
-        dataObject.results.status = true;
-        dataObject.results.response = downPayment;
-        console.log(dataObject, 'final data');
-      }
-
       // For dimiss alert dialog
       function dismissDialog(page) {
         try {
           page.on('dialog', async (dialog) => {
+            // dialog.accept();
             await dialog.dismiss();
-            await browser.close();
+            // await browser.close();
           });
         } catch (e) {
         }
@@ -2056,10 +2103,10 @@ module.exports = {
           await pageQuote.type(populatedData.middleName.element, populatedData.middleName.value);
           await pageQuote.type(populatedData.lastName.element, populatedData.lastName.value);
           await pageQuote.select(populatedData.suffixName.element, populatedData.suffixName.value);
-          await pageQuote.evaluate((dateOfBirth) => (document.getElementById(dateOfBirth.elementId)).value = dateOfBirth.value, populatedData.dateOfBirth);
+          await pageQuote.evaluate(dateOfBirth => (document.getElementById(dateOfBirth.elementId)).value = dateOfBirth.value, populatedData.dateOfBirth);
 
           await pageQuote.type(populatedData.email.element, populatedData.email.value);
-          await pageQuote.evaluate((phone) => (document.getElementById(phone.elementId)).value = phone.value, populatedData.phone);
+          await pageQuote.evaluate(phone => (document.getElementById(phone.elementId)).value = phone.value, populatedData.phone);
 
           await pageQuote.type(populatedData.mailingAddress.element, populatedData.mailingAddress.value);
           await pageQuote.type(populatedData.city.element, populatedData.city.value);
@@ -2067,7 +2114,7 @@ module.exports = {
           const states = await pageQuote.evaluate(getSelectValues, `${populatedData.state.element}>option`);
           const state = await pageQuote.evaluate(getValToSelect, states, populatedData.state.value);
           await pageQuote.select(populatedData.state.element, state);
-          await pageQuote.evaluate((zipCode) => (document.getElementById(zipCode.elementId)).value = zipCode.value, populatedData.zipCode);
+          await pageQuote.evaluate(zipCode => (document.getElementById(zipCode.elementId)).value = zipCode.value, populatedData.zipCode);
 
           const lenOfResInsd = await pageQuote.evaluate(getSelectValues, `${populatedData.lengthAtAddress.element}>option`);
           const lenOfRes = await pageQuote.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
@@ -2182,12 +2229,12 @@ module.exports = {
             await pageQuote.type(populatedData[`driverLastName${j}`].element, driverLastName, { preselect: true });
 
             await pageQuote.waitFor(600);
-            await pageQuote.evaluate((driverDateOfBirth) => (document.getElementById(driverDateOfBirth.elementId)).value = driverDateOfBirth.value, populatedData[`driverDateOfBirth${j}`]);
+            await pageQuote.evaluate(driverDateOfBirth => (document.getElementById(driverDateOfBirth.elementId)).value = driverDateOfBirth.value, populatedData[`driverDateOfBirth${j}`]);
             await pageQuote.waitFor(600);
 
             if (j === '1') {
               await pageQuote.click(populatedData[`driverDateOfBirth${j - 1}`].element);
-              await pageQuote.evaluate((driverDateOfBirth) => (document.getElementById(driverDateOfBirth.elementId)).value = driverDateOfBirth.value, populatedData[`driverDateOfBirth${j - 1}`]);
+              await pageQuote.evaluate(driverDateOfBirth => (document.getElementById(driverDateOfBirth.elementId)).value = driverDateOfBirth.value, populatedData[`driverDateOfBirth${j - 1}`]);
               await pageQuote.waitFor(600);
             }
 
