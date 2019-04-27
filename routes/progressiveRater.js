@@ -9,4 +9,8 @@ router.put('/progressive/de', asyncHandler(async (req, res, next) => {
   await progressiveRaterController.rateDelaware(req, res, next);
 }));
 
+router.put('/progressive/al', asyncHandler(async (req, res, next) => {
+  await progressiveRaterController.rateAlabama(req, res, next);
+}));
+
 module.exports = router;
