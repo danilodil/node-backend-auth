@@ -2,8 +2,6 @@ const ENVIRONMENT = require('./environment');
 
 exports.CONFIG = {
   nodeEnv: ENVIRONMENT.ENV,
-  uiUrl: ENVIRONMENT.UIURL,
-  apiUrl: ENVIRONMENT.APIURL,
   dbName: ENVIRONMENT.DBNAME,
   dbHost: ENVIRONMENT.DBHOST,
   dbPort: ENVIRONMENT.DBPORT,

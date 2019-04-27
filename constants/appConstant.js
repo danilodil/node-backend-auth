@@ -37,3 +37,16 @@ exports.rater = {
 exports.cseRater = {
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 }
+
+exports.vendorNames = {
+  client: [
+    'SF',
+    'RATER',
+    'CSERATER',
+    'ALRATER',
+  ],
+  user: [
+    'QQ',
+    'EZLYNX',
+  ],
+}
