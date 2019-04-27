@@ -10,6 +10,9 @@ if (nodeEnv === 'development') {
 if (nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
 }
+if (nodeEnv === 'sandbox') {
+  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
+}
 
 exports.qqCatalyst = {
   AUTHORIZE_URL: 'https://login.qqcatalyst.com/oauth/authorize',
