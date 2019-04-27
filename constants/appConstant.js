@@ -33,3 +33,7 @@ exports.rater = {
   LOGIN_URL: 'https://www.foragentsonly.com/login/',
   NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
 };
+
+exports.cseRater = {
+  LOGIN_URL: 'https://spinn.csespi.com/innovation',
+}

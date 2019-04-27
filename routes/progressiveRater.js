@@ -1,7 +1,7 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 
-const progressiveRaterController = require('../controllers/progressive-rater');
+const progressiveRaterController = require('../controllers/progressiveRater');
 
 const router = express.Router();
 
