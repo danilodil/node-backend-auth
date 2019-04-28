@@ -10,6 +10,9 @@ if (nodeEnv === 'development') {
 if (nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
 }
+if (nodeEnv === 'sandbox') {
+  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
+}
 
 exports.qqCatalyst = {
   AUTHORIZE_URL: 'https://login.qqcatalyst.com/oauth/authorize',
@@ -26,7 +29,7 @@ exports.ezLynx = {
   UPLOAD_PATH: 'https://services.ezlynx.com/EzLynxWebService/EzLynxFileUpload.asmx',
   USERNAME_DEV: 'xi_uploadUAT',
   PASSWORD_DEV: 'Cojoanin93',
-  UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx'
+  UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx',
 };
 
 exports.rater = {
@@ -36,4 +39,17 @@ exports.rater = {
 
 exports.cseRater = {
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
-}
+};
+
+exports.vendorNames = {
+  client: [
+    'SF',
+    'RATER',
+    'CSERATER',
+    'ALRATER',
+  ],
+  user: [
+    'QQ',
+    'EZLYNX',
+  ],
+};

@@ -19,11 +19,11 @@ const Vendor = sequelize.define('Vendor', {
     type: DataTypes.STRING,
   },
   state: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
   },
   carrier: {
-    type: DataTypes.STRING
-  }
+    type: DataTypes.STRING,
+  },
 });
 
 module.exports = Vendor;
