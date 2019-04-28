@@ -114,7 +114,7 @@ module.exports = {
                      {
                         UseVinLookup: await returnValue(vehicle.children.Vin) !== '' ? 'Yes' : 'No',
                         ... (await returnValue(vehicle.children.Year) !== '' && {Year: await returnValue(vehicle.children.Year)}),
-                        ... (await returnValue(vehicle.children.Vin) !== '' && {Vin: await returnValue(vehicle.children.Year)}),
+                        ... (await returnValue(vehicle.children.Vin) !== '' && {Vin: await returnValue(vehicle.children.Vin)}),
                         ... (await returnValue(vehicle.children.Make) !== '' && {Make: (await returnValue(vehicle.children.Make)).toUpperCase()}),
                         ... (await returnValue(vehicle.children.Model) !== '' && {Model: (await returnValue(vehicle.children.Model)).toUpperCase()}),
                         ... (await returnValue(vehicle.children['Sub-Model']) !== '' && {['Sub-Model']: (await returnValue(vehicle.children['Sub-Model'])).toUpperCase()})
@@ -265,6 +265,8 @@ module.exports = {
             ... (await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '' && {RatingStateCode: await returnValue(req.body.Contact.GeneralInfo.RatingStateCode)}),
          }})
       };
+
+      console.log(applicantAuto);
 
       const applicantHome = {
          Applicant: {
