@@ -21,10 +21,9 @@ const index = require('./routes/index');
 const app = express();
 
 app.use(compression());
-app.set('views', path.join(__dirname, './dist'));
+app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'ejs');
 
-app.use(express.static(path.join(__dirname, './dist')));
 app.use(logger('dev'));
 
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -54,21 +53,25 @@ app.use(session({
 // App Configs
 app.use(appConfig.trimParams);
 
+app.get('/', (req, res) => {
+  res.render('index.ejs');
+});
+
 app.use('/api', index);
 
 // Error handling
 app.use(appConfig.handleError);
 // Handle response
 app.use(appConfig.handleSuccess);
-// // Handle response
-// app.use(appConfig.handle404);
+// Handle response
+app.use(appConfig.handle404);
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '/dist/index.html'));
-});
-
-app.use('*', (req, res) => {
-  res.sendFile(__dirname, '/dist/index.html');
+// Catch uncaught exceptions
+process.on('uncaughtException', (error) => {
+  // handle the error safely
+  console.log('Inside uncaughtException');
+  console.log(error);
+  return error;
 });
 
 module.exports = app;
