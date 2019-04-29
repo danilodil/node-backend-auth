@@ -10,18 +10,18 @@ module.exports = {
         return next(Boom.badRequest('Please send proper data!'));
       }
 
-      let findObject = {where: {}};
+      const findObject = { where: {} };
 
-      findObject.where['companyId'] = params.companyId;
-      findObject.where['vendorName'] = params.vendorName;
+      findObject.where.companyId = params.companyId;
+      findObject.where.vendorName = params.vendorName;
 
       if (params.vendorName === 'RATER') {
-        findObject.where['state'] = params.state;
-        findObject.where['carrier'] = params.carrier;
+        findObject.where.state = params.state;
+        findObject.where.carrier = params.carrier;
       }
 
       const vendor = await vendorModel.findOne(findObject);
-      
+
       if (vendor) {
         return next(Boom.badRequest('Vendor already exists!'));
       }
@@ -33,7 +33,7 @@ module.exports = {
         companyId: params.companyId,
         salesforceAT: params.vendorName === 'SF' ? params.salesforceAT : '',
         state: params.state,
-        carrier: params.carrier
+        carrier: params.carrier,
       });
 
       req.session.data = {

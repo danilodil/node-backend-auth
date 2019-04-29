@@ -9,7 +9,7 @@
 
 |  Key            | Description  |
 |-----------------|--------------|
-| `NODE_ENV`      | Enviroment-mode (e.g. 'local', 'development', 'production') |
+| `ENV`      | Enviroment-mode (e.g. 'local', 'development', 'production') |
 | `DBNAME`        | Database name |
 | `DBHOST`        | Database host |
 | `DBPORT`        | Database port |

@@ -5,13 +5,10 @@ if (nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
 if (nodeEnv === 'development') {
-  exports.allowedOrigin = '';
+  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
 if (nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
-}
-if (nodeEnv === 'sandbox') {
-  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
 
 exports.qqCatalyst = {
@@ -47,7 +44,7 @@ exports.vendorNames = {
     'RATER',
     'CSERATER',
     'ALRATER',
-    'EZLYNX'
+    'EZLYNX',
   ],
   user: [
     'QQ',
