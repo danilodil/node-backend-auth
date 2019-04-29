@@ -47,6 +47,8 @@ exports.vendorNames = {
     'RATER',
     'CSERATER',
     'ALRATER',
+    'EZLYNX',
+    'QQ'
   ],
   user: [
     'QQ',
