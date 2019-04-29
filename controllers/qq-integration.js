@@ -18,8 +18,42 @@ module.exports = {
     const { username, password } = req.body.decoded_vendor;
     const path = '/v1/Contacts';
     const user = await oAuth2.owner.getToken(username, password);
+    const returnValue = async(value) => {
+      try {
+         if (typeof value != 'undefined' && value !== 'undefined' && value !== null && value !== 'null') {
+            if (value === 'true' || value === true) {
+               return 'Yes';
+            } else if (value === 'false' || value === false) {
+               return 'No';
+            } else {
+               return value;
+            }
+         } else {
+            return '';
+         }
+      } catch(error) {
+         console.log(`Error on value: ${value}`, error);
+      }
+    };
+    const data = {
+      ... (await returnValue(req.body.Contact.EntityID) !== '' && {EntityID: await returnValue(req.body.Contact.EntityID)}),
+      ... (await returnValue(req.body.Contact.FirstName) !== '' && {FirstName: await returnValue(req.body.Contact.FirstName)}),
+      ... (await returnValue(req.body.Contact.LastName) !== '' && {LastName: await returnValue(req.body.Contact.LastName)}),
+      ... (await returnValue(req.body.Contact.Phone) !== '' && {Phone: await returnValue(req.body.Contact.Phone)}),
+      ... (await returnValue(req.body.Contact.Email) !== '' && {Email: await returnValue(req.body.Contact.Email)}),
+      ... (await returnValue(req.body.Contact.Line1) !== '' && {Line1: await returnValue(req.body.Contact.Line1)}),
+      ... (await returnValue(req.body.Contact.City) !== '' && {City: await returnValue(req.body.Contact.City)}),
+      ... (await returnValue(req.body.Contact.State) !== '' && {State: await returnValue(req.body.Contact.State)}),
+      ... (await returnValue(req.body.Contact.Zip) !== '' && {Zip: await returnValue(req.body.Contact.Zip)}),
+      ... (await returnValue(req.body.Contact.ContactType) !== '' && {ContactType: await returnValue(req.body.Contact.ContactType)}),
+      ... (await returnValue(req.body.Contact.ContactSubType) !== '' && {ContactSubType: await returnValue(req.body.Contact.ContactSubType)}),
+      ... (await returnValue(req.body.Contact.Status) !== '' && {Status: await returnValue(req.body.Contact.Status)}),
+      ... (await returnValue(req.body.Contact.Country) !== '' && {Country: await returnValue(req.body.Contact.Country)}),
+      ... (await returnValue(req.body.Contact.LocationID) !== '' && {LocationID: await returnValue(req.body.Contact.LocationID)})
+    };
+
     const options = {
-      method: 'put', url: appConstant.RESOURCE_URL + path, json: req.body.contact,
+      method: 'put', url: appConstant.RESOURCE_URL + path, json: data
     };
 
     await user.refresh();
