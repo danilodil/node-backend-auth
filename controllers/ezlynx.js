@@ -442,7 +442,7 @@ module.exports = {
 
       req.session.data = {
         title: 'Contact created successfully',
-        body: newResponse,
+        body: response,
         xml: format(xml_body),
         json: req.params.type === 'Home' ? applicantHome : applicantAuto
       };
