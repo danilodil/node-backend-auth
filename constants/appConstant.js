@@ -41,9 +41,9 @@ exports.cseRater = {
 exports.vendorNames = {
   client: [
     'SF',
-    'RATER',
+    'PROGRESSIVEDERATER',
+    'PROGRESSIVEALRATER',
     'CSERATER',
-    'ALRATER',
     'EZLYNX',
     'QQ',
   ],
