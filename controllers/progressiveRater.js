@@ -1219,7 +1219,7 @@ module.exports = {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, driver);
-            await page.evaluate((ddob) => document.querySelector(ddob.element).value = ddob.value, populatedData[`driverDateOfBirth${j}`]);
+            await page.evaluate(ddob => document.querySelector(ddob.element).value = ddob.value, populatedData[`driverDateOfBirth${j}`]);
             const genders = await page.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
             const gender = await page.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
             await page.waitFor(600);
@@ -1710,7 +1710,7 @@ module.exports = {
       await page.setViewport({ width: 1200, height: 920 });
 
       // Request input data
-      /*const bodyData = {
+      /* const bodyData = {
         firstName: 'Test',
         lastName: 'User',
         birthDate: '12/16/1993',
@@ -1778,7 +1778,7 @@ module.exports = {
         numberOfResidentsInHome: '3',
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
-      };*/
+      }; */
       const bodyData = req.body.data;
       bodyData.results = {};
 
