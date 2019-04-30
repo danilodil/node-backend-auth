@@ -9,4 +9,8 @@ router.post('/add', asyncHandler(async (req, res, next) => {
   await vendorController.create(req, res, next);
 }));
 
+router.patch('/edit/:vendorName', asyncHandler(async (req, res, next) => {
+  await vendorController.update(req, res, next);
+}));
+
 module.exports = router;

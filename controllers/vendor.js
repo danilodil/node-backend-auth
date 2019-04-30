@@ -15,7 +15,7 @@ module.exports = {
       findObject.where.companyId = params.companyId;
       findObject.where.vendorName = params.vendorName;
 
-      if (params.vendorName === 'RATER') {
+      if (params.vendorName === 'PROGRESSIVEDERATER') {
         findObject.where.state = params.state;
         findObject.where.carrier = params.carrier;
       }
@@ -31,7 +31,7 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
-        salesforceAT: params.vendorName === 'SF' ? params.salesforceAT : '',
+        salesforceAT: params.salesforceAT || '',
         state: params.state,
         carrier: params.carrier,
       });
@@ -43,6 +43,45 @@ module.exports = {
       return next();
     } catch (error) {
       return next(Boom.badRequest('Error creating vendor!'));
+    }
+  },
+  update: async (req, res, next) => {
+    try {
+      const params = req.body;
+      if (!params.companyId || !params.username || !params.password) {
+        return next(Boom.badRequest('Please send proper data!'));
+      }
+
+      const findObject = {
+        where: {
+          vendorName: req.params.vendorName,
+          companyId: params.companyId,
+        }
+      };
+
+      const vendor = await vendorModel.findOne(findObject);
+
+      if (!vendor) {
+        return next(Boom.badRequest('Vendor does not exists!'));
+      }
+
+      const updateVendor = await vendor.update({
+        vendorName: vendor.vendorName,
+        username: params.username ? params.username : vendor.username,
+        password: params.password ? params.password : vendor.password,
+        companyId: vendor.companyId,
+        salesforceAT: params.salesforceAT ? params.salesforceAT : vendor.salesforceAT,
+        state: vendor.state,
+        carrier: vendor.carrier,
+      });
+
+      req.session.data = {
+        message: 'Vendor updated successfully',
+        updateVendorID: updateVendor,
+      };
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest('Error updating vendor!'));
     }
   },
 };
