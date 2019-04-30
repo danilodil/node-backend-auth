@@ -1206,10 +1206,10 @@ module.exports = {
                 element: `DRV.${j}.drvr_sfx_nam`,
                 value: 'SR',
               },
-              {
-                element: `DRV.${j}.drvr_dob`,
-                value: bodyData.drivers[j].dateOfBirth || '',
-              },
+              // {
+              //   element: `DRV.${j}.drvr_dob`,
+              //   value: bodyData.drivers[j].dateOfBirth || '',
+              // },
 
             ];
             // console.log('driver >>>',driver);
@@ -1219,7 +1219,7 @@ module.exports = {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, driver);
-
+            await page.evaluate((ddob) => document.querySelector(ddob.element).value = ddob.value, populatedData[`driverDateOfBirth${j}`]);
             const genders = await page.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
             const gender = await page.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
             await page.waitFor(600);
