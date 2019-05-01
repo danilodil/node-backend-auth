@@ -453,9 +453,13 @@ module.exports = {
         newResponse = 'Succeeded';
       }
 
+      const url = response.match(/<URL>(.*)<\/URL>/)[1]
+
       req.session.data = {
         title: 'Contact created successfully',
-        body: response,
+        body: newResponse,
+        fullBody: response,
+        url: url,
         xml: format(xml_body),
         json: req.params.type === 'Home' ? applicantHome : applicantAuto,
       };

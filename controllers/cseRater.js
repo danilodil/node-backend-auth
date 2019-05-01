@@ -287,7 +287,7 @@ module.exports = {
                 {
                   title: 'Insured estimated annual miles driven',
                   element: 'Vehicle.OriginalEstimatedAnnualMiles',
-                  value: element.vehicleAnnualDistance,
+                  value: element.vehicleAnnualDistance || '10000',
                 },
                 {
                   title: 'Prior Odometer Reading',
@@ -394,7 +394,7 @@ module.exports = {
                 {
                   title: 'Date Licensed',
                   element: 'DriverInfo.LicenseDt',
-                  value: element.driverLicensedDt || '',
+                  value: element.driverLicensedDt || '03/30/2010',
                 },
                 {
                   title: 'License Number',
