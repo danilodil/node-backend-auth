@@ -10,7 +10,7 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ headless: false });
+      const browser = await puppeteer.launch({ headless: true });
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 920 });
 
@@ -185,7 +185,7 @@ module.exports = {
               value: bodyData.zipCode || '',
             },
             {
-              title: 'Primary Phone',
+              title: 'Primary Phone Name',
               element: 'InsuredPhonePrimary.PhoneName',
               value: 'Mobile',
             },
@@ -200,9 +200,53 @@ module.exports = {
               value: 'Email',
             },
             {
-              title: 'Primary Phone',
+              title: 'Primary Email',
               element: 'InsuredEmail.EmailAddr',
               value: bodyData.email || '',
+            },
+          ],
+
+          // Policy Coverage
+          policyCoverage: [
+            {
+              title: 'Bodily Injury',
+              element: 'Line.BILimit',
+              value: bodyData.bodilyInjuryCoverage || '25000/50000',
+            },
+            {
+              title: 'Property Damage',
+              element: 'Line.PDLimit',
+              value: bodyData.propertyDamageCoverage || '10000',
+            },
+            {
+              title: 'Medical Payments',
+              element: 'Line.MedPayLimit',
+              value: bodyData.medicalCoverage || '2000',
+            },
+            {
+              title: 'Un/Under-insured Motorist - Bodily Injury',
+              element: 'Line.UMBILimit',
+              value: bodyData.underInsuredMotoristCoverage || '15000/30000',
+            },
+            {
+              title: 'UM-PD / WCD Applies',
+              element: 'Line.UMPDWCDInd',
+              value: 'No',
+            },
+            {
+              title: 'Apply Multi-Car Discount to Single Car',
+              element: 'Line.MultiCarDiscountInd',
+              value: 'No',
+            },
+            {
+              title: 'Multi-Policy Discount-Property',
+              element: 'Line.MultiPolicyDiscountInd',
+              value: 'HO3',
+            },
+            {
+              title: 'Multi-Policy Discount-Umbrella',
+              element: 'Line.MultiPolicyDiscount2Ind',
+              value: 'No',
             },
           ],
         };
@@ -244,7 +288,7 @@ module.exports = {
               {
                 title: 'Purchased New or Used',
                 element: 'Vehicle.NewOrUsedInd',
-                value: 'Used',
+                value: element.purchaseType || 'Used',
               },
               {
                 title: 'Purchase/Lease',
@@ -254,12 +298,12 @@ module.exports = {
               {
                 title: '',
                 element: 'Vehicle.PurchaseDt',
-                value: '04/30/2017',
+                value: element.purchaseDate || '04/30/2017',
               },
               {
                 title: 'Anti-Theft Device',
                 element: 'Vehicle.AntiTheftCd',
-                value: 'Active Devices',
+                value: element.hasAntiTheftDevices ? 'Other Device' : 'No Anti-Theft Device',
               },
               {
                 title: 'Body Style',
@@ -269,7 +313,7 @@ module.exports = {
               {
                 title: 'Performance',
                 element: 'Vehicle.PerformanceCd',
-                value: 'Standard',
+                value: element.isHighPerformanceVehicle ? 'High' : 'Standard',
               },
               {
                 title: 'Restraints',
@@ -279,7 +323,7 @@ module.exports = {
               {
                 title: 'Cost New',
                 element: 'Vehicle.CostNewAmt',
-                value: '50000',
+                value: element.costNew || '50000',
               },
             ];
             clientInputSelect[`vehicleMilage${j}`] = {
@@ -287,34 +331,34 @@ module.exports = {
                 {
                   title: 'Insured estimated annual miles driven',
                   element: 'Vehicle.OriginalEstimatedAnnualMiles',
-                  value: element.vehicleAnnualDistance,
+                  value: element.vehicleAnnualDistance || '10000',
                 },
                 {
                   title: 'Prior Odometer Reading',
                   element: 'Vehicle.OdometerReadingPrior',
-                  value: '45000',
+                  value: element.priorOdometerReadingValue || '45000',
                 },
                 {
                   title: 'Prior Odometer Date',
                   element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-                  value: '01/20/2018',
+                  value: element.priorOdometerReadingDate || '01/20/2018',
                 },
                 {
                   title: 'Current Odometer Reading',
                   element: 'Vehicle.OdometerReading',
-                  value: '65000',
+                  value: element.currentOdometerReadingValue || '65000',
                 },
                 {
                   title: 'Odometer Date',
                   element: 'Vehicle.ReportedMileageNonSaveDt',
-                  value: '04/22/2019',
+                  value: element.currentOdometerReadingDate || '04/22/2019',
                 },
               ],
               Work: [
                 {
                   title: 'Distance home to work',
                   element: 'Vehicle.EstimatedWorkDistance',
-                  value: '20',
+                  value: element.vehicleCommuteMilesDrivenOneWay || '20',
                 },
                 {
                   title: 'Number of days per week commute',
@@ -329,32 +373,32 @@ module.exports = {
                 {
                   title: 'Insured estimated annual miles driven',
                   element: 'Vehicle.OriginalEstimatedAnnualMiles',
-                  value: '12000',
+                  value: element.vehicleAnnualDistance || '12000',
                 },
                 {
                   title: 'Prior Odometer Reading',
                   element: 'Vehicle.OdometerReadingPrior',
-                  value: '45000',
+                  value: element.priorOdometerReadingValue || '45000',
                 },
                 {
                   title: 'Prior Odometer Date',
                   element: 'Vehicle.ReportedMileageNonSaveDtPrior',
-                  value: '01/20/2018',
+                  value: element.priorOdometerReadingDate || '01/20/2018',
                 },
                 {
                   title: 'Current Odometer Reading',
                   element: 'Vehicle.OdometerReading',
-                  value: '65000',
+                  value: element.currentOdometerReadingValue || '65000',
                 },
                 {
                   title: 'Odometer Date',
                   element: 'Vehicle.ReportedMileageNonSaveDt',
-                  value: '04/22/2019',
+                  value: element.currentOdometerReadingDate || '04/22/2019',
                 },
                 {
                   title: 'Insured Work Address',
                   element: 'VehicleCommuteAddr.Addr1',
-                  value: 'test address',
+                  value: `${element.workUnitNumber} ${element.workStreetNumber} ${element.workStreetName} ${element.workStateCd} ${element.workPostalCd}` || 'test address',
                 },
                 {
                   title: 'City',
@@ -394,7 +438,7 @@ module.exports = {
                 {
                   title: 'Date Licensed',
                   element: 'DriverInfo.LicenseDt',
-                  value: element.driverLicensedDt || '',
+                  value: element.driverLicensedDt || '03/30/2010',
                 },
                 {
                   title: 'License Number',
@@ -582,7 +626,17 @@ module.exports = {
       // add policy
       async function policyStep(browser, page, populatedData) {
         console.log('policyStep');
-        await page.waitFor(2000);
+        // Policy Coverage
+        const policyCoverage = populatedData.policyCoverage;
+        await page.waitFor(4000);
+        await page.evaluate((policyCoverage) => {
+
+          policyCoverage.forEach(oneElement => {
+            document.getElementById(oneElement.element).value = oneElement.value;
+          });
+
+        }, policyCoverage);
+
         await page.click('#NextPage');
         await page.waitFor(1000);
         await driverStep(browser, page, populatedData);

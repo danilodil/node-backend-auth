@@ -5,13 +5,10 @@ if (nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
 if (nodeEnv === 'development') {
-  exports.allowedOrigin = '';
+  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
 if (nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
-}
-if (nodeEnv === 'sandbox') {
-  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
 
 exports.qqCatalyst = {
@@ -41,14 +38,25 @@ exports.cseRater = {
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
+exports.nationalGeneralAlRater = {
+  LOGIN_URL: 'https://www.natgenagency.com/',
+  NEW_QUOTE_URL: 'https://www.natgenagency.com/MainMenu.aspx',
+  NAMED_INSURED_URL: 'https://www.natgenagency.com/Quote/QuoteNamedInsured.aspx',
+  DRIVERS_URL: 'https://www.natgenagency.com/Quote/QuoteDriver.aspx',
+  VEHICLE_HISTORY_URL: 'https://www.natgenagency.com/Quote/QuoteAutoHistory.aspx',
+  COVERAGES_URL: 'https://www.natgenagency.com/Quote/QuoteCoveragesV2.aspx',
+  BILLPLANS_URL: 'https://www.natgenagency.com/Quote/QuoteBillPlans.aspx',
+};
+
 exports.vendorNames = {
   client: [
     'SF',
-    'RATER',
+    'PROGRESSIVEDERATER',
+    'PROGRESSIVEALRATER',
     'CSERATER',
-    'ALRATER',
     'EZLYNX',
-    'QQ'
+    'QQ',
+    'NATIONALGENERALRATER',
   ],
   user: [
     'QQ',
