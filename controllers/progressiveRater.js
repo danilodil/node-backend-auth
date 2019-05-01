@@ -842,7 +842,7 @@ module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ headless: false });
+      const browser = await puppeteer.launch({ headless: true });
       let page = await browser.newPage();
 
       // Request input data
@@ -918,7 +918,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       }; */
 
-        const dupData = {
+        const staticDetailsObj  = {
         firstName: 'Test',
         lastName: 'User',
         dateOfBirth: '12/16/1993',
@@ -1041,27 +1041,27 @@ module.exports = {
             {
               title: 'First Name',
               element: 'DRV.0.drvr_frst_nam',
-              value: bodyData.firstName || dupData.firstName,
+              value: bodyData.firstName || staticDetailsObj.firstName,
             },
             {
               title: 'Middle Initial:',
               element: 'DRV.0.drvr_mid_nam',
-              value: bodyData.middleName || dupData.middleName,
+              value: bodyData.middleName || staticDetailsObj.middleName,
             },
             {
               title: 'Last Name',
               element: 'DRV.0.drvr_lst_nam',
-              value: bodyData.lastName || dupData.lastName,
+              value: bodyData.lastName || staticDetailsObj.lastName,
             },
             {
               title: 'Suffix',
               element: 'DRV.0.drvr_sfx_nam',
-              value: bodyData.suffixName || dupData.suffixName,
+              value: bodyData.suffixName || staticDetailsObj.suffixName,
             },
             {
               title: 'Date of Birth',
               element: 'DRV.0.drvr_dob',
-              value: bodyData.birthDate || dupData.suffixName,
+              value: bodyData.birthDate || staticDetailsObj.suffixName,
             },
             {
               title: 'Customer E-Mail',
@@ -1076,7 +1076,7 @@ module.exports = {
             {
               title: 'Phone Number',
               element: 'INSDPHONE.0.insd_phn_nbr',
-              value: bodyData.phone.replace('-', '') || dupData.phone
+              value: bodyData.phone.replace('-', '') || staticDetailsObj.phone
             },
             {
               title: 'Mailing Address Line 1',
@@ -1248,15 +1248,15 @@ module.exports = {
             const driver = [
               {
                 element: `DRV.${j}.drvr_frst_nam`,
-                value: bodyData.drivers[j].firstName || dupData.drivers[0].firstName,
+                value: bodyData.drivers[j].firstName || staticDetailsObj.drivers[0].firstName,
               },
               {
                 element: 'DRV.0.drvr_mid_nam',
-                value: bodyData.drivers[j].middleName || dupData.drivers[0].middleName,
+                value: bodyData.drivers[j].middleName || staticDetailsObj.drivers[0].middleName,
               },
               {
                 element: `DRV.${j}.drvr_lst_nam`,
-                value: bodyData.drivers[j].lastName || dupData.drivers[0].lastName,
+                value: bodyData.drivers[j].lastName || staticDetailsObj.drivers[0].lastName,
               },
               {
                 element: `DRV.${j}.drvr_sfx_nam`,
@@ -1532,31 +1532,31 @@ module.exports = {
 
           firstName: {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
-            value: bodyData.firstName || dupData.firstName,
+            value: bodyData.firstName || staticDetailsObj.firstName,
           },
           middleName: {
             element: 'input[name="DRV.0.drvr_mid_nam"]',
-            value: bodyData.middleName || dupData.middleName,
+            value: bodyData.middleName || staticDetailsObj.middleName,
           },
           lastName: {
             element: 'input[name="DRV.0.drvr_lst_nam"]',
-            value: bodyData.lastName || dupData.lastName,
+            value: bodyData.lastName || staticDetailsObj.lastName,
           },
           suffixName: {
             element: 'select[name="DRV.0.drvr_sfx_nam"]',
-            value: bodyData.suffixName || dupData.suffixName,
+            value: bodyData.suffixName || staticDetailsObj.suffixName,
           },
           dateOfBirth: {
             element: 'input[name="DRV.0.drvr_dob"]',
-            value: bodyData.birthDate || dupData.birthDate,
+            value: bodyData.birthDate || staticDetailsObj.birthDate,
           },
           email: {
             element: 'input[name="email_adr"]',
-            value: bodyData.email || dupData.email,
+            value: bodyData.email || staticDetailsObj.email,
           },
           phone: {
             element: 'input[name="INSDPHONE.0.insd_phn_nbr"]',
-            value: bodyData.phone.replace('-', '') || dupData.phone,
+            value: bodyData.phone.replace('-', '') || staticDetailsObj.phone,
           },
           mailingAddress: {
             element: 'input[name="insd_str"]',
@@ -1576,15 +1576,15 @@ module.exports = {
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
-            value: bodyData.lengthAtAddress || dupData.lengthAtAddress,
+            value: bodyData.lengthAtAddress || staticDetailsObj.lengthAtAddress,
           },
           priorInsurance: {
             element: 'select[name="prir_ins_ind"]',
-            value: bodyData.priorInsurance || dupData.priorInsurance,
+            value: bodyData.priorInsurance || staticDetailsObj.priorInsurance,
           },
           priorInsuranceCarrier: {
             element: 'select[name="curr_ins_co_cd_dsply"]',
-            value: bodyData.priorInsuranceCarrier || dupData.priorInsuranceCarrier,
+            value: bodyData.priorInsuranceCarrier || staticDetailsObj.priorInsuranceCarrier,
           },
           finStblQstn: {
             element: 'select[name="fin_stbl_qstn"]',
@@ -1593,11 +1593,11 @@ module.exports = {
 
           policyEffectiveDate: {
             element: 'input[name="prir_ins_eff_dt"]',
-            value: bodyData.policyEffectiveDate || dupData.policyEffectiveDate,
+            value: bodyData.policyEffectiveDate || staticDetailsObj.policyEffectiveDate,
           },
           priorPolicyTerminationDate: {
             element: 'input[name="prev_ins_expr_dt"]',
-            value: bodyData.priorPolicyTerminationDate || dupData.priorPolicyTerminationDate,
+            value: bodyData.priorPolicyTerminationDate || staticDetailsObj.priorPolicyTerminationDate,
           },
           priorInsuredInd: {
             element: 'select[name="prir_ins_ind"]',
@@ -1633,35 +1633,35 @@ module.exports = {
           bodyData.vehicles.forEach((element, j) => {
             clientInputSelect[`vehicleVin${j}`] = {
               element: `select[name='VEH.${j}.veh_vin']`,
-              value: element.vehicleVin || dupData.vehicles[0].vehicleVin,
+              value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
             };
             clientInputSelect[`vehicleYear${j}`] = {
               element: `select[name='VEH.${j}.veh_mdl_yr']`,
-              value: element.vehicleModelYear || dupData.vehicles[0].vehicleModelYear,
+              value: element.vehicleModelYear || staticDetailsObj.vehicles[0].vehicleModelYear,
             };
             clientInputSelect[`vehicleMake${j}`] = {
               element: `select[name='VEH.${j}.veh_make']`,
-              value: element.vehicleManufacturer || dupData.vehicles[0].vehicleManufacturer,
+              value: element.vehicleManufacturer || staticDetailsObj.vehicles[0].vehicleManufacturer,
             };
             clientInputSelect[`vehicleModel${j}`] = {
               element: `select[name='VEH.${j}.veh_mdl_nam']`,
-              value: element.vehicleModel || dupData.vehicles[0].vehicleModel,
+              value: element.vehicleModel || staticDetailsObj.vehicles[0].vehicleModel,
             };
             clientInputSelect[`vehicleBody${j}`] = {
               element: `select[name='VEH.${j}.veh_sym_sel']`,
-              value: element.vehicleBodyStyle || dupData.vehicles[0].vehicleBodyStyle,
+              value: element.vehicleBodyStyle || staticDetailsObj.vehicles[0].vehicleBodyStyle,
             };
             clientInputSelect[`vehicleZipCode${j}`] = {
               element: `input[name="VEH.${j}.veh_grg_zip"]`,
-              value: element.applicantPostalCd || dupData.vehicles[0].applicantPostalCd,
+              value: element.applicantPostalCd || staticDetailsObj.vehicles[0].applicantPostalCd,
             };
             clientInputSelect[`vehicleLengthOfOwnership${j}`] = {
               element: `select[name='VEH.${j}.veh_len_of_own']`,
-              value: element.lengthOfOwnership || dupData.vehicles[0].lengthOfOwnership,
+              value: element.lengthOfOwnership || staticDetailsObj.vehicles[0].lengthOfOwnership,
             };
             clientInputSelect[`vehiclePrimaryUse${j}`] = {
               element: `select[name='VEH.${j}.veh_use']`,
-              value: element.primaryUse || dupData.vehicles[0].primaryUse,
+              value: element.primaryUse || staticDetailsObj.vehicles[0].primaryUse,
             };
             clientInputSelect[`vehiclePrimaryUsedForDelivery${j}`] = {
               element: `select[name="VEH.${j}.veh_use_dlvry"]`,
@@ -1678,35 +1678,35 @@ module.exports = {
           bodyData.drivers.forEach((element, j) => {
             clientInputSelect[`driverFirstName${j}`] = {
               element: `input[name='DRV.${j}.drvr_frst_nam']`,
-              value: element.firstName || dupData.drivers[0].firstName,
+              value: element.firstName || staticDetailsObj.drivers[0].firstName,
             };
             clientInputSelect[`driverLastName${j}`] = {
               element: `input[name='DRV.${j}.drvr_lst_nam']`,
-              value: element.lastName || dupData.drivers[0].lastName,
+              value: element.lastName || staticDetailsObj.drivers[0].lastName,
             };
             clientInputSelect[`driverDateOfBirth${j}`] = {
               element: `input[name="DRV.${j}.drvr_dob"]`,
-              value: element.applicantBirthDt || dupData.drivers[0].applicantBirthDt,
+              value: element.applicantBirthDt || staticDetailsObj.drivers[0].applicantBirthDt,
             };
             clientInputSelect[`driverGender${j}`] = {
               element: `select[name='DRV.${j}.drvr_sex']`,
-              value: element.applicantGenderCd || dupData.drivers[0].applicantGenderCd,
+              value: element.applicantGenderCd || staticDetailsObj.drivers[0].applicantGenderCd,
             };
             clientInputSelect[`driverMaritalStatus${j}`] = {
               element: `select[name='DRV.${j}.drvr_mrtl_stat_map']`,
-              value: element.applicantMaritalStatusCd || dupData.drivers[0].applicantMaritalStatusCd,
+              value: element.applicantMaritalStatusCd || staticDetailsObj.drivers[0].applicantMaritalStatusCd,
             };
             clientInputSelect[`driverYearsLicensed${j}`] = {
               element: `select[name='DRV.${j}.drvr_years_lic']`,
-              value: element.driverLicensedDt || dupData.drivers[0].driverLicensedDt,
+              value: element.driverLicensedDt || staticDetailsObj.drivers[0].driverLicensedDt,
             };
             clientInputSelect[`driverEmployment${j}`] = {
               element: `select[name='DRV.${j}.drvr_empl_stat']`,
-              value: element.employment || dupData.drivers[0].employment,
+              value: element.employment || staticDetailsObj.drivers[0].employment,
             };
             clientInputSelect[`driverEducation${j}`] = {
               element: `select[name='DRV.${j}.drvr_ed_lvl']`,
-              value: element.education || dupData.drivers[0].education,
+              value: element.education || staticDetailsObj.drivers[0].education,
             };
             clientInputSelect[`driverLicenseStatus${j}`] = {
               element: `select[name='DRV.${j}.drvr_lic_stat']`,
@@ -1728,17 +1728,17 @@ module.exports = {
             if (element.relationship) {
               clientInputSelect[`driverRelationship${j}`] = {
                 element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
-                value: element.relationship || dupData.drivers[0].relationship,
+                value: element.relationship || staticDetailsObj.drivers[0].relationship,
               };
             }
 
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
-              value: bodyData.priorIncident || dupData.priorIncident,
+              value: bodyData.priorIncident || staticDetailsObj.priorIncident,
             };
             clientInputSelect[`priorIncidentDate${j}`] = {
               element: `input[name="DRV.${j}.VIO.0.drvr_viol_dt_dsply"]`,
-              value: bodyData.priorIncidentDate || dupData.priorIncidentDate,
+              value: bodyData.priorIncidentDate || staticDetailsObj.priorIncidentDate,
             };
           });
         }
