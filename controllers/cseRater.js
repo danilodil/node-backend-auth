@@ -10,7 +10,7 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ headless: false });
+      const browser = await puppeteer.launch({ headless: true });
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 920 });
 
