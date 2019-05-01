@@ -842,7 +842,8 @@ module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({headless:false});
       let page = await browser.newPage();
 
       // Request input data
@@ -1416,7 +1417,8 @@ module.exports = {
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.waitFor(1500);
 
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          // await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -1429,8 +1431,9 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.waitFor(10000);
-        //await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        await page.waitForNavigation();
+        await pageQuote.waitFor(2000);
+        await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
