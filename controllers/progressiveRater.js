@@ -1429,7 +1429,7 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.waitFor(2000);
+        await pageQuote.waitFor(6000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
@@ -1464,6 +1464,12 @@ module.exports = {
           status: true,
           response: downPayment,
         };
+        console.log('final result >> ', JSON.stringify(bodyData.results));
+        req.session.data = {
+          title: 'Progressive DE Rate Retrieved Successfully',
+          obj: bodyData.results,
+        };
+        return next();
       }
 
       // For dimiss alert dialog
@@ -1736,13 +1742,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      console.log('final result >> ', JSON.stringify(bodyData.results));
-      req.session.data = {
-        title: 'Progressive DE Rate Retrieved Successfully',
-        obj: bodyData.results,
-      };
-
-      return next();
     } catch (error) {
       console.log('error >> ', error);
       return next(Boom.badRequest('Error retrieving progressive DE rate'));
