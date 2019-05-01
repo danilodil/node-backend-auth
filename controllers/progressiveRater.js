@@ -1384,8 +1384,8 @@ module.exports = {
         dataObject.results = {};
 
         try {
-          await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
-          await pageQuote.waitFor(1500);
+          //await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
+          await pageQuote.waitFor(3000);
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
           await pageQuote.waitFor(1200);
 
@@ -1406,7 +1406,9 @@ module.exports = {
           //await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
 
           await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
+          await pageQuote.waitFor(600);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
+          await pageQuote.waitFor(600);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.waitFor(1200);
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
@@ -1414,10 +1416,7 @@ module.exports = {
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.waitFor(1500);
 
-         
-
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await coveragesStep(pageQuote, dataObject);
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -1426,13 +1425,15 @@ module.exports = {
             response,
           };
         }
+        await coveragesStep(pageQuote, dataObject);
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-        dismissDialog(pageQuote);
-        dataObject.results = {};
+        
         try {
+        await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+        //dismissDialog(pageQuote);
+        dataObject.results = {};
           await pageQuote.waitFor(3000);
           await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
         } catch (err) {
