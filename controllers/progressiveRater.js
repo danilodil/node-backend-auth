@@ -917,7 +917,60 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       }; */
+
+        const dupData = {
+        firstName: 'Test',
+        lastName: 'User',
+        dateOfBirth: '12/16/1993',
+        email: 'test@mail.com',
+        phone: '302-222-5555',
+        mailingAddress: '216 Humphreys Dr',
+        city: 'Dover',
+        state: 'DE',
+        zipCode: '19934',
+        lengthAtAddress: '1 year or more',
+        priorInsurance: 'Yes',
+        priorInsuranceCarrier: 'USAA',
+        // must always agree to closure
+        vehicles: [
+          {
+            // Vehicle Type will always be 1981 or newer
+            vehicleVin: '1FTSF30L61EC23425',
+            year: '2015',
+            make: 'FORD',
+            model: 'F350',
+            vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
+            zipCode: '19934',
+            lengthOfOwnership: 'At least 1 year but less than 3 years',
+            primaryUse: 'Commute',
+          },
+        ],
+        drivers: [
+          {
+            firstName: 'Test',
+            lastName: 'User',
+            applicantBirthDt: '12/16/1993',
+            applicantGenderCd: 'Male',
+            applicantMaritalStatusCd: 'Married',
+            driverLicensedDt: '3 years or more',
+            employment: 'Student (full-time)',
+            education: 'College Degree',
+            relationship: 'Other',
+          }
+        ],
+        priorIncident: 'AAD - At Fault Accident',
+        priorIncidentDate: '12/16/2012',
+        policyEffectiveDate: '04/26/2019',
+        priorPolicyTerminationDate: '05/30/2019',
+        yearsWithPriorInsurance: '5 years or more',
+        ownOrRentPrimaryResidence: 'Rent',
+        numberOfResidentsInHome: '3',
+        rentersLimits: 'Greater Than 300,000',
+        haveAnotherProgressivePolicy: 'No',
+      }; 
+      
       const bodyData = req.body.data;
+      console.log('bodyData : ',bodyData);
       // For login
       await loginStep();
 
@@ -978,7 +1031,7 @@ module.exports = {
             {
               title: 'Policy Effective Date',
               element: 'pol_eff_dt',
-              value: '04/30/2019',
+              value: bodyData.policyEffectiveDate,
             },
             {
               title: 'Is this a Named Operator policy',
@@ -988,27 +1041,27 @@ module.exports = {
             {
               title: 'First Name',
               element: 'DRV.0.drvr_frst_nam',
-              value: bodyData.firstName || 'Test',
+              value: bodyData.firstName || dupData.firstName,
             },
             {
               title: 'Middle Initial:',
               element: 'DRV.0.drvr_mid_nam',
-              value: bodyData.middleName || 'test',
+              value: bodyData.middleName || dupData.middleName,
             },
             {
               title: 'Last Name',
               element: 'DRV.0.drvr_lst_nam',
-              value: bodyData.lastName || 'User',
+              value: bodyData.lastName || dupData.lastName,
             },
             {
               title: 'Suffix',
               element: 'DRV.0.drvr_sfx_nam',
-              value: bodyData.suffixName || 'SR',
+              value: bodyData.suffixName || dupData.suffixName,
             },
             {
               title: 'Date of Birth',
               element: 'DRV.0.drvr_dob',
-              value: bodyData.birthDate || '08/08/1993',
+              value: bodyData.birthDate || dupData.suffixName,
             },
             {
               title: 'Customer E-Mail',
@@ -1023,7 +1076,7 @@ module.exports = {
             {
               title: 'Phone Number',
               element: 'INSDPHONE.0.insd_phn_nbr',
-              value: bodyData.phone || '1234567890',
+              value: bodyData.phone.replace('-', '') || dupData.phone
             },
             {
               title: 'Mailing Address Line 1',
@@ -1147,7 +1200,10 @@ module.exports = {
             await page.waitFor(500);
 
             const bodyDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
-            const bodySelected = await page.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].year);
+            let bodySelected = await page.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].vehicleBodyStyle);
+            if(!bodySelected){
+              bodySelected = bodyDisplay[0].name;
+            }
             await page.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
 
             const vehLenOfOwns = await page.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
@@ -1192,15 +1248,15 @@ module.exports = {
             const driver = [
               {
                 element: `DRV.${j}.drvr_frst_nam`,
-                value: bodyData.drivers[j].firstName || '',
+                value: bodyData.drivers[j].firstName || dupData.drivers[0].firstName,
               },
               {
                 element: 'DRV.0.drvr_mid_nam',
-                value: bodyData.drivers[j].middleName || '',
+                value: bodyData.drivers[j].middleName || dupData.drivers[0].middleName,
               },
               {
                 element: `DRV.${j}.drvr_lst_nam`,
-                value: bodyData.drivers[j].lastName || '',
+                value: bodyData.drivers[j].lastName || dupData.drivers[0].lastName,
               },
               {
                 element: `DRV.${j}.drvr_sfx_nam`,
@@ -1336,9 +1392,9 @@ module.exports = {
           await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
 
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
-          await pageQuote.waitFor(700);
+          await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
-          await pageQuote.waitFor(700);
+          await pageQuote.waitFor(1000);
 
           await pageQuote.click(populatedData.priorPolicyTerminationDate.element);
           await pageQuote.type(populatedData.priorPolicyTerminationDate.element, populatedData.priorPolicyTerminationDate.value);
@@ -1350,7 +1406,7 @@ module.exports = {
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
-          await pageQuote.waitFor(500);
+          await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           // await pageQuote.waitFor(1000);
 
@@ -1476,31 +1532,31 @@ module.exports = {
 
           firstName: {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
-            value: bodyData.firstName || '',
+            value: bodyData.firstName || dupData.firstName,
           },
           middleName: {
             element: 'input[name="DRV.0.drvr_mid_nam"]',
-            value: bodyData.middleName || '',
+            value: bodyData.middleName || dupData.middleName,
           },
           lastName: {
             element: 'input[name="DRV.0.drvr_lst_nam"]',
-            value: bodyData.lastName || '',
+            value: bodyData.lastName || dupData.lastName,
           },
           suffixName: {
             element: 'select[name="DRV.0.drvr_sfx_nam"]',
-            value: bodyData.suffixName || '',
+            value: bodyData.suffixName || dupData.suffixName,
           },
           dateOfBirth: {
             element: 'input[name="DRV.0.drvr_dob"]',
-            value: bodyData.birthDate || '',
+            value: bodyData.birthDate || dupData.birthDate,
           },
           email: {
             element: 'input[name="email_adr"]',
-            value: bodyData.email || '',
+            value: bodyData.email || dupData.email,
           },
           phone: {
             element: 'input[name="INSDPHONE.0.insd_phn_nbr"]',
-            value: bodyData.phone ? bodyData.phone.replace('-', '') : '',
+            value: bodyData.phone.replace('-', '') || dupData.phone,
           },
           mailingAddress: {
             element: 'input[name="insd_str"]',
@@ -1520,15 +1576,15 @@ module.exports = {
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
-            value: bodyData.lengthAtAddress || '',
+            value: bodyData.lengthAtAddress || dupData.lengthAtAddress,
           },
           priorInsurance: {
             element: 'select[name="prir_ins_ind"]',
-            value: bodyData.priorInsurance || '',
+            value: bodyData.priorInsurance || dupData.priorInsurance,
           },
           priorInsuranceCarrier: {
             element: 'select[name="curr_ins_co_cd_dsply"]',
-            value: bodyData.priorInsuranceCarrier || '',
+            value: bodyData.priorInsuranceCarrier || dupData.priorInsuranceCarrier,
           },
           finStblQstn: {
             element: 'select[name="fin_stbl_qstn"]',
@@ -1537,15 +1593,15 @@ module.exports = {
 
           policyEffectiveDate: {
             element: 'input[name="prir_ins_eff_dt"]',
-            value: bodyData.policyEffectiveDate || '',
+            value: bodyData.policyEffectiveDate || dupData.policyEffectiveDate,
           },
           priorPolicyTerminationDate: {
             element: 'input[name="prev_ins_expr_dt"]',
-            value: bodyData.priorPolicyTerminationDate || '',
+            value: bodyData.priorPolicyTerminationDate || dupData.priorPolicyTerminationDate,
           },
           priorInsuredInd: {
             element: 'select[name="prir_ins_ind"]',
-            value: 'Y',
+            value:'N',
           },
           priorBiLimits: {
             element: 'select[name="prir_bi_lim"]',
@@ -1577,35 +1633,35 @@ module.exports = {
           bodyData.vehicles.forEach((element, j) => {
             clientInputSelect[`vehicleVin${j}`] = {
               element: `select[name='VEH.${j}.veh_vin']`,
-              value: element.vehicleVin || '',
+              value: element.vehicleVin || dupData.vehicles[0].vehicleVin,
             };
             clientInputSelect[`vehicleYear${j}`] = {
               element: `select[name='VEH.${j}.veh_mdl_yr']`,
-              value: element.vehicleModelYear || '',
+              value: element.vehicleModelYear || dupData.vehicles[0].vehicleModelYear,
             };
             clientInputSelect[`vehicleMake${j}`] = {
               element: `select[name='VEH.${j}.veh_make']`,
-              value: element.vehicleManufacturer || '',
+              value: element.vehicleManufacturer || dupData.vehicles[0].vehicleManufacturer,
             };
             clientInputSelect[`vehicleModel${j}`] = {
               element: `select[name='VEH.${j}.veh_mdl_nam']`,
-              value: element.vehicleModel || '',
+              value: element.vehicleModel || dupData.vehicles[0].vehicleModel,
             };
             clientInputSelect[`vehicleBody${j}`] = {
               element: `select[name='VEH.${j}.veh_sym_sel']`,
-              value: element.vehicleBodyStyle || '',
+              value: element.vehicleBodyStyle || dupData.vehicles[0].vehicleBodyStyle,
             };
             clientInputSelect[`vehicleZipCode${j}`] = {
               element: `input[name="VEH.${j}.veh_grg_zip"]`,
-              value: element.applicantPostalCd || '',
+              value: element.applicantPostalCd || dupData.vehicles[0].applicantPostalCd,
             };
             clientInputSelect[`vehicleLengthOfOwnership${j}`] = {
               element: `select[name='VEH.${j}.veh_len_of_own']`,
-              value: element.lengthOfOwnership || '',
+              value: element.lengthOfOwnership || dupData.vehicles[0].lengthOfOwnership,
             };
             clientInputSelect[`vehiclePrimaryUse${j}`] = {
               element: `select[name='VEH.${j}.veh_use']`,
-              value: element.primaryUse || '',
+              value: element.primaryUse || dupData.vehicles[0].primaryUse,
             };
             clientInputSelect[`vehiclePrimaryUsedForDelivery${j}`] = {
               element: `select[name="VEH.${j}.veh_use_dlvry"]`,
@@ -1622,35 +1678,35 @@ module.exports = {
           bodyData.drivers.forEach((element, j) => {
             clientInputSelect[`driverFirstName${j}`] = {
               element: `input[name='DRV.${j}.drvr_frst_nam']`,
-              value: element.firstName || '',
+              value: element.firstName || dupData.drivers[0].firstName,
             };
             clientInputSelect[`driverLastName${j}`] = {
               element: `input[name='DRV.${j}.drvr_lst_nam']`,
-              value: element.lastName || '',
+              value: element.lastName || dupData.drivers[0].lastName,
             };
             clientInputSelect[`driverDateOfBirth${j}`] = {
               element: `input[name="DRV.${j}.drvr_dob"]`,
-              value: element.applicantBirthDt || '',
+              value: element.applicantBirthDt || dupData.drivers[0].applicantBirthDt,
             };
             clientInputSelect[`driverGender${j}`] = {
               element: `select[name='DRV.${j}.drvr_sex']`,
-              value: element.applicantGenderCd || '',
+              value: element.applicantGenderCd || dupData.drivers[0].applicantGenderCd,
             };
             clientInputSelect[`driverMaritalStatus${j}`] = {
               element: `select[name='DRV.${j}.drvr_mrtl_stat_map']`,
-              value: element.applicantMaritalStatusCd || '',
+              value: element.applicantMaritalStatusCd || dupData.drivers[0].applicantMaritalStatusCd,
             };
             clientInputSelect[`driverYearsLicensed${j}`] = {
               element: `select[name='DRV.${j}.drvr_years_lic']`,
-              value: element.driverLicensedDt || '',
+              value: element.driverLicensedDt || dupData.drivers[0].driverLicensedDt,
             };
             clientInputSelect[`driverEmployment${j}`] = {
               element: `select[name='DRV.${j}.drvr_empl_stat']`,
-              value: element.employment || '',
+              value: element.employment || dupData.drivers[0].employment,
             };
             clientInputSelect[`driverEducation${j}`] = {
               element: `select[name='DRV.${j}.drvr_ed_lvl']`,
-              value: element.education || '',
+              value: element.education || dupData.drivers[0].education,
             };
             clientInputSelect[`driverLicenseStatus${j}`] = {
               element: `select[name='DRV.${j}.drvr_lic_stat']`,
@@ -1672,17 +1728,17 @@ module.exports = {
             if (element.relationship) {
               clientInputSelect[`driverRelationship${j}`] = {
                 element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
-                value: element.relationship,
+                value: element.relationship || dupData.drivers[0].relationship,
               };
             }
 
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
-              value: bodyData.priorIncident || '',
+              value: bodyData.priorIncident || dupData.priorIncident,
             };
             clientInputSelect[`priorIncidentDate${j}`] = {
               element: `input[name="DRV.${j}.VIO.0.drvr_viol_dt_dsply"]`,
-              value: bodyData.priorIncidentDate || '',
+              value: bodyData.priorIncidentDate || dupData.priorIncidentDate,
             };
           });
         }
