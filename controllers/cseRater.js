@@ -582,7 +582,7 @@ module.exports = {
 
           await page.waitFor(2000);
           // await page.waitForSelector('#VehicleSelectionController');
-          await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
+          await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
           await page.waitFor(1000);
           await page.waitForSelector('#Main > div:nth-child(18)');
           console.log('2 >> ');
