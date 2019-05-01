@@ -595,6 +595,7 @@ module.exports = {
 
           await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
           await page.waitFor(1000);
+          await page.waitForSelector(populatedData.vehicleUse.element);
           await page.select(populatedData.vehicleUse.element, vehicleUse);
           const vehicleMilage = populatedData[`vehicleMilage${j}`];
 
