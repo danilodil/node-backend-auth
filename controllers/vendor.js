@@ -56,7 +56,7 @@ module.exports = {
         where: {
           vendorName: req.params.vendorName,
           companyId: params.companyId,
-        }
+        },
       };
 
       const vendor = await vendorModel.findOne(findObject);

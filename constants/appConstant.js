@@ -38,6 +38,16 @@ exports.cseRater = {
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
+exports.nationalGeneralAlRater = {
+  LOGIN_URL: 'https://www.natgenagency.com/',
+  NEW_QUOTE_URL: 'https://www.natgenagency.com/MainMenu.aspx',
+  NAMED_INSURED_URL: 'https://www.natgenagency.com/Quote/QuoteNamedInsured.aspx',
+  DRIVERS_URL: 'https://www.natgenagency.com/Quote/QuoteDriver.aspx',
+  VEHICLE_HISTORY_URL: 'https://www.natgenagency.com/Quote/QuoteAutoHistory.aspx',
+  COVERAGES_URL: 'https://www.natgenagency.com/Quote/QuoteCoveragesV2.aspx',
+  BILLPLANS_URL: 'https://www.natgenagency.com/Quote/QuoteBillPlans.aspx',
+};
+
 exports.vendorNames = {
   client: [
     'SF',
@@ -46,6 +56,7 @@ exports.vendorNames = {
     'CSERATER',
     'EZLYNX',
     'QQ',
+    'NATIONALGENERALRATER',
   ],
   user: [
     'QQ',
