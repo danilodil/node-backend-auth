@@ -584,7 +584,7 @@ module.exports = {
           // await page.waitForSelector('#VehicleSelectionController');
           await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
           await page.waitFor(1000);
-          await page.waitForSelector('#Main > div:nth-child(18)');
+          // await page.waitForSelector('#Main > div:nth-child(18)');
           console.log('2 >> ');
 
           await page.evaluate((vehiclesData) => {
