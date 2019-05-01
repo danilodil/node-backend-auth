@@ -630,11 +630,9 @@ module.exports = {
         const policyCoverage = populatedData.policyCoverage;
         await page.waitFor(4000);
         await page.evaluate((policyCoverage) => {
-
           policyCoverage.forEach(oneElement => {
             document.getElementById(oneElement.element).value = oneElement.value;
           });
-
         }, policyCoverage);
 
         await page.click('#NextPage');
