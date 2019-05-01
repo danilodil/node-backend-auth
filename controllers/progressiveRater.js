@@ -1143,7 +1143,7 @@ module.exports = {
         console.log('vehicleStep');
         try {
           await page.waitFor(2000);
-          await page.waitForSelector('#VEH\\.0\\.add');
+          // await page.waitForSelector('#VEH\\.0\\.add');
           for (const j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
               const addElement = await page.$('[id="VEH.0.add"]');
@@ -1231,7 +1231,7 @@ module.exports = {
         console.log('driverStep');
         try {
           await page.waitFor(2000);
-          await page.waitForSelector('#DRV\\.0\\.add');
+          //await page.waitForSelector('#DRV\\.0\\.add');
           for (const j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
               await page.click('#DRV\\.0\\.add');
@@ -1387,7 +1387,7 @@ module.exports = {
           await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
           await pageQuote.waitFor(1500);
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
-          await pageQuote.waitFor(1000);
+          await pageQuote.waitFor(1200);
 
           // const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
           // const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
@@ -1412,7 +1412,7 @@ module.exports = {
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
           await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
-          // await pageQuote.waitFor(1000);
+          await pageQuote.waitFor(1500);
 
          
 
@@ -1433,7 +1433,7 @@ module.exports = {
         dismissDialog(pageQuote);
         dataObject.results = {};
         try {
-          await pageQuote.waitFor(2500);
+          await pageQuote.waitFor(3000);
           await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
         } catch (err) {
           try {
