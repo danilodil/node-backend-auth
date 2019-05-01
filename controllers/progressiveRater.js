@@ -1429,8 +1429,8 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.waitFor(6000);
-        await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        await pageQuote.waitFor(10000);
+        //await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
