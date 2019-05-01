@@ -590,7 +590,7 @@ module.exports = {
             });
           }, vehicles);
 
-          await page.waitFor(800);
+          await page.waitFor(1000);
           const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
 
           await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
