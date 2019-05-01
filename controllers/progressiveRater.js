@@ -970,7 +970,6 @@ module.exports = {
       }; 
       
       const bodyData = req.body.data;
-      console.log('bodyData : ',bodyData);
       // For login
       await loginStep();
 
@@ -1386,32 +1385,36 @@ module.exports = {
 
         try {
           await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
-          // await pageQuote.waitFor(1500);
-          const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
-          const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
-          await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
-
+          await pageQuote.waitFor(1500);
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
           await pageQuote.waitFor(1000);
-          await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
-          await pageQuote.waitFor(1000);
 
-          await pageQuote.click(populatedData.priorPolicyTerminationDate.element);
-          await pageQuote.type(populatedData.priorPolicyTerminationDate.element, populatedData.priorPolicyTerminationDate.value);
+          // const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
+          // const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
+          // await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
 
-          await pageQuote.waitFor(1200);
-          await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
+          // await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
+          // await pageQuote.waitFor(1000);
+
+          // await pageQuote.click(populatedData.policyEffectiveDate.element);
+          // await pageQuote.type(populatedData.policyEffectiveDate.element, populatedData.policyEffectiveDate.value);
+
+          // await pageQuote.click(populatedData.priorPolicyTerminationDate.element);
+          // await pageQuote.type(populatedData.priorPolicyTerminationDate.element, populatedData.priorPolicyTerminationDate.value);
+          //await pageQuote.waitFor(1500);
+
+          //await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
+
           await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
-          await pageQuote.waitFor(1000);
+          await pageQuote.waitFor(1200);
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
           await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           // await pageQuote.waitFor(1000);
 
-          await pageQuote.click(populatedData.policyEffectiveDate.element);
-          await pageQuote.type(populatedData.policyEffectiveDate.element, populatedData.policyEffectiveDate.value);
+         
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await coveragesStep(pageQuote, dataObject);
@@ -1434,7 +1437,7 @@ module.exports = {
           await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
         } catch (err) {
           try {
-            await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
+            // await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
             await processDataStep(pageQuote, dataObject);
           } catch (e) {
             console.log('err coveragesStep :', e);
