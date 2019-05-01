@@ -580,6 +580,7 @@ module.exports = {
           const vehicles = populatedData[`vehicles${j}`];
           console.log('1 >> ');
 
+          await page.waitFor(2000);
           // await page.waitForSelector('#VehicleSelectionController');
           await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
           await page.waitFor(1000);
