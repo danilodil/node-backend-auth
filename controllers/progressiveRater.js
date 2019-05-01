@@ -1143,7 +1143,7 @@ module.exports = {
         console.log('vehicleStep');
         try {
           await page.waitFor(2000);
-          // await page.waitForSelector('#VEH\\.0\\.add');
+          await page.waitForSelector('#VEH\\.0\\.add');
           for (const j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
               const addElement = await page.$('[id="VEH.0.add"]');
@@ -1231,7 +1231,7 @@ module.exports = {
         console.log('driverStep');
         try {
           await page.waitFor(2000);
-          //await page.waitForSelector('#DRV\\.0\\.add');
+          await page.waitForSelector('#DRV\\.0\\.add');
           for (const j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
               await page.click('#DRV\\.0\\.add');
@@ -1384,7 +1384,7 @@ module.exports = {
         dataObject.results = {};
 
         try {
-          //await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
+          await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
           await pageQuote.waitFor(3000);
           await pageQuote.select(populatedData.priorInsuredInd.element, populatedData.priorInsuredInd.value);
           await pageQuote.waitFor(1200);
@@ -1429,29 +1429,15 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-        //dismissDialog(pageQuote);
-        dataObject.results = {};
-        try {
-          await pageQuote.waitFor(3000);
-          throw new Error('stop');
-          //await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
-        } catch (err) {
-          try {
-            // await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
-            await processDataStep(pageQuote, dataObject);
-          } catch (e) {
-            console.log('err coveragesStep :', e);
-            const response = { error: 'There is some error validations' };
-            dataObject.results = {
-              status: false,
-              response,
-            };
-          }
-        }
+        await pageQuote.waitFor(2000);
+        await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        await pageQuote.select('#pol_ubi_exprnc','N');
+        await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+        await processDataStep(pageQuote, dataObject);
       }
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
+        await pageQuote.waitFor(5000);
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
