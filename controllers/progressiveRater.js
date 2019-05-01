@@ -1429,13 +1429,13 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        
-        try {
         await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         //dismissDialog(pageQuote);
         dataObject.results = {};
+        try {
           await pageQuote.waitFor(3000);
-          await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
+          throw new Error('stop');
+          //await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
         } catch (err) {
           try {
             // await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
