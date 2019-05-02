@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const session = require('express-session');
+var timeout = require('connect-timeout')
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const appConfig = require('./lib/appConfig');
@@ -19,7 +20,8 @@ const sessionStore = new SequelizeStore({
 const index = require('./routes/index');
 
 const app = express();
-
+app.use(timeout('240000s'))
+app.use(haltOnTimedout)
 app.use(compression());
 app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'ejs');
@@ -29,7 +31,11 @@ app.use(logger('dev'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(haltOnTimedout)
 
+function haltOnTimedout (req, res, next) {
+  if (!req.timedout) next()
+}
 app.use((req, res, next) => {
   const { allowedOrigin } = appConstant;
   const { origin } = req.headers;

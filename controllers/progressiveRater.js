@@ -1426,21 +1426,37 @@ module.exports = {
             response,
           };
         }
-        await coveragesStep(pageQuote, dataObject);
+        await errorStep(pageQuote, dataObject);
+      }
+
+      async function errorStep(pageQuote, dataObject){
+        try{
+          console.log('errorStep');
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
+          const response = { error: 'There is some error in data' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+        catch(e){
+          await coveragesStep(pageQuote, dataObject);
+        }
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
         await pageQuote.waitFor(2000);
-        dismissDialog(pageQuote);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
 
       }
+
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
-        await pageQuote.waitFor(6000);
+        await pageQuote.waitFor(2000);
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
@@ -1467,14 +1483,14 @@ module.exports = {
           status: true,
           response: downPayment,
         };
-        console.log('final result >> ', JSON.stringify(bodyData.results));
-        req.session.data = {
-          title: 'Progressive DE Rate Retrieved Successfully',
-          obj: bodyData.results,
-        };
-        return next();
+        
       }
-
+      console.log('final result >> ', JSON.stringify(bodyData.results));
+      req.session.data = {
+        title: 'Progressive DE Rate Retrieved Successfully',
+        obj: bodyData.results,
+      };
+      return next();
       // For dimiss alert dialog
       function dismissDialog(page1) {
         try {
@@ -1754,8 +1770,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const page = await browser.newPage();
-      await page.setViewport({ width: 1200, height: 920 });
+      let page = await browser.newPage();
 
       // Request input data
       /* const bodyData = {
@@ -2454,7 +2469,23 @@ module.exports = {
             response,
           };
         }
-        await coveragesStep(pageQuote, dataObject);
+        await errorStep(pageQuote, dataObject);
+      }
+
+      async function errorStep(pageQuote, dataObject){
+        try{
+          console.log('errorStep');
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
+          const response = { error: 'There is some error in data' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+        catch(e){
+          await coveragesStep(pageQuote, dataObject);
+        }
       }
 
       async function coveragesStep(pageQuote, dataObject) {
@@ -2462,34 +2493,10 @@ module.exports = {
         await pageQuote.waitFor(2000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
-        await pageQuote.evaluate(() => document.querySelector('#ctl00_MenuPlaceholder_ctl00_mainMenun6 > table > tbody > tr > td > a').click());
-        // await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-        dismissDialog(pageQuote);
+        await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
-      }
 
-      // async function coveragesStep(pageQuote, dataObject) {
-      //   console.log('coveragesStep');
-      //   await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-      //   dismissDialog(pageQuote);
-      //   dataObject.results = {};
-      //   try {
-      //     await pageQuote.waitFor(2500);
-      //     await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
-      //   } catch (err) {
-      //     try {
-      //       await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
-      //       await processDataStep(pageQuote, dataObject);
-      //     } catch (e) {
-      //       console.log('err coveragesStep :', e);
-      //       const response = { error: 'There is some error validations' };
-      //       dataObject.results = {
-      //         status: false,
-      //         response,
-      //       };
-      //     }
-      //   }
-      // }
+      }
 
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
