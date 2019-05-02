@@ -1023,7 +1023,6 @@ module.exports = {
         console.log('namedInsuredStep');
         try {
           await page.waitForSelector('#policy');
-          page.on('console', console.log);
           await page.waitFor(1000);
 
           const namedInsured = [
@@ -1095,7 +1094,7 @@ module.exports = {
             {
               title: 'ZIP Code',
               element: 'insd_zip_cd',
-              value: '19934' || '19901',
+              value: bodyData.zipCode || staticDetailsObj.zipCode,
             },
             {
               title: 'Check this box if the current mailing address is a P.O. Box or a Military address ',
@@ -1587,7 +1586,7 @@ module.exports = {
           },
           zipCode: {
             element: '#insd_zip_cd',
-            value: bodyData.zipCode || '',
+            value: bodyData.zipCode || staticDetailsObj.zipCode,
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
@@ -1950,7 +1949,7 @@ module.exports = {
           zipCode: {
             elementId: 'insd_zip_cd',
             element: '#insd_zip_cd',
-            value: '35005' || '',
+            value: bodyData.zipCode || staticDetailsObj.zipCode,
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',

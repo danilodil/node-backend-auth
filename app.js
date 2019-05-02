@@ -13,9 +13,9 @@ const appConfig = require('./lib/appConfig');
 const appConstant = require('./constants/appConstant');
 const { sequelize } = require('./lib/db');
 
-// const sessionStore = new SequelizeStore({
-//   db: sequelize,
-// });
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+});
 
 const index = require('./routes/index');
 
@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 
 // Handle request
 app.use(session({
-  //store: sessionStore,
+  store: sessionStore,
   secret: 'secret',
   saveUninitialized: false, // don't create session until something stored,
   resave: false, // don't save session if unmodified
