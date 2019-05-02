@@ -1416,8 +1416,8 @@ module.exports = {
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.waitFor(1500);
 
-          // await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          // await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -1430,17 +1430,17 @@ module.exports = {
       }
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        //await page.waitForNavigation();
         await pageQuote.waitFor(2000);
         dismissDialog(pageQuote);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
+
       }
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
-        await pageQuote.waitFor(5000);
+        await pageQuote.waitFor(6000);
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
@@ -2445,8 +2445,7 @@ module.exports = {
           // await pageQuote.waitFor(1000);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-
+          //await pageQuote.evaluate(() => document.querySelector('#ctl00_MenuPlaceholder_ctl00_mainMenun6 > table > tbody > tr > td > a').click());
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -2460,12 +2459,12 @@ module.exports = {
 
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        // await pageQuote.waitFor(2000);
-        // await pageQuote.waitForSelector('#pol_ubi_exprnc');
-        // await pageQuote.select('#pol_ubi_exprnc','N');
+        await pageQuote.waitFor(2000);
+        await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        await pageQuote.select('#pol_ubi_exprnc','N');
+        await pageQuote.evaluate(() => document.querySelector('#ctl00_MenuPlaceholder_ctl00_mainMenun6 > table > tbody > tr > td > a').click());
         // await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         dismissDialog(pageQuote);
-       // await pageQuote.evaluate(() => document.querySelector('#ctl00_MenuPlaceholder_ctl00_mainMenun6 > table > tbody > tr > td > a').click());
         await processDataStep(pageQuote, dataObject);
       }
 
