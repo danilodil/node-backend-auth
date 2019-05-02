@@ -27,6 +27,8 @@ app.set('port', port);
 
 const server = http.createServer(app);
 
+server.timeout = 240000;
+
 const onError = (error) => {
   if (error.syscall !== 'listen') {
     throw error;
