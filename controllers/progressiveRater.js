@@ -1095,7 +1095,7 @@ module.exports = {
             {
               title: 'ZIP Code',
               element: 'insd_zip_cd',
-              value: bodyData.zipCode || '19901',
+              value: '19934' || '19901',
             },
             {
               title: 'Check this box if the current mailing address is a P.O. Box or a Military address ',
@@ -1935,7 +1935,7 @@ module.exports = {
           zipCode: {
             elementId: 'insd_zip_cd',
             element: '#insd_zip_cd',
-            value: bodyData.zipCode || '',
+            value: '35005' || '',
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
