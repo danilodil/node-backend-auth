@@ -20,6 +20,41 @@ module.exports = {
     try {
       const { username } = req.body.decoded_vendor;
 
+      const returnIndustry = async (occ) => {
+         const students = ['Graduate Student', 'High school', 'Undergraduate'];
+         const agricultures = ['Agriculture Inspector/Grader', 'Arborist', 'Clerk', 'Equipment Operator', 'Farm/Ranch Owner', 'Farm/Ranch Worker', 'Fisherman', 
+                               'Florist', 'Laborer/Worker', 'Landscaper/Nursery Worker', 'Landscaper', 'Logger', 'Mill worker', 'Ranger', 'Timber Grader/Scale'];
+         const arts = ['Actor', 'Announcer/Broadcaster', 'Artist/Animator', 'Author/Writer', 'Choreography/Dancer', 'Composer/Director', 
+                               'Curator', 'Designer', 'Editor', 'Journalist/Reporter', 'Musician/Singer', 'Printer', 'Producer', 'Production Crew', 'Projectionist', 'Receptionist/Secretary', 'Ticket Sales/Usher'];
+         const bankings = ['Accountant/Auditor', 'Analyst/Broker', 'Bookkeeper', 'Branch Manager', 'Clerk', 'Collections', 
+                               'Consultant', 'Controller', 'CSR/Teller', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production', 
+                               'Manager-Property', 'Realtor', 'Receptionist/Secretary', 'Sales Agent/Representative', 'Trader, Financial Instruments', 'Underwriter'];
+         const business = ['Account Executive', 'Administrative Assistant', 'Buyer', 'Customer Service Representative', 'H.R. Representative', 'Marketing Researcher', 'Messenger/Courier', 'Manager - District', 'Manager - Finance', 'Manager - Department/Store' ,
+                               'Consultant', 'Controller', 'CSR/Teller', 'Director/Administrator', 'Executive', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production', 
+                               'Manager - General Operations', 'Manager - H.R./Public Relations', 'Manager - Marketing/Sales', 'Manager/Supervisor - Office', 'Receptionist/Secretary', 'Sales-Counter/Rental', 'Sales-Home Based', 'Sales Agent/Representative', 'Sales-Manufacture Rep', 
+                               'Sales-Retail/Wholesale', 'Sales-Route/Vendor',];
+         if (occ === 'Homemaker/House person') {
+            return 'Homemaker/House person';
+         } else if (occ === 'Retired') {
+            return 'Retired';
+         } else if (occ === 'Disabled') {
+            return 'Disabled';
+         } else if (occ === 'Unemployed') {
+            return 'Unemployed';
+         } else if (students.indexOf(occ) > -1) {
+            return 'Student';
+         } else if (agricultures.indexOf(occ) > -1) {
+            return 'Agriculture/Forestry/Fishing';
+         } else if (arts.indexOf(occ) > -1) {
+            return 'Art/Design/Media';
+         } else if (bankings.indexOf(occ) > -1) {
+            return 'Banking/Finance/Real Estate';
+         } else if (business.indexOf(occ) > -1) {
+            return 'Business/Sales/Office';
+         }
+         // Stopped on Constuction Energy
+      };
+
       const returnClosestOccupation = async (oc) => {
         try {
           const occupations = ['Homemaker/House person', 'Retired', 'Disabled', 'Unemployed', 'Graduate Student', 'High school', 'Other', 'Undergraduate', 'Agriculture Inspector/Grader', 'Arborist', 'Clerk', 'Equipment Operator', 'Farm/Ranch Owner', 'Farm/Ranch Worker', 'Fisherman', 'Florist', 'Laborer/Worker', 'Landscaper/Nursery Worker', 'Landscaper', 'Logger', 'Mill worker', 'Other', 'Ranger', 'Supervisor', 'Timber Grader/Scale', 'Actor', 'Administrative Assistant', 'Announcer/Broadcaster', 'Artist/Animator', 'Author/Writer', 'Choreography/Dancer', 'Clerk', 'Composer/Director', 'Curator', 'Designer', 'Editor', 'Journalist/Reporter', 'Musician/Singer', 'Other', 'Printer', 'Producer', 'Production Crew', 'Projectionist', 'Receptionist/Secretary', 'Ticket Sales/Usher', 'Accountant/Auditor', 'Administrative Assistant', 'Analyst/Broker', 'Bookkeeper', 'Branch Manager', 'Clerk', 'Collections', 'Consultant', 'Controller', 'CSR/Teller', 'Director/Administrator', 'Executive', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production', 'Manager-Property', 'Other', 'Realtor', 'Receptionist/Secretary', 'Sales Agent/Representative', 'Trader', ' Financial Instruments', 'Underwriter', 'Account Executive', 'Administrative Assistant', 'Buyer', 'Clerk-Office', 'Consultant', 'Customer Service Representative', 'Director/Administrator', 'Executive', 'H.R. Representative', 'Marketing Researcher', 'Messenger/Courier', 'Manager - District', 'Manager - Finance', 'Manager - Department/Store', 'Manager - General Operations', 'Manager - H.R./Public Relations', 'Manager - Marketing/Sales', 'Manager/Supervisor - Office', 'Other', 'Receptionist/Secretary', 'Sales-Counter/Rental', 'Sales-Home Based', 'Sales-Manufacture Rep', 'Sales-Retail/Wholesale', 'Sales-Route/Vendor', 'Boiler Operator/Maker', 'Bricklayer/Mason', 'Carpenter', 'Carpet Installer', 'Concrete Worker', 'Construction - Project Manager', 'Contractor', 'Crane Operator', 'Electrician/Linesman', 'Elevator Technician/Installer', 'Equipment Operator', 'Floor Layer/Finisher', 'Foreman/Supervisor', 'Handyman', 'Heat/Air Technician', 'Inspector', 'Laborer/Worker', 'Metalworker', 'Miner', 'Oil/Gas Driller/Rig Operator', 'Other', 'Painter', 'Plaster/Drywall/Stucco', 'Plumber', 'Roofer', 'Administrative Assistant', 'Audio-Visual Tech.', 'Child/Daycare Worker', 'Clerk', 'Counselor', 'Graduate Teaching Assistant', 'Instructor-Vocation', 'Librarian/Curator', 'Other', 'Professor', ' College', 'Receptionist/Secretary', 'Superintendent', 'Teacher', ' College', 'Teacher', ' K-12', 'Teaching Assistant/Aide', 'Tutor', 'Actuary', 'Administrative Assistant', 'Analyst', 'Architect', 'Clerk', 'Clinical Data Coordinator', 'Drafter', 'Engineer', 'Manager-Project', 'Manager-R&D', 'Mathematician', 'Other', 'Receptionist/Secretary', 'Research Program Director', 'Researcher', 'Scientist', 'Sociologist', 'Surveyor/Mapmaker', 'Technician', 'Accountant/Auditor', 'Administrative Assistant', 'Analyst', 'Attorney', 'Chief Executive', 'Clerk', 'Commissioner', 'Council member', 'Director/Administrator', 'Enlisted Military Personnel (E1-4)', 'Legislator', 'Mayor/City Manager', 'Meter Reader', 'NCO (E5-9)', 'Officer-Commissioned', 'Officer-Warrant', 'Other', 'Park Ranger', 'Planner', 'Postmaster', 'Receptionist/Secretary', 'Regulator', 'US Postal Worker', 'Administrative Assistant', 'Analyst', 'Clerk', 'Director/Administrator', 'Engineer-Hardware', 'Engineer-Software', 'Engineer-Systems', 'Executive', 'Manager-Systems', 'Network Administrator', 'Other', 'Programmer', 'Project Coordinator', 'Receptionist/Secretary', 'Support Technician', 'Systems Security', 'Technical Writer', 'Web Developer', 'Accountant/Auditor', 'Actuarial Clerk', 'Actuary', 'Administrative Assistant', 'Agent/Broker', 'Analyst', 'Attorney', 'Claims Adjuster', 'Clerk', 'Commissioner', 'Customer Service Representative', 'Director/Administrator', 'Executive', 'Other', 'Product Manager', 'Receptionist/Secretary', 'Sales Representative', 'Underwriter', 'Airport Security Officer', 'Animal Control Officer', 'Attorney', 'Bailiff', 'Corrections Officer', 'Court Clerk/Reporter', 'Deputy Sheriff', 'Dispatcher', 'Examiner', 'Federal Agent/Marshall', 'Fire Chief', 'Fire Fighter/Supervisor', 'Gaming Officer/Investigator', 'Highway Patrol Officer', 'Judge/Hearing Officer', 'Legal Assistant/Secretary', 'Other', 'Paralegal/Law Clerk', 'Police Chief', 'Police Detective/Investigator', 'Police Officer/Supervisor', 'Process Server', 'Private Investigator/Detective', 'Security Guard', 'Sheriff', 'Building Maintenance Engineer', 'Custodian/Janitor', 'Electrician', 'Field Service Technician', 'Handyman', 'Heat/Air Conditioner Repairman', 'Housekeeper/Maid', 'Landscape/Grounds Maintenance', 'Maintenance Mechanic', 'Mechanic', 'Other', 'Administrative Assistant', 'Clerk', 'Factory Worker', 'Foreman/Supervisor', 'Furniture Finisher', 'Inspector', 'Jeweler', 'Machine Operator', 'Other', 'Packer', 'Plant Manager', 'Printer/Bookbinder', 'Quality Control', 'Receptionist/Secretary', 'Refining Operator', 'Shoemaker', 'Tailor/Custom Sewer', 'Textile Worker', 'Upholsterer', 'Administrative Assistant', 'Assistant - Medic/Dent/Vet', 'Clergy', 'Clerk', 'Client Care Worker', 'Dental Hygienist', 'Dentist', 'Doctor', 'Hospice Volunteer', 'Mortician', 'Nurse - C.N.A.', 'Nurse - LPN', 'Nurse - RN', 'Nurse Practitioner', 'Optometrist', 'Other', 'Paramedic/E.M. Technician', 'Pharmacist', 'Receptionist/Secretary', 'Social Worker', 'Support Services', 'Technician', 'Therapist', 'Veterinarian', 'Caregiver', 'Dry Cleaner/Laundry', 'Hair Stylist/Barber', 'Housekeeper', 'Manicurist', 'Masseuse', 'Nanny', 'Other', 'Pet Services', 'Receptionist/Secretary', 'Baker', 'Bartender', 'Bellhop', 'Bus Person', 'Caterer', 'Chef', 'Concessionaire', 'Concierge', 'Cook - Restaurant/Cafeteria', 'Cook/Worker-Fast Food', 'Delivery Person', 'Desk Clerk', 'Dishwasher', 'Food Production/Packing', 'Host/Maitre d', 'Housekeeper/Maid', 'Manager', 'Other', 'Valet', 'Waiter/Waitress', 'Wine Steward', 'Activity/Recreational Assistant', 'Administrative Assistant', 'Agent', 'Athlete', 'Camp Counselor/Lead', 'Clerk', 'Coach', 'Concessionaire', 'Director', ' Program', 'Event Manager/Promoter', 'Life Guard', 'Manager - Fitness Club', 'Other', 'Park Ranger', 'Receptionist/Secretary', 'Sales-Ticket/Membership', 'Sports Broadcaster/Journalist', 'Trainer/Instructor', 'Umpire/Referee', 'Administrative Assistant', 'Air Traffic Control', 'Airport Operations Crew', 'Bellhop/Porter', 'Clerk', 'Crane Loader/Operator', 'Dispatcher', 'Driver - Bus/Streetcar', 'Driver-Taxi/Limo', 'Driver-Truck/Delivery', 'Flight Attendant', 'Forklift Operator', 'Laborer', 'Longshoreman', 'Mate/Sailor', 'Manager - Warehouse/District', 'Other', 'Parking Lot Attendant', 'Pilot/Captain/Engineer', 'Railroad Worker', 'Receptionist/Secretary', 'Shipping/Receiving Clerk', 'Subway/Light Rail Operator', 'Ticket Agent', 'Transportation Specialist', 'Other'];
@@ -80,7 +115,7 @@ module.exports = {
                   ...(await returnValue(driver.children.DLState) !== '' && { DLState: await returnValue(driver.children.DLState) }),
                   ...(await returnValue(driver.children.MaritalStatus) !== '' && { MaritalStatus: await returnValue(driver.children.MaritalStatus) }),
                   Relation: 'Insured',
-                  // ... (await returnValue(driver.children.Occupation) !== '' && {Industry: await returnValue(driver.children.Occupation)}),
+                  ... (await returnValue(driver.children.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(driver.children.Occupation)))}),
                   ...(await returnValue(driver.children.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(driver.children.Occupation)) }),
                 },
               ],
@@ -185,7 +220,6 @@ module.exports = {
         }
       };
 
-      // TODO Fix Industry to look at Occupation
       // Add Homeownership + years at home question by default to auto
       // Add tracking for multi-car discount
       // Add Relation in new multiple obj feature on FE
@@ -203,7 +237,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            // ... (await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)}),
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)))}),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
             Relation: 'Insured',
@@ -279,7 +313,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            // ... (await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)}),
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)))}),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
             Relation: 'Insured',
