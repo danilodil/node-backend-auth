@@ -2357,19 +2357,19 @@ module.exports = {
 
             await pageQuote.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
 
-            // await pageQuote.waitFor(600);
+             await pageQuote.waitFor(600);
             const drvrEmplStats = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverEmployment${j}`].element}>option`);
             const drvrEmplStat = await pageQuote.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
             await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
-            // await pageQuote.waitFor(600);
+             await pageQuote.waitFor(600);
 
             const drvrEdLvls = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverEducation${j}`].element}>option`);
             const drvrEdLvl = await pageQuote.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
             await pageQuote.waitFor(300);
             await pageQuote.select(populatedData[`driverEducation${j}`].element, drvrEdLvl);
 
-            // await pageQuote.waitFor(600);
+             await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
             // await pageQuote.waitFor(600);
           }
@@ -2445,7 +2445,8 @@ module.exports = {
           // await pageQuote.waitFor(1000);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await coveragesStep(pageQuote, dataObject);
+          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+
         } catch (err) {
           console.log('err underwritingStep ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -2454,33 +2455,46 @@ module.exports = {
             response,
           };
         }
+        await coveragesStep(pageQuote, dataObject);
       }
 
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+        // await pageQuote.waitFor(2000);
+        // await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        // await pageQuote.select('#pol_ubi_exprnc','N');
+        // await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         dismissDialog(pageQuote);
-        dataObject.results = {};
-        try {
-          await pageQuote.waitFor(2500);
-          await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
-        } catch (err) {
-          try {
-            await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
-            await processDataStep(pageQuote, dataObject);
-          } catch (e) {
-            console.log('err coveragesStep :', e);
-            const response = { error: 'There is some error validations' };
-            dataObject.results = {
-              status: false,
-              response,
-            };
-          }
-        }
+       // await pageQuote.evaluate(() => document.querySelector('#ctl00_MenuPlaceholder_ctl00_mainMenun6 > table > tbody > tr > td > a').click());
+        await processDataStep(pageQuote, dataObject);
       }
+
+      // async function coveragesStep(pageQuote, dataObject) {
+      //   console.log('coveragesStep');
+      //   await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+      //   dismissDialog(pageQuote);
+      //   dataObject.results = {};
+      //   try {
+      //     await pageQuote.waitFor(2500);
+      //     await pageQuote.waitForSelector('select[name="VEH.0.BIPD"]');
+      //   } catch (err) {
+      //     try {
+      //       await pageQuote.click('input[name="ctl00$ContentPlaceHolder1$InsuredRemindersDialog$InsuredReminders$btnOK"]');
+      //       await processDataStep(pageQuote, dataObject);
+      //     } catch (e) {
+      //       console.log('err coveragesStep :', e);
+      //       const response = { error: 'There is some error validations' };
+      //       dataObject.results = {
+      //         status: false,
+      //         response,
+      //       };
+      //     }
+      //   }
+      // }
 
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
+        await pageQuote.waitFor(6000)
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
