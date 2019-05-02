@@ -487,7 +487,12 @@ module.exports = {
         newResponse = 'Succeeded';
       }
 
-      const url = response.match(/<URL>(.*)<\/URL>/)[1]
+      let url = 'Upload Failed';
+
+      if (response && response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
+         url = response.match(/<URL>(.*)<\/URL>/)[1]
+      }
+
 
       req.session.data = {
         title: 'Contact created successfully',
