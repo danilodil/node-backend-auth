@@ -2530,7 +2530,7 @@ module.exports = {
       }
 
       // login
-      await loginStep(browser, page);
+      await loginStep();
 
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
