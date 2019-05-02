@@ -10,7 +10,7 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ headless: true });
+      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 920 });
 
@@ -578,40 +578,53 @@ module.exports = {
         console.log('vehicleStep');
         for (const j in bodyData.vehicles) {
           const vehicles = populatedData[`vehicles${j}`];
+          console.log('1 >> ');
 
-          await page.waitForSelector('#VehicleSelectionController');
-          await page.select('#VehicleSelectionController', 'Private Passenger Vehicle');
+          await page.waitFor(2000);
+          // await page.waitForSelector('#VehicleSelectionController');
+          await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
           await page.waitFor(1000);
-          await page.waitForSelector('#Main > div:nth-child(18)');
+          // await page.waitForSelector('#Main > div:nth-child(18)');
+          console.log('2 >> ');
 
           await page.evaluate((vehiclesData) => {
             vehiclesData.forEach((oneElement) => {
               document.getElementById(oneElement.element).value = oneElement.value;
             });
           }, vehicles);
+          console.log('3 >> ');
 
+          await page.waitFor(1500);
           const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
+          console.log('4 >> ');
 
           await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
           await page.waitFor(1000);
+          console.log('5 >> ');
+          await page.waitForSelector(populatedData.vehicleUse.element);
           await page.select(populatedData.vehicleUse.element, vehicleUse);
           const vehicleMilage = populatedData[`vehicleMilage${j}`];
+          console.log('6 >> ');
 
           if (vehicleUse === 'Work') {
+            console.log('7 >> ');
             await page.evaluate((vehicleMilageData) => {
               vehicleMilageData.forEach((oneElement) => {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicleMilage[vehicleUse]);
           } else {
+            console.log('8 >> ');
             await page.evaluate((vehicleMilageData) => {
               vehicleMilageData.forEach((oneElement) => {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicleMilage.other);
           }
+          console.log('9 >> ');
 
           await page.waitFor(1000);
+          console.log('10 >> ');
           await page.click('#Save');
           await page.waitFor(3000);
           if (j === (bodyData.vehicles.length - 1).toString()) {
@@ -630,11 +643,9 @@ module.exports = {
         const policyCoverage = populatedData.policyCoverage;
         await page.waitFor(4000);
         await page.evaluate((policyCoverage) => {
-
           policyCoverage.forEach(oneElement => {
             document.getElementById(oneElement.element).value = oneElement.value;
           });
-
         }, policyCoverage);
 
         await page.click('#NextPage');
