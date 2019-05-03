@@ -151,6 +151,8 @@ module.exports = {
       }; 
       const bodyData = req.body.data;
 
+      console.log('vehicles',bodyData.vehicles);
+      console.log('drivers',bodyData.drivers);
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
@@ -622,14 +624,42 @@ module.exports = {
         await page.click('#NextPage');
         await page.waitForSelector('#Question_Acknowledgement');
         await page.waitFor(1000);
+        // await page.evaluate(() => {
+        //   document.getElementById('Question_Acknowledgement').value = 'YES';
+        //   document.getElementById('Question_cserules_isForRent').value = 'No';
+        //   document.getElementById('Question_cserules_isResidence').value = 'No';
+        //   document.getElementById('Question_cserules_notStreetLic').value = 'No';
+        //   document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+        //   document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+        // });
         await page.evaluate(() => {
           document.getElementById('Question_Acknowledgement').value = 'YES';
+        });
+        await page.waitFor(1000);
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_isForRent').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_isResidence').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_notStreetLic').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
         });
+
         await page.click('#NextPage');
         await vehicleStep(browser, page, populatedData);
       }
@@ -703,6 +733,7 @@ module.exports = {
         // Policy Coverage
         const policyCoverage = populatedData.policyCoverage;
         await page.waitFor(4000);
+        await page.waitForSelector('#Line\\.BILimit')
         await page.evaluate((policyCoverage) => {
           policyCoverage.forEach(oneElement => {
             console.log(JSON.stringify(oneElement))
