@@ -8,6 +8,7 @@ const { nationalGeneralAlRater } = require('../constants/appConstant');
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
+      console.log(req.body.decoded_vendor);
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ headless: true });
       const page = await browser.newPage();
@@ -209,6 +210,7 @@ module.exports = {
           for (const j in dataObject.drivers) {
             if (j < dataObject.drivers.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredDriverLabel1_btnAddDriver"]');
+              console.log(addElement);
               await addElement.click();
               await page.waitFor(1000);
             }
@@ -598,7 +600,7 @@ module.exports = {
             };
             clientInputSelect[`yearsOfExperiance${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_txtYrsExperience`,
-              value: bodyData.drivers[j].yearOfExperiance.toString() || '',
+              value: bodyData.drivers[j].yearOfExperiance ? bodyData.drivers[j].yearOfExperiance.toString() : 15 || 15,
             };
             clientInputSelect[`driverLicenseStatus${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlDLStatus`,
