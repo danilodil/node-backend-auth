@@ -839,7 +839,7 @@ const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
 
 module.exports = {
-  rateDelaware: async (req,callback) => {
+  rateDelaware: async (req,res,next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -1095,7 +1095,7 @@ module.exports = {
             {
               title: 'ZIP Code',
               element: 'insd_zip_cd',
-              value: '19934',
+              value: bodyData.zipCode || staticDetailsObj.zipCode,
             },
             {
               title: 'Check this box if the current mailing address is a P.O. Box or a Military address ',
@@ -1490,8 +1490,8 @@ module.exports = {
         title: 'Progressive DE Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-      return callback();
-      //return next();
+      return next();
+
       // For dimiss alert dialog
       function dismissDialog(page1) {
         try {
@@ -1764,9 +1764,7 @@ module.exports = {
 
     } catch (error) {
       console.log('error >> ', error);
-      req.session.data = Boom.badRequest('Error retrieving progressive DE rate');
-      return callback();
-      //return next(Boom.badRequest('Error retrieving progressive DE rate'));
+      return next(Boom.badRequest('Error retrieving progressive DE rate'));
     }
   },
   rateAlabama: async (req, res, next) => {
