@@ -10,9 +10,9 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      //const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
-      await page.setViewport({ width: 1200, height: 920 });
 
       /* const bodyData = {
         firstName: "Test",
@@ -594,10 +594,16 @@ module.exports = {
         const { underwriting } = populatedData;
 
         await page.waitFor(1000);
+        page.on('dialog', async dialog => {
+          console.log(dialog.message());
+          await dialog.dismiss();
+        });
         await page.waitForSelector('#ProviderNumber');
         await page.waitFor(1000);
+        page.on('console', msg => console.log('PAGE LOG:', msg._text));
         await page.evaluate((underwritingData) => {
           underwritingData.forEach((oneElement) => {
+            console.log(JSON.stringify(oneElement));
             if (oneElement.value === 'AAGCA') {
               setTimeout(() => {
                 document.getElementById(oneElement.element).value = oneElement.value;
@@ -637,13 +643,13 @@ module.exports = {
 
           await page.waitFor(5000);
           // await page.waitForSelector('#VehicleSelectionController');
-          //await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
-          await page.waitFor(1000);
+          await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+          await page.waitFor(2000);
           // await page.waitForSelector('#Main > div:nth-child(18)');
           console.log('2 >> ');
-
           await page.evaluate((vehiclesData) => {
             vehiclesData.forEach((oneElement) => {
+              console.log(JSON.stringify(oneElement))
               document.getElementById(oneElement.element).value = oneElement.value;
             });
           }, vehicles);
@@ -699,6 +705,7 @@ module.exports = {
         await page.waitFor(4000);
         await page.evaluate((policyCoverage) => {
           policyCoverage.forEach(oneElement => {
+            console.log(JSON.stringify(oneElement))
             document.getElementById(oneElement.element).value = oneElement.value;
           });
         }, policyCoverage);
@@ -732,6 +739,7 @@ module.exports = {
             await page.waitFor(1000);
             await page.evaluate((driverDetails) => {
               driverDetails.forEach((oneElement) => {
+                console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, editDriverDetails.nonDriver);
