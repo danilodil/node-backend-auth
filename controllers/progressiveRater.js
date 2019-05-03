@@ -839,10 +839,11 @@ const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
 
 module.exports = {
-  rateDelaware: async (req, res, next) => {
+  rateDelaware: async (req,callback) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({ headless:false });
       let page = await browser.newPage();
 
       // Request input data
@@ -1094,7 +1095,7 @@ module.exports = {
             {
               title: 'ZIP Code',
               element: 'insd_zip_cd',
-              value: bodyData.zipCode || staticDetailsObj.zipCode,
+              value: '19934',
             },
             {
               title: 'Check this box if the current mailing address is a P.O. Box or a Military address ',
@@ -1127,7 +1128,6 @@ module.exports = {
           await page.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
           await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await vehicleStep(populatedData);
         } catch (err) {
           const response = { error: 'There is some error validations at namedInsuredStep' };
           dataObject.results = {
@@ -1135,6 +1135,7 @@ module.exports = {
             response,
           };
         }
+        await vehicleStep(populatedData);
       }
 
       // For Vehicles Form
@@ -1214,7 +1215,6 @@ module.exports = {
           }
           await page.waitFor(2000);
           await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await driverStep(populatedData);
         } catch (err) {
           console.log('err vehicleStep:', err);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -1223,6 +1223,7 @@ module.exports = {
             response,
           };
         }
+        await driverStep(populatedData);
       }
 
       // For driver Form
@@ -1330,7 +1331,6 @@ module.exports = {
             // await page.waitFor(600);
           }
           await page.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await violationStep(page, bodyData, populatedData);
         } catch (err) {
           console.log('err driverStep:', err);
           const response = { error: 'There is some error validations at driverStep' };
@@ -1339,8 +1339,8 @@ module.exports = {
             response,
           };
         }
+        await violationStep(page, bodyData, populatedData);
       }
-
 
       // For Violations Form
       async function violationStep(pageQuote, dataObject, populatedData) {
@@ -1366,7 +1366,6 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await underwritingStep(pageQuote, dataObject, populatedData);
         } catch (err) {
           console.log('err violationStep', err);
           const response = { error: 'There is some error validations at violationStep' };
@@ -1375,6 +1374,7 @@ module.exports = {
             response,
           };
         }
+        await underwritingStep(pageQuote, dataObject, populatedData);
       }
 
       // For Underwriting Form
@@ -1443,9 +1443,10 @@ module.exports = {
           await coveragesStep(pageQuote, dataObject);
         }
       }
+
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.waitFor(2000);
+        await pageQuote.waitFor(3000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
@@ -1455,7 +1456,7 @@ module.exports = {
 
       async function processDataStep(pageQuote, dataObject) {
         console.log('processDataStep');
-        await pageQuote.waitFor(2000);
+        await pageQuote.waitFor(4000);
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
@@ -1489,7 +1490,8 @@ module.exports = {
         title: 'Progressive DE Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-      return next();
+      return callback();
+      //return next();
       // For dimiss alert dialog
       function dismissDialog(page1) {
         try {
@@ -1762,7 +1764,9 @@ module.exports = {
 
     } catch (error) {
       console.log('error >> ', error);
-      return next(Boom.badRequest('Error retrieving progressive DE rate'));
+      req.session.data = Boom.badRequest('Error retrieving progressive DE rate');
+      return callback();
+      //return next(Boom.badRequest('Error retrieving progressive DE rate'));
     }
   },
   rateAlabama: async (req, res, next) => {
