@@ -84,4 +84,33 @@ module.exports = {
       return next(Boom.badRequest('Error updating vendor!'));
     }
   },
+  getAll: async (req, res, next) => {
+    try {
+      const params = req.body;
+      if (!params.companyId) {
+        return next(Boom.badRequest('Please send proper data!'));
+      }
+
+      const findObject = {
+        where: {
+          companyId: params.companyId,
+        },
+        attributes : ['id', 'vendorName'],
+      };
+
+      const vendors = await vendorModel.findAll(findObject);
+
+      if (!vendors) {
+        return next(Boom.badRequest('Vendor does not exists!'));
+      }
+      
+      req.session.data = {
+        message: 'Vendors get successfully',
+        vendors: vendors,
+      };
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest('Error updating vendor!'));
+    }
+  },
 };
