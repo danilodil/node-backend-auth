@@ -568,6 +568,8 @@ module.exports = {
       async function newQuoteStep(browser, page, populatedData) {
         console.log('newQuoteStep');
 
+        try{
+
         const AllPages = await browser.pages();
         if (AllPages.length > 2) {
           for (let i = 2; i < AllPages.length; i += 1) {
@@ -659,70 +661,77 @@ module.exports = {
         await page.evaluate(() => {
           document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
         });
-
         await page.click('#NextPage');
+      }catch(e){
+        console.log('error at newQuoteStep :: ',e);
+      }
         await vehicleStep(browser, page, populatedData);
       }
 
       // add vehicle
       async function vehicleStep(browser, page, populatedData) {
         console.log('vehicleStep');
-        for (const j in bodyData.vehicles) {
-          const vehicles = populatedData[`vehicles${j}`];
-          console.log('1 >> ');
+        try{
 
-          await page.waitFor(5000);
-          // await page.waitForSelector('#VehicleSelectionController');
-          await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
-          await page.waitFor(2000);
-          // await page.waitForSelector('#Main > div:nth-child(18)');
-          console.log('2 >> ');
-          await page.evaluate((vehiclesData) => {
-            vehiclesData.forEach((oneElement) => {
-              console.log(JSON.stringify(oneElement))
-              document.getElementById(oneElement.element).value = oneElement.value;
-            });
-          }, vehicles);
-          console.log('3 >> ');
+          for (const j in bodyData.vehicles) {
+            const vehicles = populatedData[`vehicles${j}`];
+            console.log('1 >> ');
 
-          await page.waitFor(1500);
-          const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
-          console.log('4 >> ');
-
-          await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
-          await page.waitFor(1000);
-          console.log('5 >> ');
-          await page.waitForSelector(populatedData.vehicleUse.element);
-          await page.select(populatedData.vehicleUse.element, vehicleUse);
-          const vehicleMilage = populatedData[`vehicleMilage${j}`];
-          console.log('6 >> ');
-
-          if (vehicleUse === 'Work') {
-            console.log('7 >> ');
-            await page.evaluate((vehicleMilageData) => {
-              vehicleMilageData.forEach((oneElement) => {
+            await page.waitFor(5000);
+            // await page.waitForSelector('#VehicleSelectionController');
+            await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+            await page.waitFor(2000);
+            // await page.waitForSelector('#Main > div:nth-child(18)');
+            console.log('2 >> ');
+            await page.evaluate((vehiclesData) => {
+              vehiclesData.forEach((oneElement) => {
+                console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
-            }, vehicleMilage[vehicleUse]);
-          } else {
-            console.log('8 >> ');
-            await page.evaluate((vehicleMilageData) => {
-              vehicleMilageData.forEach((oneElement) => {
-                document.getElementById(oneElement.element).value = oneElement.value;
-              });
-            }, vehicleMilage.other);
-          }
-          console.log('9 >> ');
+            }, vehicles);
+            console.log('3 >> ');
 
-          await page.waitFor(1000);
-          console.log('10 >> ');
-          await page.click('#Save');
-          await page.waitFor(3000);
-          if (j === (bodyData.vehicles.length - 1).toString()) {
-            await page.click('#NextPage');
-          } else {
-            await page.click('#Return');
+            await page.waitFor(1500);
+            const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
+            console.log('4 >> ');
+
+            await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
+            await page.waitFor(1000);
+            console.log('5 >> ');
+            await page.waitForSelector(populatedData.vehicleUse.element);
+            await page.select(populatedData.vehicleUse.element, vehicleUse);
+            const vehicleMilage = populatedData[`vehicleMilage${j}`];
+            console.log('6 >> ');
+
+            if (vehicleUse === 'Work') {
+              console.log('7 >> ');
+              await page.evaluate((vehicleMilageData) => {
+                vehicleMilageData.forEach((oneElement) => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, vehicleMilage[vehicleUse]);
+            } else {
+              console.log('8 >> ');
+              await page.evaluate((vehicleMilageData) => {
+                vehicleMilageData.forEach((oneElement) => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, vehicleMilage.other);
+            }
+            console.log('9 >> ');
+
+            await page.waitFor(1000);
+            console.log('10 >> ');
+            await page.click('#Save');
+            await page.waitFor(3000);
+            if (j === (bodyData.vehicles.length - 1).toString()) {
+              await page.click('#NextPage');
+            } else {
+              await page.click('#Return');
+            }
           }
+        }catch(e){
+          console.log('error at vehicleStep :: ',e);
         }
         await policyStep(browser, page, populatedData);
       }
