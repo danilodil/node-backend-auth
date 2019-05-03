@@ -7,7 +7,7 @@ module.exports = {
     try {
       const params = req.body;
       if (!params.companyId || !params.vendorName || !params.username) {
-        return next(Boom.badRequest('Please send proper data!'));
+        return next(Boom.badRequest('Invalid data!'));
       }
 
       const findObject = { where: {} };
@@ -49,7 +49,7 @@ module.exports = {
     try {
       const params = req.body;
       if (!params.companyId || !params.username || !params.password) {
-        return next(Boom.badRequest('Please send proper data!'));
+        return next(Boom.badRequest('Invalid data!'));
       }
 
       const findObject = {
@@ -88,7 +88,7 @@ module.exports = {
     try {
       const params = req.body;
       if (!params.companyId) {
-        return next(Boom.badRequest('Please send proper data!'));
+        return next(Boom.badRequest('Invalid data!'));
       }
 
       const findObject = {
@@ -110,7 +110,7 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      return next(Boom.badRequest('Error updating vendor!'));
+      return next(Boom.badRequest('Error get vendor!'));
     }
   },
 };
