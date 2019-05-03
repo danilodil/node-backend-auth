@@ -842,8 +842,8 @@ module.exports = {
   rateDelaware: async (req,callback) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const browser = await puppeteer.launch({ headless:false });
+      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ headless:false });
       let page = await browser.newPage();
 
       // Request input data
