@@ -2487,7 +2487,7 @@ module.exports = {
       async function errorStep(pageQuote, dataObject){
         try{
           console.log('errorStep');
-          await pageQuote.waitFor(2000);
+          await pageQuote.waitFor(4000);
           await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
           const response = { error: 'There is some error in data' };
           dataObject.results = {
