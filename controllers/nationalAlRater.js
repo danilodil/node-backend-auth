@@ -274,7 +274,7 @@ module.exports = {
             }
           }
           await page.waitFor(4000);
-          //await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
+          await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtLastName');
           await clearInputText('#ctl00_MainContent_Driver1_txtDateOfBirth');
