@@ -17,6 +17,6 @@ router.use('/progressiveRater', [passport], progressiveRater);
 router.use('/cseRater', [passport], cseRater);
 router.use('/salesforce', [passport], salesforce);
 router.use('/vendor', vendor);
-router.use('/nationalAlRater',[passport], nationalGeneralRater);
+router.use('/nationalAlRater',[passport],nationalGeneralRater);
 
 module.exports = router;

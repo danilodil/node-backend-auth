@@ -8,9 +8,9 @@ const { nationalGeneralAlRater } = require('../constants/appConstant');
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
-      console.log(req.body.decoded_vendor);
+      
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ headless: true });
+      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       const page = await browser.newPage();
 
       // Request input data
@@ -38,7 +38,7 @@ module.exports = {
         vehicles: req.body.data.vehicles
       }; 
 
-      /* const data = {
+      /*const data = {
         newQuoteState: 'AL',
         newQuoteProduct: 'PPA',
         producer: '610979',
@@ -121,7 +121,65 @@ module.exports = {
             vehicleType: 'Private Passenger Auto',
           },
         ],
-      }; */
+      };*/
+
+      const staticDataObj = {
+        newQuoteState: 'AL',
+        newQuoteProduct: 'PPA',
+        producer: '610979',
+        inputBy: '20000739',
+        plan: 'G5',
+        firstName: 'Test',
+        middleName: 'TEST',
+        lastName: 'User',
+        suffixName: 'IV',
+        emailOption: 'EmailProvided',
+        email: 'test@mail.com',
+        birthDate: '12/16/1993',
+        mailingAddress: '216 Humphreys Dr',
+        phone1: '455',
+        phone2: '555',
+        phone3: '5555',
+        phoneType: '3',
+        city: 'Dover',
+        state: 'Delaware',
+        zipCode: '19934',
+        hasMovedInLast60Days: 'False',
+        security1: '122',
+        security2: '22',
+        security3: '2222',
+        drivers: [
+          {
+            firstName: 'Test',
+            lastName: 'User',
+            applicantBirthDt: '12/16/1993',
+            gender: 'Male',
+            maritalStatus: 'Single',
+            relationShip: 'Named Insured',
+            driverStatus: 'Rated Driver',
+            yearOfExperiance: '8',
+            driverLicenseStatus: 'Permit',
+            smartDrive: 'True',
+            licenseState: 'IN',
+          }
+        ],
+        vehicles: [
+          {
+            vehicleVin: 'KMHDH6AE1DU001708',
+            vtype: 'PPA',
+            modelYear: '2013',
+            make: 'HYUN',
+            model: 'SANTA FE G',
+            style: 'WAGON 4 DOOR 4 Cyl 4x2',
+            primaryUse: 'Business',
+            antiTheft: 'Recovery Device',
+            garagingState: 'AL',
+            garagingzipCode: '36016',
+            ownershipStatus: 'Owned',
+            vehicleType: 'Private Passenger Auto',
+          }
+        ],
+      }; 
       const bodyData = data;
 
 
@@ -216,6 +274,7 @@ module.exports = {
             }
           }
           await page.waitFor(1000);
+          await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtLastName');
           await clearInputText('#ctl00_MainContent_Driver1_txtDateOfBirth');
@@ -452,43 +511,43 @@ module.exports = {
           },
           producer: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlProducers"]',
-            value: bodyData.producer || '',
+            value: bodyData.producer || staticDataObj.producer,
           },
           inputBy: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlInputBy"]',
-            value: bodyData.inputBy || '',
+            value: bodyData.inputBy || staticDataObj.inputBy,
           },
           plan: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlPlanCode"]',
-            value: bodyData.plan || '',
+            value: bodyData.plan || staticDataObj.plan,
           },
           firstName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsFirstName\']',
-            value: bodyData.firstName || '',
+            value: bodyData.firstName || staticDataObj.firstName,
           },
           middleName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsMiddleName\']',
-            value: bodyData.middleName || '',
+            value: bodyData.middleName || staticDataObj.middleName,
           },
           lastName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsLastName\']',
-            value: bodyData.lastName || '',
+            value: bodyData.lastName || staticDataObj.lastName,
           },
           suffixName: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ddlInsSuffix\']',
-            value: bodyData.suffixName || '',
+            value: bodyData.suffixName || staticDataObj.suffixName,
           },
           phone1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
-            value: bodyData.phone1 || '',
+            value: bodyData.phone1 || staticDataObj.phone1,
           },
           phone2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
-            value: bodyData.phone2 || '',
+            value: bodyData.phone2 || staticDataObj.phone2,
           },
           phone3: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
-            value: bodyData.phone3 || '',
+            value: bodyData.phone3 || staticDataObj.phone3,
           },
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
@@ -500,39 +559,39 @@ module.exports = {
           },
           email: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsEmail\']',
-            value: bodyData.email || '',
+            value: bodyData.email || staticDataObj.email,
           },
           dateOfBirth: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsDOB\']',
-            value: bodyData.birthDate || '',
+            value: bodyData.birthDate || staticDataObj.birthDate,
           },
           security1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum1\']',
-            value: bodyData.security1 || '',
+            value: bodyData.security1 || staticDataObj.security1,
           },
           security2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum2\']',
-            value: bodyData.security2 || '',
+            value: bodyData.security2 || staticDataObj.security2,
           },
           security3: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum3\']',
-            value: bodyData.security3 || '',
+            value: bodyData.security3 || staticDataObj.security3,
           },
           mailingAddress: {
             element: '#ctl00_MainContent_InsuredNamed1_txtInsAdr',
-            value: bodyData.mailingAddress || '',
+            value: bodyData.mailingAddress || staticDataObj.mailingAddress,
           },
           city: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsCity\']',
-            value: bodyData.city || '',
+            value: bodyData.city || staticDataObj.city,
           },
           state: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ddlInsState\']',
-            value: bodyData.state || '',
+            value: bodyData.state || staticDataObj.state,
           },
           zipCode: {
             element: '#ctl00_MainContent_InsuredNamed1_txtInsZip',
-            value: bodyData.zipCode || '',
+            value: bodyData.zipCode || staticDataObj.zipCode,
           },
           hasMovedInLast60Days: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlInsRecentMove60"]',
@@ -570,25 +629,25 @@ module.exports = {
             clientInputSelect[`driverFirstName${i}`] = {
               elementId: `ctl00_MainContent_Driver${i}_txtFirstName`,
               element: `input[name='ctl00$MainContent$Driver${i}$txtFirstName']`,
-              value: bodyData.drivers[j].firstName || '',
+              value: bodyData.drivers[j].firstName || staticDataObj.drivers[0].firstName,
             };
             clientInputSelect[`driverLastName${i}`] = {
               elementId: `ctl00_MainContent_Driver${i}_txtLastName`,
               element: `input[name='ctl00$MainContent$Driver${i}$txtLastName']`,
-              value: bodyData.drivers[j].lastName || '',
+              value: bodyData.drivers[j].lastName || staticDataObj.drivers[0].lastName,
             };
             clientInputSelect[`driverDateOfBirth${i}`] = {
               elementId: `ctl00_MainContent_Driver${i}_txtDateOfBirth`,
               element: `input[name="ctl00$MainContent$Driver${i}$txtDateOfBirth"]`,
-              value: bodyData.drivers[j].applicantBirthDt || '',
+              value: bodyData.drivers[j].applicantBirthDt || staticDataObj.drivers[0].applicantBirthDt,
             };
             clientInputSelect[`driverGender${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlSex']`,
-              value: bodyData.drivers[j].gender || '',
+              value: bodyData.drivers[j].gender || staticDataObj.drivers[0].gender,
             };
             clientInputSelect[`driverMaritalStatus${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlMaritalStatus']`,
-              value: bodyData.drivers[j].maritalStatus || '',
+              value: bodyData.drivers[j].maritalStatus || staticDataObj.drivers[0].maritalStatus,
             };
             clientInputSelect[`driverRelationship${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlRelationship`,
@@ -600,7 +659,7 @@ module.exports = {
             };
             clientInputSelect[`yearsOfExperiance${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_txtYrsExperience`,
-              value: bodyData.drivers[j].yearOfExperiance ? bodyData.drivers[j].yearOfExperiance.toString() : 15 || 15,
+              value: bodyData.drivers[j].yearOfExperiance || staticDataObj.drivers[0].yearOfExperiance,
             };
             clientInputSelect[`driverLicenseStatus${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlDLStatus`,
@@ -612,7 +671,7 @@ module.exports = {
             };
             clientInputSelect[`licenseState${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlLicenseState']`,
-              value: bodyData.drivers[j].licenseState || '',
+              value: bodyData.drivers[j].licenseState || staticDataObj.drivers[0].licenseState,
             };
           }
         }
@@ -623,39 +682,39 @@ module.exports = {
             clientInputSelect[`vehicleVin${j}`] = {
               buttonId: `#ctl00_MainContent_AutoControl${i}_btnVerifyVIN`,
               element: `input[name='ctl00$MainContent$AutoControl${i}$txtVIN']`,
-              value: bodyData.vehicles[j].vehicleVin || '',
+              value: bodyData.vehicles[j].vehicleVin || staticDataObj.vehicles[0].vehicleVin,
             };
             clientInputSelect[`vehicleType${j}`] = {
               element: `#ctl00_MainContent_AutoControl${i}_ddlType`,
-              value: bodyData.vehicles[j].vehicleType || '',
+              value: bodyData.vehicles[j].vehicleType || staticDataObj.vehicles[0].vehicleType,
             };
             clientInputSelect[`vehicleModelYear${j}`] = {
               element: `input[name='ctl00$MainContent$AutoControl${i}$txtModelYear']`,
-              value: bodyData.vehicles[j].modelYear || '',
+              value: bodyData.vehicles[j].modelYear || staticDataObj.vehicles[0].modelYear,
             };
             clientInputSelect[`vehicleMake${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlMake']`,
-              value: bodyData.vehicles[j].make || '',
+              value: bodyData.vehicles[j].make || staticDataObj.vehicles[0].make,
             };
             clientInputSelect[`vehicleModel${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlModel']`,
-              value: bodyData.vehicles[j].model || '',
+              value: bodyData.vehicles[j].model || staticDataObj.vehicles[0].model,
             };
             clientInputSelect[`vehicleStyle${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlStyle']`,
-              value: bodyData.vehicles[j].style || '',
+              value: bodyData.vehicles[j].style || staticDataObj.vehicles[0].style,
             };
             clientInputSelect[`primaryUse${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlPrimaryUse']`,
-              value: bodyData.vehicles[j].primaryUse || '',
+              value: bodyData.vehicles[j].primaryUse || staticDataObj.vehicles[0].primaryUse,
             };
             clientInputSelect[`antiTheft${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlAntiTheft']`,
-              value: 'Recovery Device' || '',
+              value: 'Recovery Device',
             };
             clientInputSelect[`garagingState${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlState']`,
-              value: bodyData.vehicles[j].garagingState || '',
+              value: bodyData.vehicles[j].garagingState || staticDataObj.vehicles[0].garagingState,
             };
             clientInputSelect[`garagingzipCode${j}`] = {
               elementId: `ctl00_MainContent_AutoControl${i}_txtZip`,
@@ -665,7 +724,7 @@ module.exports = {
             clientInputSelect[`ownershipStatus${j}`] = {
               elementId: `ctl00_MainContent_AutoControl${i}_ddlOwnershipStatus`,
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlOwnershipStatus']`,
-              value: bodyData.vehicles[j].ownershipStatus || '',
+              value: bodyData.vehicles[j].ownershipStatus || staticDataObj.vehicles[0].ownershipStatus,
             };
           }
         }
@@ -680,7 +739,7 @@ module.exports = {
 
       return next();
     } catch (error) {
-      console.log('error >> ', error);
+      console.log('error >> ', error.stack);
       return next(Boom.badRequest('Error retrieving national general al rater!'));
     }
   },
