@@ -1449,6 +1449,12 @@ module.exports = {
         await pageQuote.waitFor(3000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
+        await pageQuote.waitForSelector('#pmt_optn_desc_presto');
+        await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
+        await pageQuote.waitFor(500);
+        const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
+        await recalcElement.click();
+        await pageQuote.waitFor(8000);
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
 
@@ -1462,6 +1468,7 @@ module.exports = {
           const ress = {};
           ress.total_premium = Elements[2].textContent.replace(/\n/g, '').trim();
           ress.down_pmt_amt = Elements[3].textContent.replace(/\n/g, '').trim();
+          ress.pmt_amt = Elements[4].textContent.replace(/\n/g, '').trim();
           ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
 
           let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
@@ -1483,7 +1490,8 @@ module.exports = {
           status: true,
           response: downPayment,
         };
-        
+        await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
+        await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
       }
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
@@ -2494,6 +2502,12 @@ module.exports = {
         await pageQuote.waitFor(2000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc');
         await pageQuote.select('#pol_ubi_exprnc','N');
+        await pageQuote.waitForSelector('#pmt_optn_desc_presto');
+        await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
+        await pageQuote.waitFor(500);
+        const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
+        await recalcElement.click();
+        await pageQuote.waitFor(8000);
         await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         await processDataStep(pageQuote, dataObject);
 
@@ -2507,6 +2521,7 @@ module.exports = {
           const ress = {};
           ress.total_premium = Elements[2].textContent.replace(/\n/g, '').trim();
           ress.down_pmt_amt = Elements[3].textContent.replace(/\n/g, '').trim();
+          ress.pmt_amt = Elements[4].textContent.replace(/\n/g, '').trim();
           ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
 
           let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
@@ -2528,6 +2543,8 @@ module.exports = {
           status: true,
           response: downPayment,
         };
+        await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
+        await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
       }
 
       // login
