@@ -2552,40 +2552,50 @@ module.exports = {
     console.log('Inside saveRating',req.decoded);
 
     let companyId = 0;
+    let clientId = 0;
     if (req.decoded.user && req.decoded.user.companyUserId) {
       companyId = req.decoded.user.companyUserId;
+      clientId = req.decoded.user.id;
     }
   
     if (req.decoded.client && req.decoded.client.companyClientId) {
       companyId = req.decoded.client.companyClientId;
+      clientId = req.decoded.client.id;
     }
+    
     console.log('Inside getRating',req.session);
     const newRater = {
       companyId,
+      clientId,
       vendorName: req.body.vendorName,
       result: JSON.stringify(req.session.data)
     };
    await Rater.create(newRater);
+   return next();
   },
   getRating:async(req,res,next) => {
     console.log('Inside getRating');
 
     let companyId = null;
+    let clientId = 0;
     if (req.decoded.user && req.decoded.user.companyUserId) {
       companyId = req.decoded.user.companyUserId;
+      clientId = req.decoded.user.id;
     }
   
     if (req.decoded.client && req.decoded.client.companyClientId) {
       companyId = req.decoded.client.companyClientId;
+      clientId = req.decoded.client.id;
     }
 
-    if(!companyId){
+    if(!companyId && !clientId){
       return next(Boom.badRequest('Invalid Data'));
     }
 
     const newRater = {
       where:{
         companyId,
+        clientId,
         vendorName: req.body.vendorName,
       },
       attributes:['companyId','vendorName','result','createdAt']

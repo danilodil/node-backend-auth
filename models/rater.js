@@ -6,6 +6,10 @@ const Rater = sequelize.define('Rater', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  clientId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   vendorName: {
     type: DataTypes.STRING,
   },
