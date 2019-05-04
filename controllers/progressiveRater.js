@@ -837,6 +837,8 @@ module.exports = {
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
+const Rater = require('../models/rater');
+
 
 module.exports = {
   rateDelaware: async (req,res,next) => {
@@ -1431,7 +1433,7 @@ module.exports = {
       async function errorStep(pageQuote, dataObject){
         try{
           console.log('errorStep');
-          await pageQuote.waitFor(2000);
+          await pageQuote.waitFor(4000);
           await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
           const response = { error: 'There is some error in data' };
           dataObject.results = {
@@ -1493,6 +1495,7 @@ module.exports = {
         await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
         await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
       }
+
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'Progressive DE Rate Retrieved Successfully',
@@ -2562,4 +2565,69 @@ module.exports = {
       return next(Boom.badRequest('Error retrieving progressive AL rate'));
     }
   },
+  saveRating:async(req,res,next)=>{
+    console.log('Inside saveRating');
+
+    let companyId = null;
+    let clientId = null;
+    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
+      companyId = req.body.decoded_user.user.companyUserId;
+      clientId = req.body.decoded_user.user.id;
+    }
+  
+    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
+      companyId = req.body.decoded_user.client.companyClientId;
+      clientId = req.body.decoded_user.client.id;
+    }
+
+    if(!companyId && !clientId){
+      return next(Boom.badRequest('Invalid Data'));
+    }
+
+    const newRater = {
+      companyId,
+      clientId,
+      vendorName: req.body.vendorName,
+      result: JSON.stringify(req.session.data)
+    };
+   await Rater.create(newRater);
+   return next();
+  },
+  getRating:async(req,res,next) => {
+    console.log('Inside getRating');
+
+    let companyId = null;
+    let clientId = null;
+    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
+      companyId = req.body.decoded_user.user.companyUserId;
+      clientId = req.body.decoded_user.user.id;
+    }
+  
+    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
+      companyId = req.body.decoded_user.client.companyClientId;
+      clientId = req.body.decoded_user.client.id;
+    }
+
+    if(!companyId && !clientId){
+      return next(Boom.badRequest('Invalid Data'));
+    }
+
+    const newRater = {
+      where:{
+        companyId,
+        clientId,
+        vendorName: req.body.vendorName,
+      },
+      attributes:['companyId','clientId','vendorName','result','createdAt']
+    };
+
+    const raterData = await Rater.findAll(newRater);
+    if(!raterData){
+      return next(Boom.badRequest('Error retrieving rater'));
+    }
+    
+    raterData.map((oneRaterData) => { oneRaterData.result= JSON.parse(oneRaterData.result); return oneRaterData});
+    req.session.data = raterData;
+    return next();
+  } 
 };
