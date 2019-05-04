@@ -263,7 +263,7 @@ module.exports = {
       async function Drivers(dataObject, populatedData) {
         console.log('Drivers');
         try {
-          await page.waitFor(2000);
+          await page.waitFor(1000);
           await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
 
           for (const j in dataObject.drivers) {
@@ -725,7 +725,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      browser.close();
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'National AL Rate Retrieved Successfully',
