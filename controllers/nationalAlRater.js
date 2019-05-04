@@ -11,6 +11,7 @@ module.exports = {
       
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
 
       // Request input data
@@ -272,8 +273,8 @@ module.exports = {
               await page.waitFor(1000);
             }
           }
-          await page.waitFor(1000);
-          await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
+          await page.waitFor(4000);
+          //await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtFirstName');
           await clearInputText('#ctl00_MainContent_Driver1_txtLastName');
           await clearInputText('#ctl00_MainContent_Driver1_txtDateOfBirth');
@@ -310,7 +311,7 @@ module.exports = {
           await vehicles(dataObject, populatedData);
         } catch (err) {
           console.log('err driverStep:', err);
-          const response = { error: 'There is some error validations at driverStep' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -364,7 +365,7 @@ module.exports = {
           await vehicleHistory(dataObject, populatedData);
         } catch (err) {
           console.log('err vehicles', err);
-          const response = { error: 'There is some error validations at vehicles' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -382,7 +383,7 @@ module.exports = {
           await underWriting(dataObject, populatedData);
         } catch (err) {
           console.log('err underwritingStep ', err);
-          const response = { error: 'There is some error validations at underwritingStep' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -411,7 +412,7 @@ module.exports = {
           await coverages(dataObject);
         } catch (err) {
           console.log('err underwritingStep ', err);
-          const response = { error: 'There is some error validations at underwritingStep' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -428,7 +429,7 @@ module.exports = {
           await billPlans(dataObject);
         } catch (err) {
           console.log('err coverages ', err);
-          const response = { error: 'There is some error validations at coverages' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -456,7 +457,7 @@ module.exports = {
           };
         } catch (err) {
           console.log('err bill plans ', err);
-          const response = { error: 'There is some error validations at bill plans' };
+          const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
             response,
@@ -730,6 +731,7 @@ module.exports = {
         return clientInputSelect;
       }
 
+      browser.close();
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'National AL Rate Retrieved Successfully',
