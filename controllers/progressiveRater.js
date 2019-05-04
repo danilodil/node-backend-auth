@@ -2551,8 +2551,8 @@ module.exports = {
   saveRating:async(req,res,next)=>{
     console.log('Inside saveRating',req.decoded);
 
-    let companyId = 0;
-    let clientId = 0;
+    let companyId = null;
+    let clientId = null;
     if (req.decoded.user && req.decoded.user.companyUserId) {
       companyId = req.decoded.user.companyUserId;
       clientId = req.decoded.user.id;
@@ -2561,6 +2561,10 @@ module.exports = {
     if (req.decoded.client && req.decoded.client.companyClientId) {
       companyId = req.decoded.client.companyClientId;
       clientId = req.decoded.client.id;
+    }
+
+    if(!companyId && !clientId){
+      return next(Boom.badRequest('Invalid Data'));
     }
     
     console.log('Inside getRating',req.session);
@@ -2577,7 +2581,7 @@ module.exports = {
     console.log('Inside getRating');
 
     let companyId = null;
-    let clientId = 0;
+    let clientId = null;
     if (req.decoded.user && req.decoded.user.companyUserId) {
       companyId = req.decoded.user.companyUserId;
       clientId = req.decoded.user.id;
