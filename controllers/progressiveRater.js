@@ -837,6 +837,8 @@ module.exports = {
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
+const Rater = require('../models/rater');
+
 
 module.exports = {
   rateDelaware: async (req,res,next) => {
@@ -1431,7 +1433,7 @@ module.exports = {
       async function errorStep(pageQuote, dataObject){
         try{
           console.log('errorStep');
-          await pageQuote.waitFor(2000);
+          await pageQuote.waitFor(4000);
           await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
           const response = { error: 'There is some error in data' };
           dataObject.results = {
@@ -1485,6 +1487,7 @@ module.exports = {
         };
         
       }
+
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'Progressive DE Rate Retrieved Successfully',
@@ -2545,4 +2548,50 @@ module.exports = {
       return next(Boom.badRequest('Error retrieving progressive AL rate'));
     }
   },
+  saveRating:async(req,res,next)=>{
+    console.log('Inside saveRating',req.decoded);
+
+    let companyId = 0;
+    if (req.decoded.user && req.decoded.user.companyUserId) {
+      companyId = req.decoded.user.companyUserId;
+    }
+  
+    if (req.decoded.client && req.decoded.client.companyClientId) {
+      companyId = req.decoded.client.companyClientId;
+    }
+    console.log('Inside getRating',req.session);
+    const newRater = {
+      companyId,
+      vendorName: req.body.vendorName,
+      result: JSON.stringify(req.session.data)
+    };
+   await Rater.create(newRater);
+  },
+  getRating:async(req,res,next) => {
+    console.log('Inside getRating');
+
+    let companyId = 0;
+    if (req.decoded.user && req.decoded.user.companyUserId) {
+      companyId = req.decoded.user.companyUserId;
+    }
+  
+    if (req.decoded.client && req.decoded.client.companyClientId) {
+      companyId = req.decoded.client.companyClientId;
+    }
+
+    const newRater = {
+      where:{
+        companyId,
+        vendorName: req.body.vendorName,
+      },
+      attributes:['companyId','vendorName','result','createdAt']
+    };
+    const raterData = await Rater.findAll(newRater);
+    if(!raterData){
+      return next(Boom.badRequest('Error retrieving rate'));
+    }
+    raterData.map((oneRaterData) => { oneRaterData.result= JSON.parse(oneRaterData.result); return oneRaterData});
+    req.session.data = raterData;
+    return next();
+  } 
 };
