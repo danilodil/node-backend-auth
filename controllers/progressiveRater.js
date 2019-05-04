@@ -2570,13 +2570,17 @@ module.exports = {
   getRating:async(req,res,next) => {
     console.log('Inside getRating');
 
-    let companyId = 0;
+    let companyId = null;
     if (req.decoded.user && req.decoded.user.companyUserId) {
       companyId = req.decoded.user.companyUserId;
     }
   
     if (req.decoded.client && req.decoded.client.companyClientId) {
       companyId = req.decoded.client.companyClientId;
+    }
+
+    if(!companyId){
+      return next(Boom.badRequest('Invalid Data'));
     }
 
     const newRater = {
@@ -2586,10 +2590,12 @@ module.exports = {
       },
       attributes:['companyId','vendorName','result','createdAt']
     };
+
     const raterData = await Rater.findAll(newRater);
     if(!raterData){
-      return next(Boom.badRequest('Error retrieving rate'));
+      return next(Boom.badRequest('Error retrieving rater'));
     }
+    
     raterData.map((oneRaterData) => { oneRaterData.result= JSON.parse(oneRaterData.result); return oneRaterData});
     req.session.data = raterData;
     return next();
