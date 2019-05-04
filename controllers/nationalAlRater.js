@@ -263,7 +263,7 @@ module.exports = {
       async function Drivers(dataObject, populatedData) {
         console.log('Drivers');
         try {
-          await page.waitFor(1000);
+          await page.waitFor(2000);
           await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
 
           for (const j in dataObject.drivers) {
@@ -282,7 +282,6 @@ module.exports = {
           await page.waitFor(600);
           await page.select('#ctl00_MainContent_Driver1_ddlMaritalStatus', '-1');
 
-          console.log('after ');
           for (let j in dataObject.drivers) {
             j = parseInt(j) + 1;
             await page.waitFor(600);
@@ -310,7 +309,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await vehicles(dataObject, populatedData);
         } catch (err) {
-          console.log('err driverStep:', err);
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
@@ -329,7 +327,6 @@ module.exports = {
 
           for (const j in dataObject.drivers) {
             if (j < dataObject.drivers.length - 1) {
-              console.log('add auto');
               const addElement = await page.$('[id="ctl00_MainContent_InsuredAutoLabel1_btnAddAuto"]');
               await addElement.click();
               await page.waitFor(2000);
@@ -364,7 +361,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await vehicleHistory(dataObject, populatedData);
         } catch (err) {
-          console.log('err vehicles', err);
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
@@ -411,7 +407,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
         } catch (err) {
-          console.log('err underwritingStep ', err);
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
@@ -428,7 +423,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await billPlans(dataObject);
         } catch (err) {
-          console.log('err coverages ', err);
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
