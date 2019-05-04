@@ -2549,25 +2549,24 @@ module.exports = {
     }
   },
   saveRating:async(req,res,next)=>{
-    console.log('Inside saveRating',req.decoded);
+    console.log('Inside saveRating');
 
     let companyId = null;
     let clientId = null;
-    if (req.decoded.user && req.decoded.user.companyUserId) {
-      companyId = req.decoded.user.companyUserId;
-      clientId = req.decoded.user.id;
+    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
+      companyId = req.body.decoded_user.user.companyUserId;
+      clientId = req.body.decoded_user.user.id;
     }
   
-    if (req.decoded.client && req.decoded.client.companyClientId) {
-      companyId = req.decoded.client.companyClientId;
-      clientId = req.decoded.client.id;
+    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
+      companyId = req.body.decoded_user.client.companyClientId;
+      clientId = req.body.decoded_user.client.id;
     }
 
     if(!companyId && !clientId){
       return next(Boom.badRequest('Invalid Data'));
     }
-    
-    console.log('Inside getRating',req.session);
+
     const newRater = {
       companyId,
       clientId,
@@ -2582,14 +2581,14 @@ module.exports = {
 
     let companyId = null;
     let clientId = null;
-    if (req.decoded.user && req.decoded.user.companyUserId) {
-      companyId = req.decoded.user.companyUserId;
-      clientId = req.decoded.user.id;
+    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
+      companyId = req.body.decoded_user.user.companyUserId;
+      clientId = req.body.decoded_user.user.id;
     }
   
-    if (req.decoded.client && req.decoded.client.companyClientId) {
-      companyId = req.decoded.client.companyClientId;
-      clientId = req.decoded.client.id;
+    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
+      companyId = req.body.decoded_user.client.companyClientId;
+      clientId = req.body.decoded_user.client.id;
     }
 
     if(!companyId && !clientId){
@@ -2602,7 +2601,7 @@ module.exports = {
         clientId,
         vendorName: req.body.vendorName,
       },
-      attributes:['companyId','vendorName','result','createdAt']
+      attributes:['companyId','clientId','vendorName','result','createdAt']
     };
 
     const raterData = await Rater.findAll(newRater);
