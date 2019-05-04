@@ -15,9 +15,14 @@ router.put('/progressive/de', [
   progressiveRaterController.saveRating
 ]);
 
-router.put('/progressive/al', asyncHandler(async (req, res, next) => {
-  await progressiveRaterController.rateAlabama(req, res, next);
-}));
+// router.put('/progressive/al', asyncHandler(async (req, res, next) => {
+//   await progressiveRaterController.rateAlabama(req, res, next);
+// }));
+
+router.put('/progressive/al', [
+  progressiveRaterController.rateAlabama,
+  progressiveRaterController.saveRating
+]);
 
 router.get('/getRater', asyncHandler(async (req, res, next) => {
   await progressiveRaterController.getRating(req, res, next);
