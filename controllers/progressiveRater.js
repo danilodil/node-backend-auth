@@ -947,7 +947,8 @@ module.exports = {
   rateAlabama: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({ headless: false});
       let page = await browser.newPage();
 
       // Request input data
@@ -1056,6 +1057,7 @@ module.exports = {
             applicantMaritalStatusCd: 'Married',
             driverLicensedDt: '3 years or more',
             employment: 'Student (full-time)',
+            occupation: 'Other',
             education: 'College Degree',
           }
         ],
@@ -1266,6 +1268,10 @@ module.exports = {
               element: `select[name='DRV.${j}.drvr_empl_stat']`,
               value: element.employment || staticDetailsObj.drivers[0].employment,
             };
+            clientInputSelect[`driverOccupation${j}`] = {
+              element: `select[name='DRV.${j}.drvr_occup_lvl']`,
+              value: element.occupation || 'Other',
+            };
             clientInputSelect[`driverEducation${j}`] = {
               element: `select[name='DRV.${j}.drvr_ed_lvl']`,
               value: element.education || staticDetailsObj.drivers[0].education,
@@ -1307,6 +1313,8 @@ module.exports = {
 
         return clientInputSelect;
       }
+
+      console.log(populateKeyValueData());
 
       // get all select options texts and values
       function getSelectValues(inputID) {
@@ -1561,6 +1569,13 @@ module.exports = {
             const drvrEmplStat = await pageQuote.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
             await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
+             await pageQuote.waitFor(600);
+
+             await pageQuote.waitFor(600);
+            const drvOccStats = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverOccupation${j}`].element}>option`);
+            const drvrOccStat = await pageQuote.evaluate(getValToSelect, drvOccStats, populatedData[`driverOccupation${j}`].value);
+            await pageQuote.waitFor(600);
+            await pageQuote.select(populatedData[`driverOccupation${j}`].element, drvrOccStat);
              await pageQuote.waitFor(600);
 
             const drvrEdLvls = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverEducation${j}`].element}>option`);
