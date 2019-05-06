@@ -947,8 +947,8 @@ module.exports = {
   rateAlabama: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const browser = await puppeteer.launch({ headless: false});
+      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ headless: false});
       let page = await browser.newPage();
 
       // Request input data
@@ -1072,6 +1072,8 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       }; 
       const bodyData = req.body.data;
+      //console.log('==========================================bodyData=============================================');
+      //console.log(bodyData);
       bodyData.results = {};
 
       function populateKeyValueData() {
@@ -1164,11 +1166,11 @@ module.exports = {
           },
           yearsWithPriorInsurance: {
             element: 'select[name="pop_len_most_recent_carr_insd"]',
-            value: (bodyData.yearsWithPriorInsurance.toLowerCase() === 'less than 1 year' ? 'A' : 
-                    bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 1 year but less than 3 years' ? 'B' : 
-                    bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 3 years but less than 5 years' ? 'C' : 
-                    bodyData.yearsWithPriorInsurance.toLowerCase() === '5 years or more' ? 'D' : 
-                    staticDetailsObj.yearsWithPriorInsurance) || staticDetailsObj.yearsWithPriorInsurance,
+            value: (bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'less than 1 year' ? 'A' : 
+                    bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 1 year but less than 3 years' ? 'B' : 
+                    bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 3 years but less than 5 years' ? 'C' : 
+                    bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === '5 years or more' ? 'D' : 
+             'B') || staticDetailsObj.yearsWithPriorInsurance,
           },
           numberOfResidentsInHome: {
             element: 'select[name="excess_res_nbr"]',
@@ -1176,9 +1178,9 @@ module.exports = {
           },
           ownOrRentPrimaryResidence: {
             element: 'select[name="hm_own_ind"]',
-            value: (bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own home/condo' ? 'O' :
-                    bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own mobile home' ? 'M' :
-                    staticDetailsObj.ownOrRentPrimaryResidence) || staticDetailsObj.ownOrRentPrimaryResidence
+            value: (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own home/condo' ? 'O' :
+                    bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own mobile home' ? 'M' :
+                    'M') || staticDetailsObj.ownOrRentPrimaryResidence
           },
           rentersLimits: {
             element: 'select[name="pol_renters_prir_bi_lim_code"]',
@@ -1349,7 +1351,6 @@ module.exports = {
           });
         }
         if (!selected) {
-          console.log(data, valueToSelect);
           data.forEach((entry) => {
             if (entry.value && entry.value !== '') {
               selected = entry.value;
@@ -1358,8 +1359,32 @@ module.exports = {
           });
         }
 
+        if (!selected && valueToSelect === null) {
+          selected = data[1].value;
+        }
+
         return selected;
       }
+
+      function selectSubStringOption(data, valueToSelect) {
+        let selected = '';
+        data.forEach((entry) => {
+          if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
+            selected = entry.value;
+          }
+        });
+        if (!selected) {
+          data.forEach((entry) => {
+            if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
+              selected = entry.value;
+            }else if(entry.name.includes(valueToSelect)){
+              selected = entry.value;
+            }
+          });
+        }
+        return selected;
+      }
+      
 
       // dimiss alert dialog
       function dismissDialog(page1) {
@@ -1689,8 +1714,8 @@ module.exports = {
       async function errorStep(pageQuote, dataObject){
         try{
           console.log('errorStep');
-          await pageQuote.waitFor(4000);
-          await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 })
+          // await pageQuote.waitFor(4000);
+          await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 })
           await pageQuote.screenshot({path: 'error.png'});
           const response = { error: 'There is some error in data' };
           dataObject.results = {
@@ -1708,6 +1733,53 @@ module.exports = {
         await pageQuote.waitFor(2000);
         await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
         await pageQuote.select('#pol_ubi_exprnc','N');
+        // pageQuote.on('console', msg => console.log('PAGE LOG:', msg._text));
+
+        for (const j in dataObject.coverage) {
+        
+          await pageQuote.select('#VEH\\.'+j+'\\.veh_use_ubi', 'Y');
+
+          const liabilityOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.veh_liab"]>option`);
+          const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+          await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
+
+          const bipdOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.BIPD"]>option`);
+          const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+          await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
+
+          const umuimOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.UMUIM"]>option`);
+          const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+          await pageQuote.select(`select[name="VEH.${j}.UMUIM"]`, umuimValue);
+
+          const medPayOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.MEDPAY"]>option`);
+          const medPayValue = await pageQuote.evaluate(selectSubStringOption, medPayOptions, dataObject.coverage[j].MEDPAY);
+          await pageQuote.select(`select[name="VEH.${j}.MEDPAY"]`, medPayValue);
+
+          const compOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COMP"]>option`);
+          const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+          await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
+
+          const colOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COLL"]>option`);
+          const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+          await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
+
+          const rentOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.RENT"]>option`);
+          const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+          await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
+
+          const roadsideOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.ROADSD"]>option`);
+          const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+          await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
+         
+          //await pageQuote.type('#VEH\\.'+j+'\\.veh_aoe_valu',dataObject.coverage[j].CPE);
+
+          const payoffOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.PAYOFF"]>option`);
+          const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+          await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+          await pageQuote.waitFor(2000);
+
+        }
+      
         await pageQuote.waitForSelector('#pmt_optn_desc_presto');
         await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
         await pageQuote.waitFor(500);
@@ -1767,70 +1839,5 @@ module.exports = {
       console.log('error >> ', error);
       return next(Boom.badRequest('Error retrieving progressive AL rate'));
     }
-  },
-  saveRating:async(req,res,next)=>{
-    console.log('Inside saveRating');
-
-    let companyId = null;
-    let clientId = null;
-    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
-      companyId = req.body.decoded_user.user.companyUserId;
-      clientId = req.body.decoded_user.user.id;
-    }
-  
-    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
-      companyId = req.body.decoded_user.client.companyClientId;
-      clientId = req.body.decoded_user.client.id;
-    }
-
-    if(!companyId && !clientId){
-      return next(Boom.badRequest('Invalid Data'));
-    }
-
-    const newRater = {
-      companyId,
-      clientId,
-      vendorName: req.body.vendorName,
-      result: JSON.stringify(req.session.data)
-    };
-   await Rater.create(newRater);
-   return next();
-  },
-  getRating:async(req,res,next) => {
-    console.log('Inside getRating');
-
-    let companyId = null;
-    let clientId = null;
-    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
-      companyId = req.body.decoded_user.user.companyUserId;
-      clientId = req.body.decoded_user.user.id;
-    }
-  
-    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
-      companyId = req.body.decoded_user.client.companyClientId;
-      clientId = req.body.decoded_user.client.id;
-    }
-
-    if(!companyId && !clientId){
-      return next(Boom.badRequest('Invalid Data'));
-    }
-
-    const newRater = {
-      where:{
-        companyId,
-        clientId,
-        vendorName: req.body.vendorName,
-      },
-      attributes:['companyId','clientId','vendorName','result','createdAt']
-    };
-
-    const raterData = await Rater.findAll(newRater);
-    if(!raterData){
-      return next(Boom.badRequest('Error retrieving rater'));
-    }
-    
-    raterData.map((oneRaterData) => { oneRaterData.result= JSON.parse(oneRaterData.result); return oneRaterData});
-    req.session.data = raterData;
-    return next();
-  } 
+  }
 };
