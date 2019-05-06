@@ -4,7 +4,7 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
 const Rater = require('../models/rater');
-
+const stringSimilarity = require('string-similarity');
 
 module.exports = {
   rateDelaware: async (req,res,next) => {
@@ -947,8 +947,8 @@ module.exports = {
   rateAlabama: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false});
+      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({ headless: false});
       let page = await browser.newPage();
 
       // Request input data
@@ -1032,7 +1032,7 @@ module.exports = {
         state: 'Alabama',
         zipCode: '35005',
         lengthAtAddress: '1 year or more',
-        priorInsurance: 'Yes',
+        priorInsurance: 'A',
         priorInsuranceCarrier: 'USAA',
         // must always agree to closure
         vehicles: [
@@ -1061,8 +1061,8 @@ module.exports = {
             education: 'College Degree',
           }
         ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
+        priorIncident: '',
+        priorIncidentDate: '',
         policyEffectiveDate: '04/30/2019',
         priorPolicyTerminationDate: '03/15/2019',
         yearsWithPriorInsurance: '5 years or more',
@@ -1156,7 +1156,7 @@ module.exports = {
           },
           priorInsuredCdInd: {
             element: 'select[name="prir_ins_cd_insd"]',
-            value: 'C',
+            value: (bodyData.priorInsurance === 'No' ? 'C' : 'A') || staticDetailsObj.priorInsurance,
           },
           priorBiLimits: {
             element: 'select[name="prir_bi_lim"]',
@@ -1164,7 +1164,11 @@ module.exports = {
           },
           yearsWithPriorInsurance: {
             element: 'select[name="pop_len_most_recent_carr_insd"]',
-            value: 'D',
+            value: (bodyData.yearsWithPriorInsurance.toLowerCase() === 'less than 1 year' ? 'A' : 
+                    bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 1 year but less than 3 years' ? 'B' : 
+                    bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 3 years but less than 5 years' ? 'C' : 
+                    bodyData.yearsWithPriorInsurance.toLowerCase() === '5 years or more' ? 'D' : 
+                    staticDetailsObj.yearsWithPriorInsurance) || staticDetailsObj.yearsWithPriorInsurance,
           },
           numberOfResidentsInHome: {
             element: 'select[name="excess_res_nbr"]',
@@ -1172,11 +1176,13 @@ module.exports = {
           },
           ownOrRentPrimaryResidence: {
             element: 'select[name="hm_own_ind"]',
-            value: 'R',
+            value: (bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own home/condo' ? 'O' :
+                    bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own mobile home' ? 'M' :
+                    staticDetailsObj.ownOrRentPrimaryResidence) || staticDetailsObj.ownOrRentPrimaryResidence
           },
           rentersLimits: {
             element: 'select[name="pol_renters_prir_bi_lim_code"]',
-            value: '2',
+            value: bodyData.rentersLimits || staticDetailsObj.rentersLimits,
           },
           haveAnotherProgressivePolicy: {
             element: 'select[name="multi_pol_ind"]',
@@ -1340,6 +1346,15 @@ module.exports = {
             if (valueToSelect.toLowerCase() === entry.value.toLowerCase()) {
               selected = entry.value;
             }
+          });
+        }
+        if (!selected) {
+          console.log(data, valueToSelect);
+          data.forEach((entry) => {
+            if (entry.value && entry.value !== '') {
+              selected = entry.value;
+            }
+              // selected = data[stringSimilarity.findBestMatch(valueToSelect, data).bestMatchIndex];
           });
         }
 
