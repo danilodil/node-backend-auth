@@ -11,8 +11,8 @@ module.exports = {
 
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
-      await page.setViewport({ width: 1200, height: 920 });
 
       /* const bodyData = {
         firstName: "Test",
@@ -94,8 +94,65 @@ module.exports = {
         rentersLimits: "Greater Than 300,000",
         haveAnotherProgressivePolicy: "No"
       }; */
+      const staticDetailsObj = {
+        firstName: "Test",
+        lastName: "User",
+        birthDate: "12/16/1993",
+        email: "test@mail.com",
+        phone: "3026075611",
+        addressStreetName: "Market St",
+        addressStreetNumber: "969",
+        city: "San Diego",
+        state: "CA",
+        zipCode: "92101",
+        lengthAtAddress: "1 year or more",
+        priorInsurance: "Yes",
+        priorInsuranceCarrier: "USAA",
+        // must always agree to closure
+        vehicles: [
+          {
+            // Vehicle Type will always be 1981 or newer
+            vehicleVin: "1FTSF30L61EC23425",
+            vehicleModelYear: "2015",
+            vehicleManufacturer: "FORD",
+            vehicleModel: "F350",
+            body: "EXT CAB (8CYL 4x2)",
+            zipCode: "19934",
+            lengthOfOwnership: "At least 1 year but less than 3 years",
+            primaryUse: "Commute",
+            vehicleAnnualDistance: '15000',
+            vehicleDaysDrivenPerWeek: '4 days',
+            vehicleCommuteMilesDrivenOneWay: '2000',
+          }
+        ],
+        drivers: [
+          {
+            firstName: "Test",
+            lastName: "User",
+            birthDate: "12/16/1993",
+            applicantGenderCd: "Male",
+            maritalStatus: "Married",
+            yearsLicensed: "3 years or more",
+            driverLicensedDt: "12/20/2013",
+            driverLicenseNumber: "123456789",
+            employment: "Student (full-time)",
+            education: "College Degree",
+          }
+        ],
+        priorIncident: "AAD - At Fault Accident",
+        priorIncidentDate: "12/16/2012",
+        policyEffectiveDate: "01/01/2018",
+        priorPolicyTerminationDate: "03/15/2019",
+        yearsWithPriorInsurance: "5 years or more",
+        ownOrRentPrimaryResidence: "Rent",
+        numberOfResidentsInHome: "3",
+        rentersLimits: "Greater Than 300,000",
+        haveAnotherProgressivePolicy: "No"
+      }; 
       const bodyData = req.body.data;
 
+      console.log('vehicles',bodyData.vehicles);
+      console.log('drivers',bodyData.drivers);
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
@@ -137,52 +194,52 @@ module.exports = {
             {
               title: 'First Name',
               element: 'InsuredName.GivenName',
-              value: bodyData.firstName || '',
+              value: bodyData.firstName || staticDetailsObj.firstName,
             },
             {
               title: 'MI',
               element: 'InsuredName.OtherGivenName',
-              value: bodyData.middleName || '',
+              value: bodyData.middleName || staticDetailsObj.middleName,
             },
             {
               title: 'Last Name',
               element: 'InsuredName.Surname',
-              value: bodyData.lastName || '',
+              value: bodyData.lastName || staticDetailsObj.lastName,
             },
-            {
-              title: 'Suffix',
-              element: 'InsuredName.SuffixCd',
-              value: bodyData.suffixName || '',
-            },
+            // {
+            //   title: 'Suffix',
+            //   element: 'InsuredName.SuffixCd',
+            //   value: bodyData.suffixName || staticDetailsObj.suffixName,
+            // },
             {
               title: 'Birth Date',
               element: 'InsuredPersonal.BirthDt',
-              value: bodyData.birthDate || '',
+              value: bodyData.birthDate || staticDetailsObj.birthDate,
             },
             {
               title: 'Number',
               element: 'InsuredLookupAddr.PrimaryNumber',
-              value: bodyData.addressStreetNumber || '',
+              value: bodyData.addressStreetNumber || staticDetailsObj.addressStreetNumber,
             },
             {
               title: 'Street Name',
               element: 'InsuredLookupAddr.StreetName',
-              value: bodyData.addressStreetName || '',
+              value: bodyData.addressStreetName || staticDetailsObj.addressStreetName,
             },
             {
               title: 'City',
               element: 'InsuredLookupAddr.City',
-              value: bodyData.city || '',
+              value: bodyData.city || staticDetailsObj.city,
             },
             {
               title: 'State',
               element: 'InsuredLookupAddr.StateProvCd',
-              value: bodyData.state || '',
+              value: bodyData.state || staticDetailsObj.state,
             },
             {
               title: 'Zip',
               element: 'InsuredLookupAddr.PostalCode',
-              value: bodyData.zipCode || '',
+              value: bodyData.zipCode || staticDetailsObj.zipCode,
             },
             {
               title: 'Primary Phone Name',
@@ -192,7 +249,7 @@ module.exports = {
             {
               title: 'Primary Phone',
               element: 'InsuredPhonePrimary.PhoneNumber',
-              value: bodyData.phone || '',
+              value: bodyData.phone || staticDetailsObj.phone,
             },
             {
               title: 'Delivery Preference',
@@ -202,7 +259,7 @@ module.exports = {
             {
               title: 'Primary Email',
               element: 'InsuredEmail.EmailAddr',
-              value: bodyData.email || '',
+              value: bodyData.email || staticDetailsObj.email,
             },
           ],
 
@@ -273,17 +330,17 @@ module.exports = {
               {
                 title: 'Model Year',
                 element: 'Vehicle.ModelYr',
-                value: element.vehicleModelYear || '',
+                value: element.vehicleModelYear || staticDetailsObj.vehicles[0].vehicleModelYear,
               },
               {
                 title: 'Make',
                 element: 'Vehicle.Manufacturer',
-                value: element.vehicleManufacturer || '',
+                value: element.vehicleManufacturer || staticDetailsObj.vehicles[0].vehicleManufacturer,
               },
               {
                 title: 'Model',
                 element: 'Vehicle.Model',
-                value: element.vehicleModel || '',
+                value: element.vehicleModel || staticDetailsObj.vehicles[0].vehicleModel,
               },
               {
                 title: 'Purchased New or Used',
@@ -403,17 +460,17 @@ module.exports = {
                 {
                   title: 'City',
                   element: 'VehicleCommuteAddr.City',
-                  value: bodyData.city || '',
+                  value: bodyData.city || staticDetailsObj.city,
                 },
                 {
                   title: 'State',
                   element: 'VehicleCommuteAddr.StateProvCd',
-                  value: bodyData.state || '',
+                  value: bodyData.state || staticDetailsObj.state,
                 },
                 {
                   title: 'Zip',
                   element: 'VehicleCommuteAddr.PostalCode',
-                  value: bodyData.zipCode || '',
+                  value: bodyData.zipCode || staticDetailsObj.zipCode,
                 },
               ],
             };
@@ -433,7 +490,7 @@ module.exports = {
                 {
                   title: 'Gender',
                   element: 'PersonInfo.GenderCd',
-                  value: element.applicantGenderCd || '',
+                  value: element.applicantGenderCd || staticDetailsObj.drivers[0].applicantGenderCd,
                 },
                 {
                   title: 'Date Licensed',
@@ -443,7 +500,7 @@ module.exports = {
                 {
                   title: 'License Number',
                   element: 'DriverInfo.LicenseNumber',
-                  value: element.driverLicenseNumber || '',
+                  value: element.driverLicenseNumber || staticDetailsObj.drivers[0].driverLicenseNumber,
                 },
                 {
                   title: 'Driver Status',
@@ -455,27 +512,27 @@ module.exports = {
                 {
                   title: 'First Name',
                   element: 'NameInfo.GivenName',
-                  value: element.firstName || '',
+                  value: element.firstName || staticDetailsObj.drivers[0].firstName,
                 },
                 {
                   title: 'Last',
                   element: 'NameInfo.Surname',
-                  value: element.lastName || '',
+                  value: element.lastName || staticDetailsObj.drivers[0].lastName,
                 },
                 {
                   title: 'Gender',
                   element: 'PersonInfo.GenderCd',
-                  value: element.applicantGenderCd || '',
+                  value: element.applicantGenderCd || staticDetailsObj.drivers[0].applicantGenderCd,
                 },
                 {
                   title: 'Birth Date',
                   element: 'PersonInfo.BirthDt',
-                  value: element.birthDate || '',
+                  value: element.birthDate || staticDetailsObj.drivers[0].birthDate,
                 },
                 {
                   title: 'Marital Status',
                   element: 'PersonInfo.MaritalStatusCd',
-                  value: element.maritalStatus || '',
+                  value: element.maritalStatus || staticDetailsObj.drivers[0].maritalStatus,
                 },
                 {
                   title: 'Rel\'n to Insured',
@@ -511,6 +568,8 @@ module.exports = {
       async function newQuoteStep(browser, page, populatedData) {
         console.log('newQuoteStep');
 
+        try{
+
         const AllPages = await browser.pages();
         if (AllPages.length > 2) {
           for (let i = 2; i < AllPages.length; i += 1) {
@@ -539,10 +598,16 @@ module.exports = {
         const { underwriting } = populatedData;
 
         await page.waitFor(1000);
+        page.on('dialog', async dialog => {
+          console.log(dialog.message());
+          await dialog.dismiss();
+        });
         await page.waitForSelector('#ProviderNumber');
         await page.waitFor(1000);
+        page.on('console', msg => console.log('PAGE LOG:', msg._text));
         await page.evaluate((underwritingData) => {
           underwritingData.forEach((oneElement) => {
+            console.log(JSON.stringify(oneElement));
             if (oneElement.value === 'AAGCA') {
               setTimeout(() => {
                 document.getElementById(oneElement.element).value = oneElement.value;
@@ -561,77 +626,112 @@ module.exports = {
         await page.click('#NextPage');
         await page.waitForSelector('#Question_Acknowledgement');
         await page.waitFor(1000);
+        // await page.evaluate(() => {
+        //   document.getElementById('Question_Acknowledgement').value = 'YES';
+        //   document.getElementById('Question_cserules_isForRent').value = 'No';
+        //   document.getElementById('Question_cserules_isResidence').value = 'No';
+        //   document.getElementById('Question_cserules_notStreetLic').value = 'No';
+        //   document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+        //   document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+        // });
         await page.evaluate(() => {
           document.getElementById('Question_Acknowledgement').value = 'YES';
+        });
+        await page.waitFor(1000);
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_isForRent').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_isResidence').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_notStreetLic').value = 'No';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+        });
+        await page.waitFor(1000);
+
+        await page.evaluate(() => {
           document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
         });
         await page.click('#NextPage');
+      }catch(e){
+        console.log('error at newQuoteStep :: ',e);
+      }
         await vehicleStep(browser, page, populatedData);
       }
 
       // add vehicle
       async function vehicleStep(browser, page, populatedData) {
         console.log('vehicleStep');
-        for (const j in bodyData.vehicles) {
-          const vehicles = populatedData[`vehicles${j}`];
-          console.log('1 >> ');
+        try{
 
-          await page.waitFor(2000);
-          // await page.waitForSelector('#VehicleSelectionController');
-          await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
-          await page.waitFor(1000);
-          // await page.waitForSelector('#Main > div:nth-child(18)');
-          console.log('2 >> ');
+          for (const j in bodyData.vehicles) {
+            const vehicles = populatedData[`vehicles${j}`];
+            console.log('1 >> ');
 
-          await page.evaluate((vehiclesData) => {
-            vehiclesData.forEach((oneElement) => {
-              document.getElementById(oneElement.element).value = oneElement.value;
-            });
-          }, vehicles);
-          console.log('3 >> ');
-
-          await page.waitFor(1500);
-          const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
-          console.log('4 >> ');
-
-          await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
-          await page.waitFor(1000);
-          console.log('5 >> ');
-          await page.waitForSelector(populatedData.vehicleUse.element);
-          await page.select(populatedData.vehicleUse.element, vehicleUse);
-          const vehicleMilage = populatedData[`vehicleMilage${j}`];
-          console.log('6 >> ');
-
-          if (vehicleUse === 'Work') {
-            console.log('7 >> ');
-            await page.evaluate((vehicleMilageData) => {
-              vehicleMilageData.forEach((oneElement) => {
+            await page.waitFor(5000);
+            // await page.waitForSelector('#VehicleSelectionController');
+            await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+            await page.waitFor(2000);
+            // await page.waitForSelector('#Main > div:nth-child(18)');
+            console.log('2 >> ');
+            await page.evaluate((vehiclesData) => {
+              vehiclesData.forEach((oneElement) => {
+                console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
-            }, vehicleMilage[vehicleUse]);
-          } else {
-            console.log('8 >> ');
-            await page.evaluate((vehicleMilageData) => {
-              vehicleMilageData.forEach((oneElement) => {
-                document.getElementById(oneElement.element).value = oneElement.value;
-              });
-            }, vehicleMilage.other);
-          }
-          console.log('9 >> ');
+            }, vehicles);
+            console.log('3 >> ');
 
-          await page.waitFor(1000);
-          console.log('10 >> ');
-          await page.click('#Save');
-          await page.waitFor(3000);
-          if (j === (bodyData.vehicles.length - 1).toString()) {
-            await page.click('#NextPage');
-          } else {
-            await page.click('#Return');
+            await page.waitFor(1500);
+            const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
+            console.log('4 >> ');
+
+            await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
+            await page.waitFor(1000);
+            console.log('5 >> ');
+            await page.waitForSelector(populatedData.vehicleUse.element);
+            await page.select(populatedData.vehicleUse.element, vehicleUse);
+            const vehicleMilage = populatedData[`vehicleMilage${j}`];
+            console.log('6 >> ');
+
+            if (vehicleUse === 'Work') {
+              console.log('7 >> ');
+              await page.evaluate((vehicleMilageData) => {
+                vehicleMilageData.forEach((oneElement) => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, vehicleMilage[vehicleUse]);
+            } else {
+              console.log('8 >> ');
+              await page.evaluate((vehicleMilageData) => {
+                vehicleMilageData.forEach((oneElement) => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, vehicleMilage.other);
+            }
+            console.log('9 >> ');
+
+            await page.waitFor(1000);
+            console.log('10 >> ');
+            await page.click('#Save');
+            await page.waitFor(3000);
+            if (j === (bodyData.vehicles.length - 1).toString()) {
+              await page.click('#NextPage');
+            } else {
+              await page.click('#Return');
+            }
           }
+        }catch(e){
+          console.log('error at vehicleStep :: ',e);
         }
         await policyStep(browser, page, populatedData);
       }
@@ -642,8 +742,10 @@ module.exports = {
         // Policy Coverage
         const policyCoverage = populatedData.policyCoverage;
         await page.waitFor(4000);
+        await page.waitForSelector('#Line\\.BILimit')
         await page.evaluate((policyCoverage) => {
           policyCoverage.forEach(oneElement => {
+            console.log(JSON.stringify(oneElement))
             document.getElementById(oneElement.element).value = oneElement.value;
           });
         }, policyCoverage);
@@ -677,6 +779,7 @@ module.exports = {
             await page.waitFor(1000);
             await page.evaluate((driverDetails) => {
               driverDetails.forEach((oneElement) => {
+                console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, editDriverDetails.nonDriver);
