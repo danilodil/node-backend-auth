@@ -53,10 +53,10 @@ exports.vendorNames = {
     'SF',
     'PROGRESSIVEDERATER',
     'PROGRESSIVEALRATER',
-    'CSERATER',
+    'CSECARATER',
     'EZLYNX',
     'QQ',
-    'NATIONALGENERALRATER',
+    'NATIONALGENERALALRATER',
   ],
   user: [
     'QQ',
