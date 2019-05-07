@@ -833,6 +833,7 @@ module.exports = {
             }
           }
         }catch(e){
+          console.log('driverStep error',e)
           const response = { error: 'There is some error validations at driverStep' };
           bodyData.results = {
             status: false,
