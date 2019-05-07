@@ -693,9 +693,7 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
-           
-            
-            page.waitForNavigation({ waitUntil: 'load' })
+            page.waitForNavigation({ waitUntil: 'domcontentloaded' })
             await page.waitFor(5000);
 
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
