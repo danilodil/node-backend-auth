@@ -818,18 +818,21 @@ module.exports = {
               }, editDriverDetails.nonDriver);
             }
 
-            await page.waitFor(2000);
+            await page.waitFor(1000);
             await page.click('#Save');
-            await page.waitFor(4000);
+            await page.waitFor(2000);
             if (j === (bodyData.drivers.length - 1).toString()) {
               await page.click('#NextPage');
             } else {
               console.log('new driver')
-              await page.waitForSelector('#Return');
-              await page.click('#Return');
-              await page.waitForSelector('#DriverSelectionController');
+              // await page.waitForSelector('#Return');
+              // await page.click('#Return');
+              await page.evaluate(()=> document.querySelector('#Return').click());
+              //await page.waitForSelector('#DriverSelectionController');
               await page.waitFor(2000);
-              await page.select('#DriverSelectionController', 'Non-Driver');
+              await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
+              await page.evaluate(()=> document.querySelector('#DriverSelectionController').onchange());
+              //await page.select('#DriverSelectionController', 'Non-Driver');
             }
           }
         }catch(e){
