@@ -10,8 +10,8 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless:false });
+      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
 
       /* const bodyData = {
@@ -150,6 +150,7 @@ module.exports = {
         haveAnotherProgressivePolicy: "No"
       }; 
       const bodyData = await cleanObj(req.body.data);
+      bodyData.drivers = bodyData.drivers.splice(0,2)
       bodyData.results = {};
       function cleanObj(obj) {
         for (var propName in obj) { 
@@ -677,7 +678,7 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'National General AL Rate Retrieved Successfully',
+            title: 'CSE CA Rate Retrieved Successfully',
             obj: bodyData.results,
           };
           return next();
@@ -693,7 +694,16 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
+            const waitFor = function(timeToWait) {
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  resolve(true);
+                }, timeToWait);
+              });
+            };
+            
             await page.waitFor(5000);
+            await waitFor(5000);
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
             await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
             await page.waitFor(2000);
@@ -754,7 +764,7 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'National General AL Rate Retrieved Successfully',
+            title: 'CSE CA Rate Retrieved Successfully',
             obj: bodyData.results,
           };
           return next();
@@ -835,7 +845,7 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'National General AL Rate Retrieved Successfully',
+            title: 'CSE CA Rate Retrieved Successfully',
             obj: bodyData.results,
           };
           return next();
@@ -875,14 +885,14 @@ module.exports = {
       };
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
-        title: 'National General AL Rate Retrieved Successfully',
+        title: 'CSE CA Rate Retrieved Successfully',
         obj: bodyData.results,
       };
       return next();
       // req.session.data = {
       //   premiumDetails,
       // };
-
+    
       return next();
     } catch (error) {
       console.log('error >> ', error);
