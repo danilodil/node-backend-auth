@@ -831,7 +831,7 @@ module.exports = {
               //await page.waitForSelector('#DriverSelectionController');
               await page.waitFor(2000);
               await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
-              await page.evaluate(()=> document.querySelector('#Return').onchange());
+              await page.evaluate(()=> document.querySelector('#DriverSelectionController').onchange());
               //await page.select('#DriverSelectionController', 'Non-Driver');
             }
           }
