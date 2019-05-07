@@ -87,7 +87,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       }; */
 
-        const staticDetailsObj  = {
+      const staticDetailsObj  = {
         firstName: 'Test',
         lastName: 'User',
         dateOfBirth: '12/16/1993',
@@ -138,7 +138,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       }; 
       
-      const bodyData = req.body.data;
+      const bodyData = await cleanObj(req.body.data);
       // For login
       await loginStep();
 
@@ -477,10 +477,7 @@ module.exports = {
 
             await page.waitFor(600);
             const drvrEmplStats = await page.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-            const drvrEmplStat = await page.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
-            await page.waitFor(300);
-
-            await page.click(populatedData[`driverEmployment${j}`].element);
+            let drvrEmplStat = await page.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
             await page.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
             await page.waitFor(600);
 
@@ -614,9 +611,56 @@ module.exports = {
 
       async function coveragesStep(pageQuote, dataObject) {
         console.log('coveragesStep');
-        await pageQuote.waitFor(3000);
-        await pageQuote.waitForSelector('#pol_ubi_exprnc');
+        await pageQuote.waitFor(2000);
+        await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
         await pageQuote.select('#pol_ubi_exprnc','N');
+        // pageQuote.on('console', msg => console.log('PAGE LOG:', msg._text));
+
+        for (const j in dataObject.coverage) {
+        
+          await pageQuote.select('#VEH\\.'+j+'\\.veh_use_ubi', 'Y');
+
+          const liabilityOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.veh_liab"]>option`);
+          const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+          await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
+
+          const bipdOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.BIPD"]>option`);
+          const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+          await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
+
+          const umuimOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.UMUMPD"]>option`);
+          const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+          await pageQuote.select(`select[name="VEH.${j}.UMUMPD"]`, umuimValue);
+
+          const pipOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PIP"]>option`);
+          const pipPayValue = await pageQuote.evaluate(selectSubStringOption, pipOptions, dataObject.coverage[j].PIP);
+          await pageQuote.select(`select[name="VEH.${j}.PIP"]`, pipPayValue);
+
+          const compOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COMP"]>option`);
+          const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+          await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
+
+          const colOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COLL"]>option`);
+          const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+          await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
+
+          const rentOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.RENT"]>option`);
+          const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+          await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
+
+          const roadsideOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.ROADSD"]>option`);
+          const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+          await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
+         
+          //await pageQuote.type('#VEH\\.'+j+'\\.veh_aoe_valu',dataObject.coverage[j].CPE);
+
+          const payoffOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PAYOFF"]>option`);
+          const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+          await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+          await pageQuote.waitFor(2000);
+
+        }
+      
         await pageQuote.waitForSelector('#pmt_optn_desc_presto');
         await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
         await pageQuote.waitFor(500);
@@ -707,9 +751,39 @@ module.exports = {
               selected = entry.value;
             }
           });
+        }if (!selected && data[1]) {
+          selected = data[1].value;
         }
 
         return selected;
+      }
+
+      function selectSubStringOption(data, valueToSelect) {
+        let selected = '';
+        data.forEach((entry) => {
+          if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
+            selected = entry.value;
+          }
+        });
+        if (!selected) {
+          data.forEach((entry) => {
+            if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
+              selected = entry.value;
+            }else if(entry.name.includes(valueToSelect)){
+              selected = entry.value;
+            }
+          });
+        }
+        return selected;
+      }
+
+      function cleanObj(obj) {
+        for (var propName in obj) { 
+          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
+            delete obj[propName];
+          }
+        }
+        return obj;
       }
 
       function populateKeyValueData() {
@@ -806,7 +880,7 @@ module.exports = {
           },
           numberOfResidentsInHome: {
             element: 'select[name="excess_res_nbr"]',
-            value: bodyData.numberOfResidentsInHome || '2',
+            value: bodyData.numberOfResidentsInHome || '3',
           },
           ownOrRentPrimaryResidence: {
             element: 'select[name="hm_own_ind"]',
@@ -918,12 +992,12 @@ module.exports = {
               value: 'R',
             };
 
-            if (element.relationship) {
+            // if (element.relationship) {
               clientInputSelect[`driverRelationship${j}`] = {
                 element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
                 value: element.relationship || staticDetailsObj.drivers[0].relationship,
               };
-            }
+            // }
 
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
@@ -1071,11 +1145,18 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       }; 
-      const bodyData = req.body.data;
-      //console.log('==========================================bodyData=============================================');
-      //console.log(bodyData);
+      const bodyData = await cleanObj(req.body.data);
       bodyData.results = {};
 
+      function cleanObj(obj) {
+        for (var propName in obj) { 
+          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
+            delete obj[propName];
+          }
+        }
+        return obj;
+      }
+      
       function populateKeyValueData() {
         const clientInputSelect = {
           newQuoteState: {
@@ -1322,8 +1403,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      console.log(populateKeyValueData());
-
       // get all select options texts and values
       function getSelectValues(inputID) {
         optVals = [];
@@ -1385,7 +1464,6 @@ module.exports = {
         return selected;
       }
       
-
       // dimiss alert dialog
       function dismissDialog(page1) {
         try {
@@ -1397,9 +1475,6 @@ module.exports = {
           console.log('e', e);
         }
       }
-
-      console.log(bodyData);
-
 
       // Login
       async function loginStep() {
