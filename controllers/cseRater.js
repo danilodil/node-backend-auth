@@ -150,7 +150,6 @@ module.exports = {
         haveAnotherProgressivePolicy: "No"
       }; 
       const bodyData = await cleanObj(req.body.data);
-      bodyData.drivers = bodyData.drivers.splice(0,2)
       bodyData.results = {};
       function cleanObj(obj) {
         for (var propName in obj) { 
@@ -694,16 +693,11 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
-            const waitFor = function(timeToWait) {
-              return new Promise(resolve => {
-                setTimeout(() => {
-                  resolve(true);
-                }, timeToWait);
-              });
-            };
+           
             
+            page.waitForNavigation({ waitUntil: 'load' })
             await page.waitFor(5000);
-            await waitFor(5000);
+
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
             await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
             await page.waitFor(2000);
