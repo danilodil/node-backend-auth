@@ -693,7 +693,7 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
-            page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+            await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
             await page.waitFor(5000);
 
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
@@ -827,11 +827,19 @@ module.exports = {
               console.log('new driver')
               // await page.waitForSelector('#Return');
               // await page.click('#Return');
+              console.log(' 1 >>>>>>>')
               await page.evaluate(()=> document.querySelector('#Return').click());
               //await page.waitForSelector('#DriverSelectionController');
               await page.waitFor(2000);
-              await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
-              await page.evaluate(()=> document.querySelector('#DriverSelectionController').onchange());
+              await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+              console.log(' 2 >>>>>>>')
+              await page.waitFor(2000);
+              await page.select('#DriverSelectionController', 'Non-Driver');
+
+              //await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
+              console.log(' 3 >>>>>>>')
+              //await page.evaluate(()=> document.querySelector('select[name="DriverSelectionController"]').onchange(''));
+             //console.log(' 4 >>>>>>>')
               //await page.select('#DriverSelectionController', 'Non-Driver');
             }
           }
