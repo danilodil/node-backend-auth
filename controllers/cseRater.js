@@ -10,8 +10,8 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const browser = await puppeteer.launch({ headless:false });
+      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      // const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
 
       /* const bodyData = {
