@@ -818,9 +818,9 @@ module.exports = {
               }, editDriverDetails.nonDriver);
             }
 
-            await page.waitFor(1000);
-            await page.click('#Save');
             await page.waitFor(2000);
+            await page.click('#Save');
+            await page.waitFor(4000);
             if (j === (bodyData.drivers.length - 1).toString()) {
               await page.click('#NextPage');
             } else {
@@ -833,6 +833,7 @@ module.exports = {
             }
           }
         }catch(e){
+          console.log('driverStep error',e)
           const response = { error: 'There is some error validations at driverStep' };
           bodyData.results = {
             status: false,
