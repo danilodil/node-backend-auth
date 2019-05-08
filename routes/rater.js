@@ -1,14 +1,11 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 
-const cseRaterController = require('../controllers/cseRater');
 const rater = require('../controllers/rater');
-
 const router = express.Router();
 
-router.put('/cse',[
-  cseRaterController.cseRating,
-  rater.saveRating
-]);
+router.get('/', asyncHandler(async (req, res, next) => {
+    await rater.getRating(req, res, next);
+}));
 
 module.exports = router;

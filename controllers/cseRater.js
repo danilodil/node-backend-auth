@@ -149,10 +149,16 @@ module.exports = {
         rentersLimits: "Greater Than 300,000",
         haveAnotherProgressivePolicy: "No"
       }; 
-      const bodyData = req.body.data;
-
-      console.log('vehicles',bodyData.vehicles);
-      console.log('drivers',bodyData.drivers);
+      const bodyData = await cleanObj(req.body.data);
+      bodyData.results = {};
+      function cleanObj(obj) {
+        for (var propName in obj) { 
+          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
+            delete obj[propName];
+          }
+        }
+        return obj;
+      }
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
@@ -570,100 +576,111 @@ module.exports = {
 
         try{
 
-        const AllPages = await browser.pages();
-        if (AllPages.length > 2) {
-          for (let i = 2; i < AllPages.length; i += 1) {
-            await AllPages[i].close();
-          }
-        }
-
-        await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
-        await page.click('#NewQuote');
-
-        // product selction
-        const { productSelection } = populatedData;
-        await page.waitForSelector('#Main > div');
-        await page.evaluate((productSelectionData) => {
-          productSelectionData.forEach((oneElement) => {
-            document.getElementById(oneElement.element).value = oneElement.value;
-          });
-        }, productSelection);
-
-        await page.click('#Continue');
-        await page.waitFor(1000);
-        await page.waitForSelector('#ProductSelectionList');
-        await page.click('#ProductSelectionList > table > tbody > tr > td > a');
-
-        // Underwriting Status
-        const { underwriting } = populatedData;
-
-        await page.waitFor(1000);
-        page.on('dialog', async dialog => {
-          console.log(dialog.message());
-          await dialog.dismiss();
-        });
-        await page.waitForSelector('#ProviderNumber');
-        await page.waitFor(1000);
-        page.on('console', msg => console.log('PAGE LOG:', msg._text));
-        await page.evaluate((underwritingData) => {
-          underwritingData.forEach((oneElement) => {
-            console.log(JSON.stringify(oneElement));
-            if (oneElement.value === 'AAGCA') {
-              setTimeout(() => {
-                document.getElementById(oneElement.element).value = oneElement.value;
-                document.getElementById('AffinityGroupCdDisplay').value = oneElement.value;
-              }, 1000);
-            } else {
-              document.getElementById(oneElement.element).value = oneElement.value;
+          const AllPages = await browser.pages();
+          if (AllPages.length > 2) {
+            for (let i = 2; i < AllPages.length; i += 1) {
+              await AllPages[i].close();
             }
+          }
+
+          await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
+          await page.click('#NewQuote');
+
+          // product selction
+          const { productSelection } = populatedData;
+          await page.waitForSelector('#Main > div');
+          await page.evaluate((productSelectionData) => {
+            productSelectionData.forEach((oneElement) => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+          }, productSelection);
+
+          await page.click('#Continue');
+          await page.waitFor(1000);
+          await page.waitForSelector('#ProductSelectionList');
+          await page.click('#ProductSelectionList > table > tbody > tr > td > a');
+
+          // Underwriting Status
+          const { underwriting } = populatedData;
+
+          await page.waitFor(1000);
+          page.on('dialog', async dialog => {
+            console.log(dialog.message());
+            await dialog.dismiss();
           });
-        }, underwriting);
+          await page.waitForSelector('#ProviderNumber');
+          await page.waitFor(1000);
+          page.on('console', msg => console.log('PAGE LOG:', msg._text));
+          await page.evaluate((underwritingData) => {
+            underwritingData.forEach((oneElement) => {
+              // console.log(JSON.stringify(oneElement));
+              if (oneElement.value === 'AAGCA') {
+                setTimeout(() => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                  document.getElementById('AffinityGroupCdDisplay').value = oneElement.value;
+                }, 1000);
+              } else {
+                document.getElementById(oneElement.element).value = oneElement.value;
+              }
+            });
+          }, underwriting);
 
-        await page.click('#ResetCommercialName');
-        await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
-        await page.click('#DefaultAddress');
-        await page.waitFor(1000);
-        await page.click('#NextPage');
-        await page.waitForSelector('#Question_Acknowledgement');
-        await page.waitFor(1000);
-        // await page.evaluate(() => {
-        //   document.getElementById('Question_Acknowledgement').value = 'YES';
-        //   document.getElementById('Question_cserules_isForRent').value = 'No';
-        //   document.getElementById('Question_cserules_isResidence').value = 'No';
-        //   document.getElementById('Question_cserules_notStreetLic').value = 'No';
-        //   document.getElementById('Question_cserules_useBusiness').value = 'Yes';
-        //   document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
-        // });
-        await page.evaluate(() => {
-          document.getElementById('Question_Acknowledgement').value = 'YES';
-        });
-        await page.waitFor(1000);
-        await page.evaluate(() => {
-          document.getElementById('Question_cserules_isForRent').value = 'No';
-        });
-        await page.waitFor(1000);
+          await page.click('#ResetCommercialName');
+          await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
+          await page.click('#DefaultAddress');
+          await page.waitFor(1000);
+          await page.click('#NextPage');
+          await page.waitForSelector('#Question_Acknowledgement');
+          await page.waitFor(1000);
+          // await page.evaluate(() => {
+          //   document.getElementById('Question_Acknowledgement').value = 'YES';
+          //   document.getElementById('Question_cserules_isForRent').value = 'No';
+          //   document.getElementById('Question_cserules_isResidence').value = 'No';
+          //   document.getElementById('Question_cserules_notStreetLic').value = 'No';
+          //   document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+          //   document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+          // });
+          await page.evaluate(() => {
+            document.getElementById('Question_Acknowledgement').value = 'YES';
+          });
+          await page.waitFor(1000);
+          await page.evaluate(() => {
+            document.getElementById('Question_cserules_isForRent').value = 'No';
+          });
+          await page.waitFor(1000);
 
-        await page.evaluate(() => {
-          document.getElementById('Question_cserules_isResidence').value = 'No';
-        });
-        await page.waitFor(1000);
+          await page.evaluate(() => {
+            document.getElementById('Question_cserules_isResidence').value = 'No';
+          });
+          await page.waitFor(1000);
 
-        await page.evaluate(() => {
-          document.getElementById('Question_cserules_notStreetLic').value = 'No';
-        });
-        await page.waitFor(1000);
+          await page.evaluate(() => {
+            document.getElementById('Question_cserules_notStreetLic').value = 'No';
+          });
+          await page.waitFor(1000);
 
-        await page.evaluate(() => {
-          document.getElementById('Question_cserules_useBusiness').value = 'Yes';
-        });
-        await page.waitFor(1000);
+          await page.evaluate(() => {
+            document.getElementById('Question_cserules_useBusiness').value = 'Yes';
+          });
+          await page.waitFor(1000);
 
-        await page.evaluate(() => {
-          document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
-        });
-        await page.click('#NextPage');
+          await page.evaluate(() => {
+            document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
+          });
+          await page.click('#NextPage');
       }catch(e){
         console.log('error at newQuoteStep :: ',e);
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
+          console.log('final result >> ', JSON.stringify(bodyData.results));
+          req.session.data = {
+            title: 'CSE CA Rate Retrieved Successfully',
+            obj: bodyData.results,
+          };
+          return next();
       }
         await vehicleStep(browser, page, populatedData);
       }
@@ -675,17 +692,20 @@ module.exports = {
 
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
-            console.log('1 >> ');
 
+            await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
             await page.waitFor(5000);
-            // await page.waitForSelector('#VehicleSelectionController');
-            await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+
+            // await page.waitForSelector('select[name="VehicleSelectionController"]');
+            //await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+            await page.evaluate(()=> document.querySelector('#VehicleSelectionController').value = 'Private Passenger Vehicle');
+            await page.evaluate(()=> document.querySelector('#VehicleSelectionController').onchange());
+
             await page.waitFor(2000);
             // await page.waitForSelector('#Main > div:nth-child(18)');
-            console.log('2 >> ');
             await page.evaluate((vehiclesData) => {
               vehiclesData.forEach((oneElement) => {
-                console.log(JSON.stringify(oneElement))
+                // console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicles);
@@ -732,6 +752,17 @@ module.exports = {
           }
         }catch(e){
           console.log('error at vehicleStep :: ',e);
+          const response = { error: 'There is some error validations at vehicleStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
+          console.log('final result >> ', JSON.stringify(bodyData.results));
+          req.session.data = {
+            title: 'CSE CA Rate Retrieved Successfully',
+            obj: bodyData.results,
+          };
+          return next();
         }
         await policyStep(browser, page, populatedData);
       }
@@ -745,7 +776,7 @@ module.exports = {
         await page.waitForSelector('#Line\\.BILimit')
         await page.evaluate((policyCoverage) => {
           policyCoverage.forEach(oneElement => {
-            console.log(JSON.stringify(oneElement))
+            // console.log(JSON.stringify(oneElement))
             document.getElementById(oneElement.element).value = oneElement.value;
           });
         }, policyCoverage);
@@ -757,45 +788,74 @@ module.exports = {
 
       // Add driver/ Non driver
       async function driverStep(browser, page, populatedData) {
-        console.log('driverStep');
-        await page.waitForSelector('#EditLink');
-        await page.click('#EditLink');
-        // Driver Detail Edit
-        for (const j in bodyData.drivers) {
-          const editDriverDetails = populatedData[`editDriverDetails${j}`];
-          if (j === '0') {
-            await page.waitFor(5000);
-            await page.waitForSelector('#Main > div:nth-child(4)');
-            await page.evaluate((driverDetails) => {
-              driverDetails.forEach((oneElement) => {
-                document.getElementById(oneElement.element).value = oneElement.value;
-              });
-            }, editDriverDetails.driver);
-            if (bodyData.vehicles.length > 1) {
-              const primarilyDrives = await page.evaluate(getSelectVal, 'select[name="DriverInfo.AttachedVehicleRef"]>option');
-              await page.select('select[name="DriverInfo.AttachedVehicleRef"]', primarilyDrives[1].value);
+        try{
+          console.log('driverStep');
+          await page.waitForSelector('#EditLink');
+          await page.click('#EditLink');
+          // Driver Detail Edit
+          for (const j in bodyData.drivers) {
+            const editDriverDetails = populatedData[`editDriverDetails${j}`];
+            if (j === '0') {
+              await page.waitFor(5000);
+              await page.waitForSelector('#Main > div:nth-child(4)');
+              await page.evaluate((driverDetails) => {
+                driverDetails.forEach((oneElement) => {
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, editDriverDetails.driver);
+              if (bodyData.vehicles.length > 1) {
+                const primarilyDrives = await page.evaluate(getSelectVal, 'select[name="DriverInfo.AttachedVehicleRef"]>option');
+                await page.select('select[name="DriverInfo.AttachedVehicleRef"]', primarilyDrives[1].value);
+              }
+            } else {
+              console.log('else j>>>>>>>>>>',j);
+              await page.waitFor(2000);
+              await page.evaluate((driverDetails) => {
+                driverDetails.forEach((oneElement) => {
+                  // console.log(JSON.stringify(oneElement))
+                  document.getElementById(oneElement.element).value = oneElement.value;
+                });
+              }, editDriverDetails.nonDriver);
             }
-          } else {
-            await page.waitFor(1000);
-            await page.evaluate((driverDetails) => {
-              driverDetails.forEach((oneElement) => {
-                console.log(JSON.stringify(oneElement))
-                document.getElementById(oneElement.element).value = oneElement.value;
-              });
-            }, editDriverDetails.nonDriver);
-          }
 
-          await page.waitFor(1000);
-          await page.click('#Save');
-          await page.waitFor(1000);
-          if (j === (bodyData.drivers.length - 1).toString()) {
-            await page.click('#NextPage');
-          } else {
-            await page.waitForSelector('#Return');
-            await page.click('#Return');
-            await page.waitForSelector('#DriverSelectionController');
-            await page.select('#DriverSelectionController', 'Non-Driver');
+            await page.waitFor(1000);
+            await page.click('#Save');
+            await page.waitFor(2000);
+            if (j === (bodyData.drivers.length - 1).toString()) {
+              await page.click('#NextPage');
+            } else {
+              console.log('new driver')
+              // await page.waitForSelector('#Return');
+              // await page.click('#Return');
+              console.log(' 1 >>>>>>>')
+              await page.evaluate(()=> document.querySelector('#Return').click());
+              //await page.waitForSelector('#DriverSelectionController');
+              await page.waitFor(2000);
+              await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+              console.log(' 2 >>>>>>>')
+              await page.waitFor(2000);
+              await page.select('#DriverSelectionController', 'Non-Driver');
+
+              //await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
+              console.log(' 3 >>>>>>>')
+              //await page.evaluate(()=> document.querySelector('select[name="DriverSelectionController"]').onchange(''));
+             //console.log(' 4 >>>>>>>')
+              //await page.select('#DriverSelectionController', 'Non-Driver');
+            }
           }
+        }catch(e){
+          console.log('driverStep error',e)
+          const response = { error: 'There is some error validations at driverStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
+          console.log('final result >> ', JSON.stringify(bodyData.results));
+          req.session.data = {
+            title: 'CSE CA Rate Retrieved Successfully',
+            obj: bodyData.results,
+          };
+          return next();
         }
       }
 
@@ -805,7 +865,6 @@ module.exports = {
       await page.waitFor(3000);
       // await page.click('#NextPage');
 
-      await page.waitFor(1000);
       await page.waitForSelector('#NextPage');
       await page.click('#NextPage');
       await page.waitFor(3000);
@@ -826,10 +885,21 @@ module.exports = {
         };
         return details;
       });
-      req.session.data = {
-        premiumDetails,
-      };
 
+      bodyData.results = {
+        status: true,
+        response: premiumDetails,
+      };
+      console.log('final result >> ', JSON.stringify(bodyData.results));
+      req.session.data = {
+        title: 'CSE CA Rate Retrieved Successfully',
+        obj: bodyData.results,
+      };
+      return next();
+      // req.session.data = {
+      //   premiumDetails,
+      // };
+    
       return next();
     } catch (error) {
       console.log('error >> ', error);
