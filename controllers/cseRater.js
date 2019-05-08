@@ -693,9 +693,7 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
-            await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
             await page.waitFor(5000);
-
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
             //await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
             await page.evaluate(()=> document.querySelector('#VehicleSelectionController').value = 'Private Passenger Vehicle');
@@ -831,7 +829,7 @@ module.exports = {
               await page.evaluate(()=> document.querySelector('#Return').click());
               //await page.waitForSelector('#DriverSelectionController');
               await page.waitFor(2000);
-              await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+
               console.log(' 2 >>>>>>>')
               await page.waitFor(2000);
               await page.select('#DriverSelectionController', 'Non-Driver');
