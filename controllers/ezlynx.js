@@ -18,7 +18,10 @@ const appConstant = require('../constants/appConstant').ezLynx;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const { username } = req.body.decoded_vendor;
+      const { username } = req.body.decoded_vendor
+
+
+      
 
       const returnIndustry = async (occ) => {
          const students = ['Graduate Student', 'High school', 'Undergraduate'];
@@ -492,7 +495,6 @@ module.exports = {
       if (response && response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
          url = response.match(/<URL>(.*)<\/URL>/)[1]
       }
-
 
       req.session.data = {
         title: 'Contact created successfully',
