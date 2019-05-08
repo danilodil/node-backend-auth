@@ -13,7 +13,7 @@ router.patch('/edit/:vendorName', asyncHandler(async (req, res, next) => {
   await vendorController.update(req, res, next);
 }));
 
-router.get('/getAll', asyncHandler(async (req, res, next) => {
+router.put('/getAll', asyncHandler(async (req, res, next) => {
   await vendorController.getAll(req, res, next);
 }));
 

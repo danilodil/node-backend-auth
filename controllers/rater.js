@@ -62,7 +62,7 @@ module.exports={
           clientId = req.body.decoded_user.client.id;
         }
     
-        if(!companyId && !clientId){
+        if(!companyId || !clientId){
           return next(Boom.badRequest('Invalid Data'));
         }
     
@@ -70,7 +70,6 @@ module.exports={
           where:{
             companyId,
             clientId,
-            vendorName: req.body.vendorName,
           },
           attributes:['companyId','clientId','vendorName','result','createdAt']
         };
