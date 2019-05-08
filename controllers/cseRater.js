@@ -822,23 +822,22 @@ module.exports = {
             if (j === (bodyData.drivers.length - 1).toString()) {
               await page.click('#NextPage');
             } else {
-              console.log('new driver')
-              // await page.waitForSelector('#Return');
-              // await page.click('#Return');
-              console.log(' 1 >>>>>>>')
-              await page.evaluate(()=> document.querySelector('#Return').click());
-              //await page.waitForSelector('#DriverSelectionController');
-              await page.waitFor(2000);
+              try{
+                // await page.waitForSelector('#Return');
+                // await page.click('#Return');
+                console.log(' 1 >>>>>>>')
+                await page.evaluate(()=> document.querySelector('#Return').click());
+                //await page.waitForSelector('#DriverSelectionController');
+                await page.waitFor(2000);
 
-              console.log(' 2 >>>>>>>')
-              await page.waitFor(2000);
-              await page.select('#DriverSelectionController', 'Non-Driver');
-
-              //await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
-              console.log(' 3 >>>>>>>')
-              //await page.evaluate(()=> document.querySelector('select[name="DriverSelectionController"]').onchange(''));
-             //console.log(' 4 >>>>>>>')
-              //await page.select('#DriverSelectionController', 'Non-Driver');
+                await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
+                console.log(' 2 >>>>>>>')
+                await page.evaluate(()=> document.querySelector('select[name="DriverSelectionController"]').onchange(''));
+                console.log(' 3 >>>>>>>')
+                //await page.select('#DriverSelectionController', 'Non-Driver');
+              }catch(e){
+                console.log(e.message);
+              }
             }
           }
         }catch(e){

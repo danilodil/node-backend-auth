@@ -37,6 +37,10 @@ module.exports={
           if(req.session.data && req.session.data.obj.response.total_premium){
             updateObj.totalPremium = req.session.data.obj.response.total_premium
           }
+          if(req.session.data && req.session.data.obj.response.totalPolicyTermPremium){
+            updateObj.totalPremium = req.session.data.obj.response.totalPolicyTermPremium
+          }
+          
           await raterData.update(updateObj);              
         }
         else{
@@ -48,6 +52,9 @@ module.exports={
               };
               if(req.session.data && req.session.data.obj.response.total_premium){
                 newRater.totalPremium = req.session.data.obj.response.total_premium
+              }
+              if(req.session.data && req.session.data.obj.response.totalPolicyTermPremium){
+                newRater.totalPremium = req.session.data.obj.response.totalPolicyTermPremium
               }
              await Rater.create(newRater);
         }
