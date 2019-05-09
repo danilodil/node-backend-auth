@@ -1,5 +1,4 @@
 const express = require('express');
-const asyncHandler = require('express-async-handler');
 
 const progressiveRaterController = require('../controllers/progressiveRater');
 const rater = require('../controllers/rater');
@@ -13,7 +12,7 @@ const router = express.Router();
 
 router.put('/progressive/de', [
   progressiveRaterController.rateDelaware,
-  rater.saveRating
+  rater.saveRating,
 ]);
 
 // router.put('/progressive/al', asyncHandler(async (req, res, next) => {
@@ -22,7 +21,7 @@ router.put('/progressive/de', [
 
 router.put('/progressive/al', [
   progressiveRaterController.rateAlabama,
-  rater.saveRating
+  rater.saveRating,
 ]);
 
 module.exports = router;
