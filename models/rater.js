@@ -13,6 +13,9 @@ const Rater = sequelize.define('Rater', {
   vendorName: {
     type: DataTypes.STRING,
   },
+  totalPremium: {
+    type: DataTypes.STRING,
+  },
   result: {
     type: DataTypes.STRING,
   }

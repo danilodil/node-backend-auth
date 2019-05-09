@@ -31,9 +31,17 @@ module.exports={
 
         const raterData = await Rater.findOne(existRater);
         if(raterData){
-            await raterData.update({
-                result: JSON.stringify(req.session.data)
-            });              
+          updateObj={
+            result: JSON.stringify(req.session.data)
+          };
+          if(req.session.data && req.session.data.obj.response.total_premium){
+            updateObj.totalPremium = req.session.data.obj.response.total_premium
+          }
+          if(req.session.data && req.session.data.obj.response.totalPolicyTermPremium){
+            updateObj.totalPremium = req.session.data.obj.response.totalPolicyTermPremium
+          }
+          
+          await raterData.update(updateObj);              
         }
         else{
             const newRater = {
@@ -42,6 +50,12 @@ module.exports={
                 vendorName: req.body.vendorName,
                 result: JSON.stringify(req.session.data)
               };
+              if(req.session.data && req.session.data.obj.response.total_premium){
+                newRater.totalPremium = req.session.data.obj.response.total_premium
+              }
+              if(req.session.data && req.session.data.obj.response.totalPolicyTermPremium){
+                newRater.totalPremium = req.session.data.obj.response.totalPolicyTermPremium
+              }
              await Rater.create(newRater);
         }
        return next();
@@ -71,7 +85,7 @@ module.exports={
             companyId,
             clientId,
           },
-          attributes:['companyId','clientId','vendorName','result','createdAt']
+          attributes:['companyId','clientId','result','createdAt','totalPremium']
         };
     
         const raterData = await Rater.findOne(newRater);
