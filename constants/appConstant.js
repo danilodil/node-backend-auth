@@ -51,7 +51,7 @@ exports.nationalGeneralAlRater = {
 exports.safecoAlRater = {
   LOGIN_URL: 'http://www.safeconow.com/',
   NEW_QUOTE_START_URL: 'https://now.agent.safeco.com/start/',
-  NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx'
+  NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
 };
 
 exports.vendorNames = {
@@ -63,7 +63,7 @@ exports.vendorNames = {
     'EZLYNX',
     'QQ',
     'NATIONALGENERALALRATER',
-    'SAFECOALRATER'
+    'SAFECOALRATER',
   ],
   user: [
     'QQ',

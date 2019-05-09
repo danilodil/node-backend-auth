@@ -97,7 +97,7 @@ module.exports = {
         where: {
           companyId: params.companyId,
         },
-        attributes : ['id', 'vendorName'],
+        attributes: ['id', 'vendorName'],
       };
 
       const vendors = await vendorModel.findAll(findObject);
@@ -105,10 +105,10 @@ module.exports = {
       if (!vendors) {
         return next(Boom.badRequest('Vendor does not exists!'));
       }
-      
+
       req.session.data = {
         message: 'Vendors get successfully',
-        vendors: vendors,
+        vendors,
       };
       return next();
     } catch (error) {
