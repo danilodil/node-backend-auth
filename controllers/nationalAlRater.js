@@ -1,5 +1,5 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, no-restricted-syntax, radix */
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -8,7 +8,6 @@ const { nationalGeneralAlRater } = require('../constants/appConstant');
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
-      
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless:false });
@@ -16,30 +15,30 @@ module.exports = {
 
       // Request input data
       // let bodyData = req.body.data;
-       const data = {
-        producer: "610979",
-        inputBy: "20000739",
-        plan: "G5",
+      const data = {
+        producer: '610979',
+        inputBy: '20000739',
+        plan: 'G5',
         firstName: req.body.data.firstName,
         lastName: req.body.data.lastName,
-        suffixName: "IV",
+        suffixName: 'IV',
         email: req.body.data.email,
         birthDate: req.body.data.birthDate,
         mailingAddress: req.body.data.mailingAddress,
-        phone1: "455",
-        phone2: "555",
-        phone3: "5555",
+        phone1: '455',
+        phone2: '555',
+        phone3: '5555',
         city: req.body.data.city,
         state: req.body.data.state,
         zipCode: req.body.data.zipCode,
-        security1: "122",
-        security2: "22",
-        security3: "2222",
+        security1: '122',
+        security2: '22',
+        security3: '2222',
         drivers: req.body.data.drivers,
-        vehicles: req.body.data.vehicles
-      }; 
+        vehicles: req.body.data.vehicles,
+      };
 
-      /*const data = {
+      /* const data = {
         newQuoteState: 'AL',
         newQuoteProduct: 'PPA',
         producer: '610979',
@@ -122,7 +121,7 @@ module.exports = {
             vehicleType: 'Private Passenger Auto',
           },
         ],
-      };*/
+      }; */
 
       const staticDataObj = {
         newQuoteState: 'AL',
@@ -162,7 +161,7 @@ module.exports = {
             driverLicenseStatus: 'Permit',
             smartDrive: 'True',
             licenseState: 'IN',
-          }
+          },
         ],
         vehicles: [
           {
@@ -178,9 +177,9 @@ module.exports = {
             garagingzipCode: '36016',
             ownershipStatus: 'Owned',
             vehicleType: 'Private Passenger Auto',
-          }
+          },
         ],
-      }; 
+      };
       const bodyData = data;
 
 
@@ -478,8 +477,13 @@ module.exports = {
           allOptions.forEach((entry) => {
             if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
               selected = entry.value;
+            }else if (valueToSelect.toLowerCase() === entry.value.toLowerCase()) {
+              selected = entry.value;
             }
           });
+          if (!selected && allOptions[1]) {
+            selected = allOptions[1].value;
+          }
           return selected;
         }
         const value = await selectValue();

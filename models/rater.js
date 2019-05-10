@@ -18,7 +18,7 @@ const Rater = sequelize.define('Rater', {
   },
   result: {
     type: DataTypes.STRING,
-  }
+  },
 });
 
 module.exports = Rater;

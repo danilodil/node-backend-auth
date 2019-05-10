@@ -11,7 +11,7 @@ const salesforce = require('./salesforce');
 const vendor = require('./vendor');
 const nationalGeneralRater = require('./nationalAlRater');
 const rater = require('./rater');
-
+const safecoRater = require('./safecoAlRater');
 
 router.use('/ezlynx', [passport], ezlynxIntegration);
 router.use('/qq', [passport], qqIntegration);
@@ -19,7 +19,8 @@ router.use('/progressiveRater', [passport], progressiveRater);
 router.use('/cseRater', [passport], cseRater);
 router.use('/salesforce', [passport], salesforce);
 router.use('/vendor', vendor);
-router.use('/nationalAlRater',[passport],nationalGeneralRater);
-router.use('/getRater',[passport],rater);
+router.use('/nationalAlRater', [passport], nationalGeneralRater);
+router.use('/getRater', [passport], rater);
+router.use('/safecoRater', [passport], safecoRater);
 
 module.exports = router;

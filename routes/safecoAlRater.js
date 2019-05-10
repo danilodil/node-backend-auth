@@ -1,12 +1,13 @@
 const express = require('express');
 
-const cseRaterController = require('../controllers/cseRater');
+const safecoAlRaterController = require('../controllers/safecoAlRater');
 const rater = require('../controllers/rater');
+
 
 const router = express.Router();
 
-router.put('/cse', [
-  cseRaterController.cseRating,
+router.put('/safeco/al', [
+  safecoAlRaterController.safecoAl,
   rater.saveRating,
 ]);
 
