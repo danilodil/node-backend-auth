@@ -138,6 +138,7 @@ module.exports = {
       };
 
       const bodyData = await cleanObj(req.body.data);
+      bodyData.drivers.splice(9, bodyData.drivers.length); // you can add max 12 drivers
       // For login
       await loginStep();
 
@@ -416,10 +417,10 @@ module.exports = {
                 element: `DRV.${j}.drvr_frst_nam`,
                 value: bodyData.drivers[j].firstName || staticDetailsObj.drivers[0].firstName,
               },
-              {
-                element: 'DRV.0.drvr_mid_nam',
-                value: bodyData.drivers[j].middleName || staticDetailsObj.drivers[0].middleName,
-              },
+              // {
+              //   element: 'DRV.0.drvr_mid_nam',
+              //   value: bodyData.drivers[j].middleName || staticDetailsObj.drivers[0].middleName,
+              // },
               {
                 element: `DRV.${j}.drvr_lst_nam`,
                 value: bodyData.drivers[j].lastName || staticDetailsObj.drivers[0].lastName,
@@ -467,12 +468,13 @@ module.exports = {
 
             const drvrYearsLics = await page.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
             const drvrYearsLic = await page.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
-            await page.select(populatedData[`driverYearsLicensed${j}`].element);
             // await page.waitFor(600);
             await page.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
             await page.waitFor(600);
 
-            await page.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
+            const driverStatusOpt = await page.evaluate(getSelctVal, `${populatedData[`driverStatus${j}`].element}>option`);
+            const driverStatus = await page.evaluate(getValToSelect, driverStatusOpt, populatedData[`driverStatus${j}`].value);
+            await page.select(populatedData[`driverStatus${j}`].element, driverStatus);
 
             await page.waitFor(600);
             const drvrEmplStats = await page.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
@@ -568,8 +570,16 @@ module.exports = {
 
           // await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
 
-          await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
-          await pageQuote.waitFor(600);
+          try {
+            const numberOfResidentsInHomeOpt = await pageQuote.evaluate(getSelctVal, `${populatedData.numberOfResidentsInHome.element}>option`);
+            const numberOfResidentsInHome = await pageQuote.evaluate(getValToSelect, numberOfResidentsInHomeOpt, populatedData.numberOfResidentsInHome.value);
+            await pageQuote.select(populatedData.numberOfResidentsInHome.element, numberOfResidentsInHome);
+            await pageQuote.waitFor(600);
+          } catch (e) {
+            console.log('no number Of Residents In Home');
+          }
+
+
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.waitFor(600);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
@@ -1016,7 +1026,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false});
+      // const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
       // Request input data
@@ -1140,6 +1150,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       };
       const bodyData = await cleanObj(req.body.data);
+      bodyData.drivers.splice(9, bodyData.drivers.length);
       bodyData.results = {};
 
       function cleanObj(obj) {
@@ -1207,7 +1218,7 @@ module.exports = {
           zipCode: {
             elementId: 'insd_zip_cd',
             element: '#insd_zip_cd',
-            value: bodyData.zipCode || staticDetailsObj.zipCode,
+            value: '35005',
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
@@ -1432,7 +1443,7 @@ module.exports = {
           });
         }
 
-        if (!selected && valueToSelect === null) {
+        if (!selected && data[1]) {
           selected = data[1].value;
         }
 
@@ -1633,7 +1644,9 @@ module.exports = {
             }
           }
           for (const j in dataObject.drivers) {
-            await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            if (j === 0) {
+              await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            }
             // await pageQuote.waitFor(600);
 
 
@@ -1758,8 +1771,18 @@ module.exports = {
           await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
 
           await pageQuote.waitFor(1000);
+
+
           await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
-          await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
+          try {
+            const numberOfResidentsInHomeOpt = await pageQuote.evaluate(getSelectValues, `${populatedData.numberOfResidentsInHome.element}>option`);
+            const numberOfResidentsInHome = await pageQuote.evaluate(getValToSelect, numberOfResidentsInHomeOpt, populatedData.numberOfResidentsInHome.value);
+            await pageQuote.select(populatedData.numberOfResidentsInHome.element, numberOfResidentsInHome);
+            await pageQuote.waitFor(600);
+          } catch (e) {
+            console.log('no number Of Residents In Home', e);
+          }
+          // await pageQuote.select(populatedData.numberOfResidentsInHome.element, populatedData.numberOfResidentsInHome.value);
           await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
           await pageQuote.waitFor(1000);
           await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);

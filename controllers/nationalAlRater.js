@@ -477,8 +477,13 @@ module.exports = {
           allOptions.forEach((entry) => {
             if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
               selected = entry.value;
+            }else if (valueToSelect.toLowerCase() === entry.value.toLowerCase()) {
+              selected = entry.value;
             }
           });
+          if (!selected && allOptions[1]) {
+            selected = allOptions[1].value;
+          }
           return selected;
         }
         const value = await selectValue();
