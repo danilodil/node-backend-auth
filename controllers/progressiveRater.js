@@ -1387,12 +1387,13 @@ module.exports = {
               value: 'R',
             };
 
-            if (element.relationship) {
+            // if (element.relationship) {
               clientInputSelect[`driverRelationship${j}`] = {
                 element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
-                value: element.relationship || staticDetailsObj.drivers[0].relationship,
+                //value: element.relationship || staticDetailsObj.drivers[0].relationship,
+                value:'Other'
               };
-            }
+            // }
 
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
@@ -1666,13 +1667,10 @@ module.exports = {
             const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
             await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
 
-            if (populatedData[`driverRelationship${j}`]) {
-              const drvrRelationships = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverRelationship${j}`].element}>option`);
-              const drvrRelationship = await pageQuote.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
-              await pageQuote.select(populatedData[`driverRelationship${j}`].element);
-              await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
-              await pageQuote.waitFor(600);
-            }
+            const drvrRelationships = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverRelationship${j}`].element}>option`);
+            const drvrRelationship = await pageQuote.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
+            await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
+            await pageQuote.waitFor(600);
 
             // await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
