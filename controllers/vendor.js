@@ -91,8 +91,6 @@ module.exports = {
         return next(Boom.badRequest('Invalid data!'));
       }
 
-      console.log(params.companyId);
-
       const findObject = {
         where: {
           companyId: params.companyId,
