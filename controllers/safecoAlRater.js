@@ -564,6 +564,9 @@ module.exports = {
             selected = entry.value;
           }
         });
+        if (!selected && dataValue[1]) {
+          selected = dataValue[1].value;
+        }
         return selected;
       }
 
