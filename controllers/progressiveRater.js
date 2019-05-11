@@ -1619,6 +1619,11 @@ module.exports = {
 
             await pageQuote.waitForSelector(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element);
             await pageQuote.select(populatedData[`vehiclePrimaryUsedForDelivery${j}`].element, populatedData[`vehiclePrimaryUsedForDelivery${j}`].value);
+            try{
+              await pageQuote.select(populatedData[`vehicleAutomaticBraking${j}`].element, populatedData[`vehicleAutomaticBraking${j}`].value);
+            }catch(e){
+              console.log('no vehicleAutomaticBraking field');
+            }
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await driverStep(pageQuote, dataObject, populatedData);
@@ -1646,6 +1651,7 @@ module.exports = {
             }
           }
           for (const j in dataObject.drivers) {
+            console.log(' j >>>>>',j);
             if (j === 0) {
               await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
             }
@@ -1681,7 +1687,7 @@ module.exports = {
             const drvrYearsLic = await pageQuote.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
             await pageQuote.waitFor(600);
             await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
-            // await pageQuote.waitFor(600);
+            await pageQuote.waitFor(600);
 
             await pageQuote.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
 
