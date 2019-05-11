@@ -127,7 +127,10 @@ module.exports = {
             await dialog.dismiss();
           });
           console.log(' 5 >>>>>');
-          await page.evaluate(() => document.querySelector('#NextButton').click());
+          await page.screenshot({ path: 'error.png' });
+          await page.click('#NextButton');
+          // await page.evaluate(() => document.querySelector('#NextButton').click());
+
           const populatedData = await populateKeyValueData();
           console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
