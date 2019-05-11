@@ -85,7 +85,7 @@ module.exports = {
         yearsVehicleOwned: '5',
       };
       const bodyData = data;
-
+      bodyData.drivers.splice(10,bodyData.drivers.length);
       await startPage();
 
       async function startPage() {
@@ -118,16 +118,19 @@ module.exports = {
           await page.waitFor(2000);
           console.log(' 3 >>>>>');
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
-          await page.waitFor(2000);
+          await page.waitFor(3000);
           console.log(' 4 >>>>>');
 
           // await page.evaluate(()=>document.querySelector('div[class="quote-button filed-link"] > a').click())
-          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'load' });
+          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
-            await dialog.dismiss();
+            try{
+              await dialog.dismiss();
+            }catch(e){
+              console.log('dialog close');
+            }
           });
           console.log(' 5 >>>>>');
-          await page.screenshot({ path: 'error.png' });
           await page.click('#NextButton');
           // await page.evaluate(() => document.querySelector('#NextButton').click());
 
@@ -298,8 +301,8 @@ module.exports = {
             }
 
 
-            await page.waitFor(1000);
-            await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            await page.waitFor(2000);
+            //await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
 
             await page.evaluate((firstName) => {
               (document.getElementById(firstName.elementId)).value = firstName.value;
@@ -398,6 +401,7 @@ module.exports = {
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
+          await page.screenshot({ path: 'error.png' });
           console.log('err driverStep:', err.stack);
           const response = { error: 'There is some error validations at driverStep' };
           dataObject.results = {
