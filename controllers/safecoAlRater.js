@@ -104,8 +104,10 @@ module.exports = {
         await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
         await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
         await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
+        console.log(' 1 >>>>>');
         await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
-        await page.waitForNavigation({ timeout: 0 });
+        await page.waitForNavigation({ waitUntil : 'load' });
+        console.log(' 2 >>>>>');
         await newQuoteStep();
       }
 
@@ -114,15 +116,20 @@ module.exports = {
         try {
           console.log('newQuoteStep');
           await page.waitFor(2000);
+          console.log(' 3 >>>>>');
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
           await page.waitFor(2000);
+          console.log(' 4 >>>>>');
+
           // await page.evaluate(()=>document.querySelector('div[class="quote-button filed-link"] > a').click())
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'load' });
           page.on('dialog', async (dialog) => {
             await dialog.dismiss();
           });
+          console.log(' 5 >>>>>');
           await page.evaluate(() => document.querySelector('#NextButton').click());
           const populatedData = await populateKeyValueData();
+          console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
         } catch (err) {
           console.log('err newQuoteStep:', err);
@@ -137,7 +144,7 @@ module.exports = {
 
       // For Named Insured Form
       async function policyInformation(dataObject, populatedData) {
-        console.log('namedInsuredStep');
+        console.log('policyInformation');
 
         try {
           await page.waitFor(1000);
