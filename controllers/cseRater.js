@@ -892,6 +892,7 @@ module.exports = {
         title: 'CSE CA Rate Retrieved Successfully',
         obj: bodyData.results,
       };
+      browser.close();
       return next();
       // req.session.data = {
       //   premiumDetails,

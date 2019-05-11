@@ -768,7 +768,7 @@ module.exports = {
         title: 'safeco AL Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-
+      browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error);

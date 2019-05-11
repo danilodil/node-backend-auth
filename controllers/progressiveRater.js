@@ -716,6 +716,7 @@ module.exports = {
         title: 'Progressive DE Rate Retrieved Successfully',
         obj: bodyData.results,
       };
+      browser.close();
       return next();
 
       // For dimiss alert dialog
@@ -1919,7 +1920,7 @@ module.exports = {
         title: 'Progressive AL Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-
+      browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error);
