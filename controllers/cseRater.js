@@ -1,4 +1,5 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef */
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations, consistent-return,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -95,64 +96,64 @@ module.exports = {
         haveAnotherProgressivePolicy: "No"
       }; */
       const staticDetailsObj = {
-        firstName: "Test",
-        lastName: "User",
-        birthDate: "12/16/1993",
-        email: "test@mail.com",
-        phone: "3026075611",
-        addressStreetName: "Market St",
-        addressStreetNumber: "969",
-        city: "San Diego",
-        state: "CA",
-        zipCode: "92101",
-        lengthAtAddress: "1 year or more",
-        priorInsurance: "Yes",
-        priorInsuranceCarrier: "USAA",
+        firstName: 'Test',
+        lastName: 'User',
+        birthDate: '12/16/1993',
+        email: 'test@mail.com',
+        phone: '3026075611',
+        addressStreetName: 'Market St',
+        addressStreetNumber: '969',
+        city: 'San Diego',
+        state: 'CA',
+        zipCode: '92101',
+        lengthAtAddress: '1 year or more',
+        priorInsurance: 'Yes',
+        priorInsuranceCarrier: 'USAA',
         // must always agree to closure
         vehicles: [
           {
             // Vehicle Type will always be 1981 or newer
-            vehicleVin: "1FTSF30L61EC23425",
-            vehicleModelYear: "2015",
-            vehicleManufacturer: "FORD",
-            vehicleModel: "F350",
-            body: "EXT CAB (8CYL 4x2)",
-            zipCode: "19934",
-            lengthOfOwnership: "At least 1 year but less than 3 years",
-            primaryUse: "Commute",
+            vehicleVin: '1FTSF30L61EC23425',
+            vehicleModelYear: '2015',
+            vehicleManufacturer: 'FORD',
+            vehicleModel: 'F350',
+            body: 'EXT CAB (8CYL 4x2)',
+            zipCode: '19934',
+            lengthOfOwnership: 'At least 1 year but less than 3 years',
+            primaryUse: 'Commute',
             vehicleAnnualDistance: '15000',
             vehicleDaysDrivenPerWeek: '4 days',
             vehicleCommuteMilesDrivenOneWay: '2000',
-          }
+          },
         ],
         drivers: [
           {
-            firstName: "Test",
-            lastName: "User",
-            birthDate: "12/16/1993",
-            applicantGenderCd: "Male",
-            maritalStatus: "Married",
-            yearsLicensed: "3 years or more",
-            driverLicensedDt: "12/20/2013",
-            driverLicenseNumber: "123456789",
-            employment: "Student (full-time)",
-            education: "College Degree",
-          }
+            firstName: 'Test',
+            lastName: 'User',
+            birthDate: '12/16/1993',
+            applicantGenderCd: 'Male',
+            maritalStatus: 'Married',
+            yearsLicensed: '3 years or more',
+            driverLicensedDt: '12/20/2013',
+            driverLicenseNumber: '123456789',
+            employment: 'Student (full-time)',
+            education: 'College Degree',
+          },
         ],
-        priorIncident: "AAD - At Fault Accident",
-        priorIncidentDate: "12/16/2012",
-        policyEffectiveDate: "01/01/2018",
-        priorPolicyTerminationDate: "03/15/2019",
-        yearsWithPriorInsurance: "5 years or more",
-        ownOrRentPrimaryResidence: "Rent",
-        numberOfResidentsInHome: "3",
-        rentersLimits: "Greater Than 300,000",
-        haveAnotherProgressivePolicy: "No"
-      }; 
+        priorIncident: 'AAD - At Fault Accident',
+        priorIncidentDate: '12/16/2012',
+        policyEffectiveDate: '01/01/2018',
+        priorPolicyTerminationDate: '03/15/2019',
+        yearsWithPriorInsurance: '5 years or more',
+        ownOrRentPrimaryResidence: 'Rent',
+        numberOfResidentsInHome: '3',
+        rentersLimits: 'Greater Than 300,000',
+        haveAnotherProgressivePolicy: 'No',
+      };
       const bodyData = await cleanObj(req.body.data);
       bodyData.results = {};
       function cleanObj(obj) {
-        for (var propName in obj) { 
+        for (const propName in obj) {
           if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
             delete obj[propName];
           }
@@ -574,8 +575,7 @@ module.exports = {
       async function newQuoteStep(browser, page, populatedData) {
         console.log('newQuoteStep');
 
-        try{
-
+        try {
           const AllPages = await browser.pages();
           if (AllPages.length > 2) {
             for (let i = 2; i < AllPages.length; i += 1) {
@@ -604,13 +604,14 @@ module.exports = {
           const { underwriting } = populatedData;
 
           await page.waitFor(1000);
-          page.on('dialog', async dialog => {
+          page.on('dialog', async (dialog) => {
             console.log(dialog.message());
             await dialog.dismiss();
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          page.on('console', msg => console.log('PAGE LOG:', msg._text));
+          // page.on('console', msg => console.log('PAGE LOG:', msg._text));
+          page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
               // console.log(JSON.stringify(oneElement));
@@ -668,8 +669,8 @@ module.exports = {
             document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
           });
           await page.click('#NextPage');
-      }catch(e){
-        console.log('error at newQuoteStep :: ',e);
+        } catch (e) {
+          console.log('error at newQuoteStep :: ', e);
           const response = { error: 'There is some error validations at newQuoteStep' };
           bodyData.results = {
             status: false,
@@ -681,25 +682,22 @@ module.exports = {
             obj: bodyData.results,
           };
           return next();
-      }
+        }
         await vehicleStep(browser, page, populatedData);
       }
 
       // add vehicle
       async function vehicleStep(browser, page, populatedData) {
         console.log('vehicleStep');
-        try{
-
+        try {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
 
-            await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
             await page.waitFor(5000);
-
             // await page.waitForSelector('select[name="VehicleSelectionController"]');
-            //await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
-            await page.evaluate(()=> document.querySelector('#VehicleSelectionController').value = 'Private Passenger Vehicle');
-            await page.evaluate(()=> document.querySelector('#VehicleSelectionController').onchange());
+            // await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
+            await page.evaluate(() => document.querySelector('#VehicleSelectionController').value = 'Private Passenger Vehicle');
+            await page.evaluate(() => document.querySelector('#VehicleSelectionController').onchange());
 
             await page.waitFor(2000);
             // await page.waitForSelector('#Main > div:nth-child(18)');
@@ -750,8 +748,8 @@ module.exports = {
               await page.click('#Return');
             }
           }
-        }catch(e){
-          console.log('error at vehicleStep :: ',e);
+        } catch (e) {
+          console.log('error at vehicleStep :: ', e);
           const response = { error: 'There is some error validations at vehicleStep' };
           bodyData.results = {
             status: false,
@@ -771,11 +769,11 @@ module.exports = {
       async function policyStep(browser, page, populatedData) {
         console.log('policyStep');
         // Policy Coverage
-        const policyCoverage = populatedData.policyCoverage;
+        const { policyCoverage } = populatedData;
         await page.waitFor(4000);
-        await page.waitForSelector('#Line\\.BILimit')
+        await page.waitForSelector('#Line\\.BILimit');
         await page.evaluate((policyCoverage) => {
-          policyCoverage.forEach(oneElement => {
+          policyCoverage.forEach((oneElement) => {
             // console.log(JSON.stringify(oneElement))
             document.getElementById(oneElement.element).value = oneElement.value;
           });
@@ -788,7 +786,7 @@ module.exports = {
 
       // Add driver/ Non driver
       async function driverStep(browser, page, populatedData) {
-        try{
+        try {
           console.log('driverStep');
           await page.waitForSelector('#EditLink');
           await page.click('#EditLink');
@@ -808,7 +806,7 @@ module.exports = {
                 await page.select('select[name="DriverInfo.AttachedVehicleRef"]', primarilyDrives[1].value);
               }
             } else {
-              console.log('else j>>>>>>>>>>',j);
+              console.log('else j>>>>>>>>>>', j);
               await page.waitFor(2000);
               await page.evaluate((driverDetails) => {
                 driverDetails.forEach((oneElement) => {
@@ -824,27 +822,26 @@ module.exports = {
             if (j === (bodyData.drivers.length - 1).toString()) {
               await page.click('#NextPage');
             } else {
-              console.log('new driver')
-              // await page.waitForSelector('#Return');
-              // await page.click('#Return');
-              console.log(' 1 >>>>>>>')
-              await page.evaluate(()=> document.querySelector('#Return').click());
-              //await page.waitForSelector('#DriverSelectionController');
-              await page.waitFor(2000);
-              await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-              console.log(' 2 >>>>>>>')
-              await page.waitFor(2000);
-              await page.select('#DriverSelectionController', 'Non-Driver');
+              try {
+                // await page.waitForSelector('#Return');
+                // await page.click('#Return');
+                console.log(' 1 >>>>>>>');
+                await page.evaluate(() => document.querySelector('#Return').click());
+                // await page.waitForSelector('#DriverSelectionController');
+                await page.waitFor(2000);
 
-              //await page.evaluate(()=> document.querySelector('#DriverSelectionController').value = 'Non-Driver');
-              console.log(' 3 >>>>>>>')
-              //await page.evaluate(()=> document.querySelector('select[name="DriverSelectionController"]').onchange(''));
-             //console.log(' 4 >>>>>>>')
-              //await page.select('#DriverSelectionController', 'Non-Driver');
+                await page.evaluate(() => document.querySelector('#DriverSelectionController').value = 'Non-Driver');
+                console.log(' 2 >>>>>>>');
+                await page.evaluate(() => document.querySelector('select[name="DriverSelectionController"]').onchange(''));
+                console.log(' 3 >>>>>>>');
+                // await page.select('#DriverSelectionController', 'Non-Driver');
+              } catch (e) {
+                console.log(e.message);
+              }
             }
           }
-        }catch(e){
-          console.log('driverStep error',e)
+        } catch (e) {
+          console.log('driverStep error', e);
           const response = { error: 'There is some error validations at driverStep' };
           bodyData.results = {
             status: false,
@@ -895,12 +892,11 @@ module.exports = {
         title: 'CSE CA Rate Retrieved Successfully',
         obj: bodyData.results,
       };
+      browser.close();
       return next();
       // req.session.data = {
       //   premiumDetails,
       // };
-    
-      return next();
     } catch (error) {
       console.log('error >> ', error);
       return next(Boom.badRequest('Error retrieving cse rate'));

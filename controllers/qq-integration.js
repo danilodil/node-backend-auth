@@ -1,3 +1,5 @@
+/* eslint-disable consistent-return */
+
 const ClientOAuth2 = require('client-oauth2');
 const request = require('request-promise');
 const Boom = require('boom');

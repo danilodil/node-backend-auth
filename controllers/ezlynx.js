@@ -1,15 +1,18 @@
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,consistent-return,camelcase,no-plusplus,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition,camelcase */
+
 const request = require('request-promise');
 const Boom = require('boom');
-const fs = require('fs');
-const path = require('path');
+// const fs = require('fs');
+// const path = require('path');
 
-const xml2js = require('xml2js');
+// const xml2js = require('xml2js');
 
-const parser = new xml2js.Parser({ attrskey: 'ATTR' });
+// const parser = new xml2js.Parser({ attrskey: 'ATTR' });
 const base64 = require('base-64');
 const jsonxml = require('jsontoxml');
 const format = require('xml-formatter');
-const libxmljs = require('libxmljs');
+// const libxmljs = require('libxmljs');
 const stringSimilarity = require('string-similarity');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
@@ -18,44 +21,42 @@ const appConstant = require('../constants/appConstant').ezLynx;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const { username } = req.body.decoded_vendor
+      const { username } = req.body.decoded_vendor;
 
-
-      
 
       const returnIndustry = async (occ) => {
-         const students = ['Graduate Student', 'High school', 'Undergraduate'];
-         const agricultures = ['Agriculture Inspector/Grader', 'Arborist', 'Clerk', 'Equipment Operator', 'Farm/Ranch Owner', 'Farm/Ranch Worker', 'Fisherman', 
-                               'Florist', 'Laborer/Worker', 'Landscaper/Nursery Worker', 'Landscaper', 'Logger', 'Mill worker', 'Ranger', 'Timber Grader/Scale'];
-         const arts = ['Actor', 'Announcer/Broadcaster', 'Artist/Animator', 'Author/Writer', 'Choreography/Dancer', 'Composer/Director', 
-                               'Curator', 'Designer', 'Editor', 'Journalist/Reporter', 'Musician/Singer', 'Printer', 'Producer', 'Production Crew', 'Projectionist', 'Receptionist/Secretary', 'Ticket Sales/Usher'];
-         const bankings = ['Accountant/Auditor', 'Analyst/Broker', 'Bookkeeper', 'Branch Manager', 'Clerk', 'Collections', 
-                               'Consultant', 'Controller', 'CSR/Teller', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production', 
-                               'Manager-Property', 'Realtor', 'Receptionist/Secretary', 'Sales Agent/Representative', 'Trader, Financial Instruments', 'Underwriter'];
-         const business = ['Account Executive', 'Administrative Assistant', 'Buyer', 'Customer Service Representative', 'H.R. Representative', 'Marketing Researcher', 'Messenger/Courier', 'Manager - District', 'Manager - Finance', 'Manager - Department/Store' ,
-                               'Consultant', 'Controller', 'CSR/Teller', 'Director/Administrator', 'Executive', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production', 
-                               'Manager - General Operations', 'Manager - H.R./Public Relations', 'Manager - Marketing/Sales', 'Manager/Supervisor - Office', 'Receptionist/Secretary', 'Sales-Counter/Rental', 'Sales-Home Based', 'Sales Agent/Representative', 'Sales-Manufacture Rep', 
-                               'Sales-Retail/Wholesale', 'Sales-Route/Vendor',];
-         if (occ === 'Homemaker/House person') {
-            return 'Homemaker/House person';
-         } else if (occ === 'Retired') {
-            return 'Retired';
-         } else if (occ === 'Disabled') {
-            return 'Disabled';
-         } else if (occ === 'Unemployed') {
-            return 'Unemployed';
-         } else if (students.indexOf(occ) > -1) {
-            return 'Student';
-         } else if (agricultures.indexOf(occ) > -1) {
-            return 'Agriculture/Forestry/Fishing';
-         } else if (arts.indexOf(occ) > -1) {
-            return 'Art/Design/Media';
-         } else if (bankings.indexOf(occ) > -1) {
-            return 'Banking/Finance/Real Estate';
-         } else if (business.indexOf(occ) > -1) {
-            return 'Business/Sales/Office';
-         }
-         // Stopped on Constuction Energy
+        const students = ['Graduate Student', 'High school', 'Undergraduate'];
+        const agricultures = ['Agriculture Inspector/Grader', 'Arborist', 'Clerk', 'Equipment Operator', 'Farm/Ranch Owner', 'Farm/Ranch Worker', 'Fisherman',
+          'Florist', 'Laborer/Worker', 'Landscaper/Nursery Worker', 'Landscaper', 'Logger', 'Mill worker', 'Ranger', 'Timber Grader/Scale'];
+        const arts = ['Actor', 'Announcer/Broadcaster', 'Artist/Animator', 'Author/Writer', 'Choreography/Dancer', 'Composer/Director',
+          'Curator', 'Designer', 'Editor', 'Journalist/Reporter', 'Musician/Singer', 'Printer', 'Producer', 'Production Crew', 'Projectionist', 'Receptionist/Secretary', 'Ticket Sales/Usher'];
+        const bankings = ['Accountant/Auditor', 'Analyst/Broker', 'Bookkeeper', 'Branch Manager', 'Clerk', 'Collections',
+          'Consultant', 'Controller', 'CSR/Teller', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production',
+          'Manager-Property', 'Realtor', 'Receptionist/Secretary', 'Sales Agent/Representative', 'Trader, Financial Instruments', 'Underwriter'];
+        const business = ['Account Executive', 'Administrative Assistant', 'Buyer', 'Customer Service Representative', 'H.R. Representative', 'Marketing Researcher', 'Messenger/Courier', 'Manager - District', 'Manager - Finance', 'Manager - Department/Store',
+          'Consultant', 'Controller', 'CSR/Teller', 'Director/Administrator', 'Executive', 'Financial Advisor', 'Investment Banker', 'Investor', 'Loan/Escrow Processor', 'Manager-Credit/Loan', 'Manager-Portfolio/Production',
+          'Manager - General Operations', 'Manager - H.R./Public Relations', 'Manager - Marketing/Sales', 'Manager/Supervisor - Office', 'Receptionist/Secretary', 'Sales-Counter/Rental', 'Sales-Home Based', 'Sales Agent/Representative', 'Sales-Manufacture Rep',
+          'Sales-Retail/Wholesale', 'Sales-Route/Vendor'];
+        if (occ === 'Homemaker/House person') {
+          return 'Homemaker/House person';
+        } if (occ === 'Retired') {
+          return 'Retired';
+        } if (occ === 'Disabled') {
+          return 'Disabled';
+        } if (occ === 'Unemployed') {
+          return 'Unemployed';
+        } if (students.indexOf(occ) > -1) {
+          return 'Student';
+        } if (agricultures.indexOf(occ) > -1) {
+          return 'Agriculture/Forestry/Fishing';
+        } if (arts.indexOf(occ) > -1) {
+          return 'Art/Design/Media';
+        } if (bankings.indexOf(occ) > -1) {
+          return 'Banking/Finance/Real Estate';
+        } if (business.indexOf(occ) > -1) {
+          return 'Business/Sales/Office';
+        }
+        // Stopped on Constuction Energy
       };
 
       const returnClosestOccupation = async (oc) => {
@@ -118,7 +119,7 @@ module.exports = {
                   ...(await returnValue(driver.children.DLState) !== '' && { DLState: await returnValue(driver.children.DLState) }),
                   ...(await returnValue(driver.children.MaritalStatus) !== '' && { MaritalStatus: await returnValue(driver.children.MaritalStatus) }),
                   Relation: 'Insured',
-                  ... (await returnValue(driver.children.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(driver.children.Occupation)))}),
+                  ...(await returnValue(driver.children.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(driver.children.Occupation))) }),
                   ...(await returnValue(driver.children.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(driver.children.Occupation)) }),
                 },
               ],
@@ -240,7 +241,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)))}),
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation))) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
             Relation: 'Insured',
@@ -316,7 +317,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && {Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)))}),
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation))) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
             Relation: 'Insured',
@@ -493,20 +494,20 @@ module.exports = {
       let url = 'Upload Failed';
 
       if (response && response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
-         url = response.match(/<URL>(.*)<\/URL>/)[1]
+        url = response.match(/<URL>(.*)<\/URL>/)[1];
       }
 
       req.session.data = {
         title: 'Contact created successfully',
         body: newResponse,
         fullBody: response,
-        url: url,
+        url,
         xml: format(xml_body),
         json: req.params.type === 'Home' ? applicantHome : applicantAuto,
       };
       return next();
     } catch (error) {
-       console.log(error);
+      console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
