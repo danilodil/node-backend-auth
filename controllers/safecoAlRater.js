@@ -127,7 +127,6 @@ module.exports = {
             await dialog.dismiss();
           });
           console.log(' 5 >>>>>');
-          await page.screenshot({ path: 'error.png' });
           await page.click('#NextButton');
           // await page.evaluate(() => document.querySelector('#NextButton').click());
 
@@ -398,6 +397,7 @@ module.exports = {
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
+          await page.screenshot({ path: 'error.png' });
           console.log('err driverStep:', err.stack);
           const response = { error: 'There is some error validations at driverStep' };
           dataObject.results = {
