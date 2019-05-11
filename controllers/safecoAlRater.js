@@ -89,13 +89,16 @@ module.exports = {
       await startPage();
 
       async function startPage() {
-        await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'load' });
+        await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
+        console.log(' startPage 1 >>>>>');
         await page.evaluate(() => {
           const insuranceType = document.querySelector('#div2 > input[type="radio"]');
           insuranceType.click();
         });
+        console.log('startPage 2 >>>>>');
         await page.click('input[class="DPeCButton"]');
+        console.log('startPage 3 >>>>>');
         await loginStep();
       }
 
