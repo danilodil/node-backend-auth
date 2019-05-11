@@ -734,7 +734,7 @@ module.exports = {
         title: 'National AL Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-
+      browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error.stack);
