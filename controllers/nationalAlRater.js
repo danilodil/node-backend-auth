@@ -182,7 +182,6 @@ module.exports = {
       };
       const bodyData = data;
 
-
       // For login
       await loginStep();
 
@@ -249,7 +248,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await Drivers(dataObject, populatedData);
         } catch (err) {
-          console.log('err namedInsuredStep:', err);
+          console.log('err namedInsuredStep:');
           const response = { error: 'There is some error validations at namedInsuredStep' };
           dataObject.results = {
             status: false,
@@ -268,9 +267,8 @@ module.exports = {
           for (const j in dataObject.drivers) {
             if (j < dataObject.drivers.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredDriverLabel1_btnAddDriver"]');
-              console.log(addElement);
               await addElement.click();
-              await page.waitFor(1000);
+              await page.waitFor(2000);
             }
           }
           await page.waitFor(4000);
@@ -403,6 +401,7 @@ module.exports = {
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
           await page.waitFor(600);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
+          await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
 
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
@@ -735,7 +734,7 @@ module.exports = {
         title: 'National AL Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-
+      browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error.stack);

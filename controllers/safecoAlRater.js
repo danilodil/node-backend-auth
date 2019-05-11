@@ -85,17 +85,20 @@ module.exports = {
         yearsVehicleOwned: '5',
       };
       const bodyData = data;
-
+      bodyData.drivers.splice(10,bodyData.drivers.length);
       await startPage();
 
       async function startPage() {
-        await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'load' });
+        await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
+        console.log(' startPage 1 >>>>>');
         await page.evaluate(() => {
           const insuranceType = document.querySelector('#div2 > input[type="radio"]');
           insuranceType.click();
         });
+        console.log('startPage 2 >>>>>');
         await page.click('input[class="DPeCButton"]');
+        console.log('startPage 3 >>>>>');
         await loginStep();
       }
 
@@ -104,8 +107,10 @@ module.exports = {
         await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
         await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
         await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
+        console.log(' 1 >>>>>');
         await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
-        await page.waitForNavigation({ timeout: 0 });
+        await page.waitForNavigation({ waitUntil : 'load' });
+        console.log(' 2 >>>>>');
         await newQuoteStep();
       }
 
@@ -114,15 +119,26 @@ module.exports = {
         try {
           console.log('newQuoteStep');
           await page.waitFor(2000);
+          console.log(' 3 >>>>>');
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
-          await page.waitFor(2000);
+          await page.waitFor(3000);
+          console.log(' 4 >>>>>');
+
           // await page.evaluate(()=>document.querySelector('div[class="quote-button filed-link"] > a').click())
-          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'load' });
+          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
-            await dialog.dismiss();
+            try{
+              await dialog.dismiss();
+            }catch(e){
+              console.log('dialog close');
+            }
           });
-          await page.evaluate(() => document.querySelector('#NextButton').click());
+          console.log(' 5 >>>>>');
+          await page.click('#NextButton');
+          // await page.evaluate(() => document.querySelector('#NextButton').click());
+
           const populatedData = await populateKeyValueData();
+          console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
         } catch (err) {
           console.log('err newQuoteStep:', err);
@@ -137,7 +153,7 @@ module.exports = {
 
       // For Named Insured Form
       async function policyInformation(dataObject, populatedData) {
-        console.log('namedInsuredStep');
+        console.log('policyInformation');
 
         try {
           await page.waitFor(1000);
@@ -288,8 +304,8 @@ module.exports = {
             }
 
 
-            await page.waitFor(1000);
-            await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            await page.waitFor(2000);
+            //await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
 
             await page.evaluate((firstName) => {
               (document.getElementById(firstName.elementId)).value = firstName.value;
@@ -388,6 +404,7 @@ module.exports = {
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
+          await page.screenshot({ path: 'error.png' });
           console.log('err driverStep:', err.stack);
           const response = { error: 'There is some error validations at driverStep' };
           dataObject.results = {
@@ -751,7 +768,7 @@ module.exports = {
         title: 'safeco AL Rate Retrieved Successfully',
         obj: bodyData.results,
       };
-
+      browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error);
