@@ -78,10 +78,12 @@ module.exports = {
       return next(Boom.badRequest('Invalid Data'));
     }
 
+    console.log('req.body',req.body.vendorName)
     const newRater = {
       where: {
         companyId,
         clientId,
+        vendorName: req.body.vendorName
       },
       attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium'],
     };

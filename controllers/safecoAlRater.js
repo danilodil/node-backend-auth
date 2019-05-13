@@ -13,7 +13,7 @@ module.exports = {
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
-      console.log('body data', req.body.data);
+
       // Request input data
       const data = {
         firstName: req.body.data.firstName,
@@ -27,28 +27,7 @@ module.exports = {
         socialSecurityStatus: 'R',
         reasonForPolicy: 'N',
         drivers: req.body.data.drivers,
-        /*  drivers: [
-           {
-             firstName: "Test",
-             lastName: "User",
-             dateOfBirth: "12/16/1993",
-             gender: "Male",
-             maritalStatus: "Married",
-             relationship: "D",
-             licenseState: "AL",
-             ageWhen1stLicensed: "21",
-             commonOccupation: "Manager",
-             education: "BS",
-           },
-         ], */
         vehicles: req.body.data.vehicles,
-        /* vehicles: [
-          {
-            vehicleVin: "KMHDH6AE1DU001708",
-          }, {
-            vehicleVin: "1FTSF30L61EC23425",
-          }
-        ] */
       };
 
       const staticDataObj = {
@@ -123,8 +102,6 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
           await page.waitFor(3000);
           console.log(' 4 >>>>>');
-
-          // await page.evaluate(()=>document.querySelector('div[class="quote-button filed-link"] > a').click())
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
             try{
@@ -135,8 +112,6 @@ module.exports = {
           });
           console.log(' 5 >>>>>');
           await page.click('#NextButton');
-          // await page.evaluate(() => document.querySelector('#NextButton').click());
-
           const populatedData = await populateKeyValueData();
           console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
@@ -181,7 +156,6 @@ module.exports = {
           await page.type(populatedData.mailingAddress.element, populatedData.mailingAddress.value);
           await page.click(populatedData.zipCode.element);
           await page.type(populatedData.zipCode.element, populatedData.zipCode.value);
-          // await page.waitFor(2000)
           await page.click(populatedData.city.element);
           if (await page.waitForSelector('#PolicyProducerName')) {
             await page.click(populatedData.city.element);
@@ -223,6 +197,14 @@ module.exports = {
             status: false,
             response,
           };
+          try{
+            const errorMessage = await page.evaluate(() => document.querySelector('#PolicyKickoutReasonSpan').innerText);
+            if(errorMessage){
+              dataObject.results.response = { error: 'The site is down for now' };
+            }
+          }catch(e){
+            console.log('site not down ')
+          }
         }
       }
 
@@ -258,7 +240,6 @@ module.exports = {
         try {
           try {
             await page.waitFor(1000);
-
             await page.waitForSelector('#PolicyDriverCandidates2CandidateRelationship', { timeout: 4000 });
             await page.select(populatedData.peopleInhouseHold1.element, populatedData.peopleInhouseHold1.value);
             await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
@@ -268,7 +249,12 @@ module.exports = {
             await page.evaluate(() => document.querySelector('#Continue').click());
             await Drivers(dataObject, populatedData);
           } catch (err) {
-            console.log('houseHold catch', err);
+            console.log('houseHold catch');
+            try{
+              await page.evaluate(() => document.querySelector('#Continue').click());
+            }catch(e){
+              console.log('no next button');
+            }
             await Drivers(dataObject, populatedData);
           }
         } catch (e) {
@@ -305,8 +291,6 @@ module.exports = {
 
 
             await page.waitFor(2000);
-            //await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
-
             await page.evaluate((firstName) => {
               (document.getElementById(firstName.elementId)).value = firstName.value;
             }, populatedData[`driverFirstName${j}`]);
@@ -374,18 +358,9 @@ module.exports = {
             }
           }
 
-
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#Continue').click());
           await page.waitFor(5000);
-
-          // if (page.$('[id="ui-dialog-title-1"]')) {
-          //   await page.evaluate(() => {
-          //     const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
-          //     dismissDialog.click();
-          //   });
-          // }
-
           try {
             if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
               await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
@@ -400,11 +375,10 @@ module.exports = {
             await page.waitFor(5000);
             await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
-            console.log('error', e.message);
+            console.log('move to vehicles');
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
-          await page.screenshot({ path: 'error.png' });
           console.log('err driverStep:', err.stack);
           const response = { error: 'There is some error validations at driverStep' };
           dataObject.results = {
@@ -765,14 +739,14 @@ module.exports = {
 
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
-        title: 'safeco AL Rate Retrieved Successfully',
+        title: bodyData.results.status === true ? 'Successfully retrieved safeco AL rate.' : 'Failed to retrieved safeco AL rate.',
         obj: bodyData.results,
       };
       browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error);
-      return next(Boom.badRequest('Error retrieving in safeco AL Rater'));
+      return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));
     }
   },
 };
