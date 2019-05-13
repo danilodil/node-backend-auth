@@ -12,9 +12,6 @@ module.exports = {
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
-
-      // Request input data
-      // let bodyData = req.body.data;
       const data = {
         producer: '610979',
         inputBy: '20000739',
@@ -37,92 +34,6 @@ module.exports = {
         drivers: req.body.data.drivers,
         vehicles: req.body.data.vehicles,
       };
-
-      /* const data = {
-        newQuoteState: 'AL',
-        newQuoteProduct: 'PPA',
-        producer: '610979',
-        inputBy: '20000739',
-        plan: 'G5',
-        firstName: 'Test',
-        middleName: 'TEST',
-        lastName: 'User',
-        suffixName: 'IV',
-        emailOption: 'EmailProvided',
-        email: 'test@mail.com',
-        birthDate: '12/16/1993',
-        mailingAddress: '216 Humphreys Dr',
-        phone1: '455',
-        phone2: '555',
-        phone3: '5555',
-        phoneType: '3',
-        city: 'Dover',
-        state: 'Delaware',
-        zipCode: '19934',
-        hasMovedInLast60Days: 'False',
-        security1: '122',
-        security2: '22',
-        security3: '2222',
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            applicantBirthDt: '12/16/1993',
-            gender: 'Male',
-            maritalStatus: 'Single',
-            relationShip: 'Named Insured',
-            driverStatus: 'Rated Driver',
-            yearOfExperiance: '8',
-            driverLicenseStatus: 'Permit',
-            smartDrive: 'True',
-            licenseState: 'IN',
-          },
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            applicantBirthDt: '12/16/1993',
-            gender: 'Male',
-            maritalStatus: 'Single',
-            relationShip: 'Spouse',
-            driverStatus: 'Rated Driver',
-            yearOfExperiance: '5',
-            driverLicenseStatus: 'Valid',
-            smartDrive: 'True',
-            licenseState: 'AL',
-          },
-        ],
-        vehicles: [
-          {
-            vehicleVin: 'KMHDH6AE1DU001708',
-            vtype: 'PPA',
-            modelYear: '2013',
-            make: 'HYUN',
-            model: 'SANTA FE G',
-            style: 'WAGON 4 DOOR 4 Cyl 4x2',
-            primaryUse: 'Business',
-            antiTheft: 'Recovery Device',
-            garagingState: 'AL',
-            garagingzipCode: '36016',
-            ownershipStatus: 'Owned',
-            vehicleType: 'Private Passenger Auto',
-          },
-          {
-            vehicleVin: 'KMHDH6AE1DU001709',
-            vtype: 'PPA',
-            modelYear: '2013',
-            make: 'HYUN',
-            model: 'SANTA FE G',
-            style: 'WAGON 4 DOOR 4 Cyl 4x2',
-            primaryUse: 'Business',
-            antiTheft: 'Recovery Device',
-            garagingState: 'AL',
-            garagingzipCode: '36016',
-            ownershipStatus: 'Owned',
-            vehicleType: 'Private Passenger Auto',
-          },
-        ],
-      }; */
-
       const staticDataObj = {
         newQuoteState: 'AL',
         newQuoteProduct: 'PPA',
@@ -181,13 +92,13 @@ module.exports = {
         ],
       };
       const bodyData = data;
-
+      bodyData.drivers.splice(10,bodyData.drivers.length);
       // For login
       await loginStep();
 
       // For Login
       async function loginStep() {
-        await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+        await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' }); // wait until page load
         // await page.setViewport({ width: 1500, height: 920 });
         await page.waitForSelector('#txtUserID');
         await page.type('#txtUserID', username);
@@ -201,7 +112,7 @@ module.exports = {
       // For redirect to new quoate form
       async function newQuoteStep(dataObject, populatedData) {
         console.log('newQuoteStep');
-        await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'load' });
+        await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector(populatedData.newQuoteState.element);
         await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
         await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
@@ -215,12 +126,13 @@ module.exports = {
         console.log('namedInsuredStep');
 
         try {
-          await page.goto(nationalGeneralAlRater.NAMED_INSURED_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralAlRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
             await dialog.dismiss();
             // await browser.close();
           });
 
+          await page.waitFor(2000);
           await page.waitForSelector(populatedData.producer.element);
           await page.select(populatedData.producer.element, populatedData.producer.value);
           await page.select(populatedData.inputBy.element, populatedData.inputBy.value);
@@ -295,7 +207,9 @@ module.exports = {
             }, populatedData[`driverDateOfBirth${j}`]);
             await page.evaluate(selectedValue, populatedData[`driverGender${j}`].element, populatedData[`driverGender${j}`].value);
             await page.evaluate(selectedValue, populatedData[`driverMaritalStatus${j}`].element, populatedData[`driverMaritalStatus${j}`].value);
-            await page.evaluate(selectedValue, populatedData[`driverRelationship${j}`].element, populatedData[`driverRelationship${j}`].value);
+            if(j !== 0){
+              await page.evaluate(selectedValue, populatedData[`driverRelationship${j}`].element, populatedData[`driverRelationship${j}`].value);
+            }
             await page.evaluate(selectedValue, populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
             await page.evaluate((yearsOfExperiance) => {
               document.querySelector(yearsOfExperiance.element).value = yearsOfExperiance.value;
@@ -305,6 +219,12 @@ module.exports = {
             await page.select(populatedData[`licenseState${j}`].element, populatedData[`licenseState${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+          try{
+            await page.waitFor(3000);
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+          }catch(e){
+            console.log('move to vehicle')
+          }
           await vehicles(dataObject, populatedData);
         } catch (err) {
           const response = { error: 'There is some data error' };
@@ -323,8 +243,8 @@ module.exports = {
           await page.waitFor(2000);
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
-          for (const j in dataObject.drivers) {
-            if (j < dataObject.drivers.length - 1) {
+          for (const j in dataObject.vehicles) {
+            if (j < dataObject.vehicles.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredAutoLabel1_btnAddAuto"]');
               await addElement.click();
               await page.waitFor(2000);
@@ -391,9 +311,9 @@ module.exports = {
           await page.waitFor(1200);
           await page.waitForSelector(populatedData.priorInsuranceCo.element);
           await page.select(populatedData.priorInsuranceCo.element, populatedData.priorInsuranceCo.value);
-          await page.waitFor(1000);
+          await page.waitFor(1200);
           await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
-          await page.waitFor(700);
+          await page.waitFor(1200);
           await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
           await page.waitFor(600);
           await page.select(populatedData.recidentStatus.element, populatedData.recidentStatus.value);
@@ -406,6 +326,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
         } catch (err) {
+          console.log('error at underwriting ',err.stack)
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
@@ -597,7 +518,7 @@ module.exports = {
           },
           priorInsuranceCo: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlCurrentCarrier"]',
-            value: '540' || '',
+            value: '0' || '',
           },
           priorBICoverage: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlBICoverage"]',
@@ -649,7 +570,7 @@ module.exports = {
             };
             clientInputSelect[`driverRelationship${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlRelationship`,
-              value: 'Named Insured' || '',
+              value: 'Other' || '',
             };
             clientInputSelect[`driverStatus${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlDriverStatus']`,
@@ -731,14 +652,14 @@ module.exports = {
 
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
-        title: 'National AL Rate Retrieved Successfully',
+        title: bodyData.results.status === true ? 'Successfully retrieved national general AL rate.' : 'Failed to retrieved national general AL rate.',
         obj: bodyData.results,
       };
       browser.close();
       return next();
     } catch (error) {
       console.log('error >> ', error.stack);
-      return next(Boom.badRequest('Error retrieving national general al rater!'));
+      return next(Boom.badRequest('Failed to retrieved national general AL rate.'));
     }
   },
 };

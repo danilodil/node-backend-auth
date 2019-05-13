@@ -15,86 +15,6 @@ module.exports = {
       // const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
 
-      /* const bodyData = {
-        firstName: "Test",
-        lastName: "User",
-        birthDate: "12/16/1993",
-        email: "test@mail.com",
-        phone: "3026075611",
-        addressStreetName: "Market St",
-        addressStreetNumber: "969",
-        city: "San Diego",
-        state: "CA",
-        zipCode: "92101",
-        lengthAtAddress: "1 year or more",
-        priorInsurance: "Yes",
-        priorInsuranceCarrier: "USAA",
-        // must always agree to closure
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: "1FTSF30L61EC23425",
-            vehicleModelYear: "2015",
-            vehicleManufacturer: "FORD",
-            vehicleModel: "F350",
-            body: "EXT CAB (8CYL 4x2)",
-            zipCode: "19934",
-            lengthOfOwnership: "At least 1 year but less than 3 years",
-            primaryUse: "Commute",
-            vehicleAnnualDistance: '15000',
-            vehicleDaysDrivenPerWeek: '4 days',
-            vehicleCommuteMilesDrivenOneWay: '2000',
-          },
-          {
-            vehicleVin: "KMHDH6AE1DU001708",
-            vehicleModelYear: "2013",
-            vehicleManufacturer: "HYUNDAI",
-            vehicleModel: "ELANTRA",
-            body: "2DR 4CYL",
-            zipCode: "19934",
-            lengthOfOwnership: "5 years or more",
-            primaryUse: "Commute",
-            vehicleAnnualDistance: '15000',
-            vehicleDaysDrivenPerWeek: '4 days',
-            vehicleCommuteMilesDrivenOneWay: '2000',
-          }
-        ],
-        drivers: [
-          {
-            firstName: "Test",
-            lastName: "User",
-            birthDate: "12/16/1993",
-            applicantGenderCd: "Male",
-            maritalStatus: "Married",
-            yearsLicensed: "3 years or more",
-            driverLicensedDt: "12/20/2013",
-            driverLicenseNumber: "123456789",
-            employment: "Student (full-time)",
-            education: "College Degree",
-          },
-          {
-            firstName: "Tester",
-            lastName: "User",
-            birthDate: "12/18/1993",
-            applicantGenderCd: "Female",
-            maritalStatus: "Married",
-            yearsLicensed: "3 years or more",
-            driverLicensedDt: "12/20/2013",
-            driverLicenseNumber: "123456789",
-            employment: "Student (full-time)",
-            education: "College Degree",
-          }
-        ],
-        priorIncident: "AAD - At Fault Accident",
-        priorIncidentDate: "12/16/2012",
-        policyEffectiveDate: "01/01/2018",
-        priorPolicyTerminationDate: "03/15/2019",
-        yearsWithPriorInsurance: "5 years or more",
-        ownOrRentPrimaryResidence: "Rent",
-        numberOfResidentsInHome: "3",
-        rentersLimits: "Greater Than 300,000",
-        haveAnotherProgressivePolicy: "No"
-      }; */
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
@@ -633,14 +553,7 @@ module.exports = {
           await page.click('#NextPage');
           await page.waitForSelector('#Question_Acknowledgement');
           await page.waitFor(1000);
-          // await page.evaluate(() => {
-          //   document.getElementById('Question_Acknowledgement').value = 'YES';
-          //   document.getElementById('Question_cserules_isForRent').value = 'No';
-          //   document.getElementById('Question_cserules_isResidence').value = 'No';
-          //   document.getElementById('Question_cserules_notStreetLic').value = 'No';
-          //   document.getElementById('Question_cserules_useBusiness').value = 'Yes';
-          //   document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
-          // });
+
           await page.evaluate(() => {
             document.getElementById('Question_Acknowledgement').value = 'YES';
           });
@@ -678,9 +591,10 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'CSE CA Rate Retrieved Successfully',
+            title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
           };
+          browser.close();
           return next();
         }
         await vehicleStep(browser, page, populatedData);
@@ -694,16 +608,11 @@ module.exports = {
             const vehicles = populatedData[`vehicles${j}`];
 
             await page.waitFor(5000);
-            // await page.waitForSelector('select[name="VehicleSelectionController"]');
-            // await page.select('select[name="VehicleSelectionController"]', 'Private Passenger Vehicle');
             await page.evaluate(() => document.querySelector('#VehicleSelectionController').value = 'Private Passenger Vehicle');
             await page.evaluate(() => document.querySelector('#VehicleSelectionController').onchange());
-
             await page.waitFor(2000);
-            // await page.waitForSelector('#Main > div:nth-child(18)');
             await page.evaluate((vehiclesData) => {
               vehiclesData.forEach((oneElement) => {
-                // console.log(JSON.stringify(oneElement))
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicles);
@@ -757,9 +666,10 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'CSE CA Rate Retrieved Successfully',
+            title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
           };
+          browser.close();
           return next();
         }
         await policyStep(browser, page, populatedData);
@@ -774,7 +684,6 @@ module.exports = {
         await page.waitForSelector('#Line\\.BILimit');
         await page.evaluate((policyCoverage) => {
           policyCoverage.forEach((oneElement) => {
-            // console.log(JSON.stringify(oneElement))
             document.getElementById(oneElement.element).value = oneElement.value;
           });
         }, policyCoverage);
@@ -810,7 +719,6 @@ module.exports = {
               await page.waitFor(2000);
               await page.evaluate((driverDetails) => {
                 driverDetails.forEach((oneElement) => {
-                  // console.log(JSON.stringify(oneElement))
                   document.getElementById(oneElement.element).value = oneElement.value;
                 });
               }, editDriverDetails.nonDriver);
@@ -823,20 +731,15 @@ module.exports = {
               await page.click('#NextPage');
             } else {
               try {
-                // await page.waitForSelector('#Return');
-                // await page.click('#Return');
                 console.log(' 1 >>>>>>>');
                 await page.evaluate(() => document.querySelector('#Return').click());
-                // await page.waitForSelector('#DriverSelectionController');
                 await page.waitFor(2000);
-
                 await page.evaluate(() => document.querySelector('#DriverSelectionController').value = 'Non-Driver');
                 console.log(' 2 >>>>>>>');
                 await page.evaluate(() => document.querySelector('select[name="DriverSelectionController"]').onchange(''));
                 console.log(' 3 >>>>>>>');
-                // await page.select('#DriverSelectionController', 'Non-Driver');
               } catch (e) {
-                console.log(e.message);
+                console.log('new driver');
               }
             }
           }
@@ -849,9 +752,10 @@ module.exports = {
           };
           console.log('final result >> ', JSON.stringify(bodyData.results));
           req.session.data = {
-            title: 'CSE CA Rate Retrieved Successfully',
+            title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
           };
+          browser.close();
           return next();
         }
       }
@@ -889,17 +793,15 @@ module.exports = {
       };
       console.log('final result >> ', JSON.stringify(bodyData.results));
       req.session.data = {
-        title: 'CSE CA Rate Retrieved Successfully',
+        title: 'Successfully retrieved CSE CA rate.',
         obj: bodyData.results,
       };
       browser.close();
       return next();
-      // req.session.data = {
-      //   premiumDetails,
-      // };
+   
     } catch (error) {
       console.log('error >> ', error);
-      return next(Boom.badRequest('Error retrieving cse rate'));
+      return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
     }
   },
 };
