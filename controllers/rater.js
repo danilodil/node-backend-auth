@@ -34,12 +34,14 @@ module.exports = {
     const raterData = await Rater.findOne(existRater);
 
     if (raterData && req.session.data.obj.status) {
-      if ((req.session.data.totalPremium && raterData.totalPremium && parseInt(req.session.data.totalPremium) < parseInt(raterData.totalPremium.replace(/,/g, '')))) {
+      const currentPremium = parseFloat(req.session.data.totalPremium);
+      const previousPremium = parseFloat(raterData.totalPremium)
+      const isLessTotalPremium = req.session.data.totalPremium && raterData.totalPremium && currentPremium < previousPremium;
+      if (isLessTotalPremium) {
         const updateObj = {};
         if (req.session.data && req.session.data.totalPremium) {
           updateObj.totalPremium = req.session.data.totalPremium;
         }
-        delete req.session.data.totalPremium;
         updateObj.result = JSON.stringify(req.session.data);
         await raterData.update(updateObj);
       }
@@ -54,10 +56,10 @@ module.exports = {
       if (req.session.data && req.session.data.totalPremium) {
         newRater.totalPremium = req.session.data.totalPremium;
       }
-      delete req.session.data.totalPremium;
       newRater.result = JSON.stringify(req.session.data);
       await Rater.create(newRater);
     }
+    delete req.session.data.totalPremium;
     return next();
   },
   getRating: async (req, res, next) => {
@@ -98,8 +100,10 @@ module.exports = {
         bestRate.result = JSON.parse(bestRate.result);
       } else {
         oneRate.result = JSON.parse(oneRate.result);
-        if (oneRate.result.obj.status && parseInt(oneRate.totalPremium.replace(/,/g, '')) > 0 && parseInt(oneRate.totalPremium.replace(/,/g, '')) < parseInt(bestRate.totalPremium.replace(/,/g, ''))) {
-          console.log('oneRate >>>>', oneRate.totalPremium);
+        const currentTotalPremium = parseFloat(oneRate.totalPremium);
+        const previousTotalPremium = parseFloat(bestRate.totalPremium);
+        const isLessTotalPremium = oneRate.result.obj.status && currentTotalPremium < previousTotalPremium
+        if (isLessTotalPremium) {
           bestRate = oneRate;
         }
       }
