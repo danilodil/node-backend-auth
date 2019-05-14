@@ -28,6 +28,7 @@ module.exports = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
+        succeeded: true
       },
     };
 
@@ -36,11 +37,12 @@ module.exports = {
     if (raterData && req.session.data.obj.status) {
       const currentPremium = parseFloat(req.session.data.totalPremium);
       const previousPremium = parseFloat(raterData.totalPremium)
-      const isLessTotalPremium = req.session.data.totalPremium && raterData.totalPremium && currentPremium < previousPremium;
+      const isLessTotalPremium = req.session.data.totalPremium && raterData.totalPremium && (currentPremium < previousPremium);
       if (isLessTotalPremium) {
         const updateObj = {};
         if (req.session.data && req.session.data.totalPremium) {
           updateObj.totalPremium = req.session.data.totalPremium;
+          updateObj.succeeded = true;
         }
         updateObj.result = JSON.stringify(req.session.data);
         await raterData.update(updateObj);
@@ -55,6 +57,7 @@ module.exports = {
       };
       if (req.session.data && req.session.data.totalPremium) {
         newRater.totalPremium = req.session.data.totalPremium;
+        newRater.succeeded = true;
       }
       newRater.result = JSON.stringify(req.session.data);
       await Rater.create(newRater);
@@ -85,6 +88,7 @@ module.exports = {
       where: {
         companyId,
         clientId,
+        succeeded: true
       },
       attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium'],
     };
