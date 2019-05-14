@@ -64,7 +64,7 @@ module.exports = {
         yearsVehicleOwned: '5',
       };
       const bodyData = data;
-      bodyData.drivers.splice(10,bodyData.drivers.length);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
       await startPage();
 
       async function startPage() {
@@ -88,7 +88,7 @@ module.exports = {
         await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
         console.log(' 1 >>>>>');
         await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
-        await page.waitForNavigation({ waitUntil : 'load' });
+        await page.waitForNavigation({ waitUntil: 'load' });
         console.log(' 2 >>>>>');
         await newQuoteStep();
       }
@@ -104,9 +104,9 @@ module.exports = {
           console.log(' 4 >>>>>');
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
-            try{
+            try {
               await dialog.dismiss();
-            }catch(e){
+            } catch (e) {
               console.log('dialog close');
             }
           });
@@ -118,7 +118,7 @@ module.exports = {
         } catch (err) {
           console.log('err newQuoteStep:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
-          dataObject.results = {
+          bodyData.results = {
             status: false,
             response,
           };
@@ -197,13 +197,13 @@ module.exports = {
             status: false,
             response,
           };
-          try{
+          try {
             const errorMessage = await page.evaluate(() => document.querySelector('#PolicyKickoutReasonSpan').innerText);
-            if(errorMessage){
+            if (errorMessage) {
               dataObject.results.response = { error: 'The site is down for now' };
             }
-          }catch(e){
-            console.log('site not down ')
+          } catch (e) {
+            console.log('site not down ');
           }
         }
       }
@@ -250,9 +250,9 @@ module.exports = {
             await Drivers(dataObject, populatedData);
           } catch (err) {
             console.log('houseHold catch');
-            try{
+            try {
               await page.evaluate(() => document.querySelector('#Continue').click());
-            }catch(e){
+            } catch (e) {
               console.log('no next button');
             }
             await Drivers(dataObject, populatedData);
@@ -517,9 +517,9 @@ module.exports = {
           await page.waitForSelector('#PolicyPremiumTotalWithPIFLabel');
           const downPayments = await page.evaluate(() => {
             const downPaymentsObj = {};
-            downPaymentsObj.paid_in_full_premium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText;
-            downPaymentsObj.preferred_paymentMethod_premium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText;
-            downPaymentsObj.total_premium = document.querySelector('#PolicyPremiumTotalSpan').innerText;
+            downPaymentsObj.paid_in_full_premium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText.replace(/$/g, '');
+            downPaymentsObj.preferred_paymentMethod_premium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText.replace(/$/g, '');
+            downPaymentsObj.total_premium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/$/g, '');
             return downPaymentsObj;
           });
 
@@ -741,6 +741,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved safeco AL rate.' : 'Failed to retrieved safeco AL rate.',
         obj: bodyData.results,
+        totalPremium: bodyData.results.response.total_premium ? bodyData.results.response.total_premium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();

@@ -795,10 +795,10 @@ module.exports = {
       req.session.data = {
         title: 'Successfully retrieved CSE CA rate.',
         obj: bodyData.results,
+        totalPremium: bodyData.results.response.totalPolicyTermPremium ? bodyData.results.response.totalPolicyTermPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
-   
     } catch (error) {
       console.log('error >> ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
