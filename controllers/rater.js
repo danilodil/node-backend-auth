@@ -1,3 +1,5 @@
+/* eslint-disable radix */
+
 const Boom = require('boom');
 const Rater = require('../models/rater');
 
@@ -30,33 +32,34 @@ module.exports = {
     };
 
     const raterData = await Rater.findOne(existRater);
-    if (raterData) {
-      const updateObj = {
-        result: JSON.stringify(req.session.data),
-      };
-      if (req.session.data && req.session.data.obj.response.total_premium) {
-        updateObj.totalPremium = req.session.data.obj.response.total_premium;
-      }
-      if (req.session.data && req.session.data.obj.response.totalPolicyTermPremium) {
-        updateObj.totalPremium = req.session.data.obj.response.totalPolicyTermPremium;
-      }
 
-      await raterData.update(updateObj);
-    } else {
+    if (raterData && req.session.data.obj.status) {
+      const currentPremium = parseFloat(req.session.data.totalPremium);
+      const previousPremium = parseFloat(raterData.totalPremium)
+      const isLessTotalPremium = req.session.data.totalPremium && raterData.totalPremium && currentPremium < previousPremium;
+      if (isLessTotalPremium) {
+        const updateObj = {};
+        if (req.session.data && req.session.data.totalPremium) {
+          updateObj.totalPremium = req.session.data.totalPremium;
+        }
+        updateObj.result = JSON.stringify(req.session.data);
+        await raterData.update(updateObj);
+      }
+    }
+    if (!raterData) {
       const newRater = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
-        result: JSON.stringify(req.session.data),
+        // result: JSON.stringify(req.session.data),
       };
-      if (req.session.data && req.session.data.obj.response.total_premium) {
-        newRater.totalPremium = req.session.data.obj.response.total_premium;
+      if (req.session.data && req.session.data.totalPremium) {
+        newRater.totalPremium = req.session.data.totalPremium;
       }
-      if (req.session.data && req.session.data.obj.response.totalPolicyTermPremium) {
-        newRater.totalPremium = req.session.data.obj.response.totalPolicyTermPremium;
-      }
+      newRater.result = JSON.stringify(req.session.data);
       await Rater.create(newRater);
     }
+    delete req.session.data.totalPremium;
     return next();
   },
   getRating: async (req, res, next) => {
@@ -78,23 +81,34 @@ module.exports = {
       return next(Boom.badRequest('Invalid Data'));
     }
 
-    console.log('req.body',req.body.vendorName)
     const newRater = {
       where: {
         companyId,
         clientId,
-        vendorName: req.body.vendorName
       },
       attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium'],
     };
 
-    const raterData = await Rater.findOne(newRater);
+    const raterData = await Rater.findAll(newRater);
     if (!raterData) {
       return next(Boom.badRequest('Error retrieving rater'));
     }
-
-    raterData.result = JSON.parse(raterData.result);
-    req.session.data = raterData;
+    let bestRate = null;
+    raterData.forEach(async(oneRate) => {
+      if (!bestRate) {
+        bestRate = oneRate;
+        bestRate.result = JSON.parse(bestRate.result);
+      } else {
+        oneRate.result = JSON.parse(oneRate.result);
+        const currentTotalPremium = parseFloat(oneRate.totalPremium);
+        const previousTotalPremium = parseFloat(bestRate.totalPremium);
+        const isLessTotalPremium = oneRate.result.obj.status && currentTotalPremium < previousTotalPremium
+        if (isLessTotalPremium) {
+          bestRate = oneRate;
+        }
+      }
+    });
+    req.session.data = bestRate;
     return next();
   },
 };
