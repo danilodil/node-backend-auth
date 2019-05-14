@@ -92,7 +92,7 @@ module.exports = {
         ],
       };
       const bodyData = data;
-      bodyData.drivers.splice(10,bodyData.drivers.length);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
       // For login
       await loginStep();
 
@@ -207,7 +207,7 @@ module.exports = {
             }, populatedData[`driverDateOfBirth${j}`]);
             await page.evaluate(selectedValue, populatedData[`driverGender${j}`].element, populatedData[`driverGender${j}`].value);
             await page.evaluate(selectedValue, populatedData[`driverMaritalStatus${j}`].element, populatedData[`driverMaritalStatus${j}`].value);
-            if(j !== 0){
+            if (j !== 0) {
               await page.evaluate(selectedValue, populatedData[`driverRelationship${j}`].element, populatedData[`driverRelationship${j}`].value);
             }
             await page.evaluate(selectedValue, populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
@@ -219,11 +219,11 @@ module.exports = {
             await page.select(populatedData[`licenseState${j}`].element, populatedData[`licenseState${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          try{
+          try {
             await page.waitFor(3000);
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          }catch(e){
-            console.log('move to vehicle')
+          } catch (e) {
+            console.log('move to vehicle');
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
@@ -326,7 +326,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
         } catch (err) {
-          console.log('error at underwriting ',err.stack)
+          console.log('error at underwriting ', err.stack);
           const response = { error: 'There is some data error' };
           dataObject.results = {
             status: false,
@@ -397,7 +397,7 @@ module.exports = {
           allOptions.forEach((entry) => {
             if (valueToSelect.toLowerCase() === entry.name.toLowerCase()) {
               selected = entry.value;
-            }else if (valueToSelect.toLowerCase() === entry.value.toLowerCase()) {
+            } else if (valueToSelect.toLowerCase() === entry.value.toLowerCase()) {
               selected = entry.value;
             }
           });
@@ -654,6 +654,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved national general AL rate.' : 'Failed to retrieved national general AL rate.',
         obj: bodyData.results,
+        totalPremium: bodyData.results.response.TOTAL ? bodyData.results.response.TOTAL.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
