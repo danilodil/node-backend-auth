@@ -222,6 +222,7 @@ module.exports = {
           try {
             await page.waitFor(3000);
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+
           } catch (e) {
             console.log('move to vehicle');
           }
@@ -319,10 +320,12 @@ module.exports = {
           await page.select(populatedData.recidentStatus.element, populatedData.recidentStatus.value);
           await page.waitFor(600);
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
-          await page.waitFor(600);
+          await page.waitFor(1000);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
           await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
-
+          await page.select('#ctl00_MainContent_ctl07_ddlAnswer', 'False');
+          
+          await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
         } catch (err) {
@@ -625,7 +628,7 @@ module.exports = {
             };
             clientInputSelect[`primaryUse${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlPrimaryUse']`,
-              value: bodyData.vehicles[j].primaryUse || staticDataObj.vehicles[0].primaryUse,
+              value:'Pleasure/Commute',
             };
             clientInputSelect[`antiTheft${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlAntiTheft']`,
