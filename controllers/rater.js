@@ -28,7 +28,6 @@ module.exports = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
-        succeeded: true
       },
     };
 
@@ -36,16 +35,19 @@ module.exports = {
 
     if (raterData && req.session.data.obj.status) {
       const currentPremium = parseFloat(req.session.data.totalPremium);
-      const previousPremium = parseFloat(raterData.totalPremium)
-      const isLessTotalPremium = req.session.data.totalPremium && raterData.totalPremium && (currentPremium < previousPremium);
+      const previousPremium = parseFloat(raterData.totalPremium);
+      let isLessTotalPremium = true;
+      if(raterData.totalPremium && req.session.data.totalPremium){
+        isLessTotalPremium = req.session.data.totalPremium && (currentPremium < previousPremium);
+      }
       if (isLessTotalPremium) {
         const updateObj = {};
         if (req.session.data && req.session.data.totalPremium) {
           updateObj.totalPremium = req.session.data.totalPremium;
           updateObj.succeeded = true;
+          updateObj.result = JSON.stringify(req.session.data);
+          await raterData.update(updateObj);
         }
-        updateObj.result = JSON.stringify(req.session.data);
-        await raterData.update(updateObj);
       }
     }
     if (!raterData) {
@@ -53,6 +55,7 @@ module.exports = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
+        succeeded:false
         // result: JSON.stringify(req.session.data),
       };
       if (req.session.data && req.session.data.totalPremium) {
