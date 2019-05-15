@@ -111,7 +111,11 @@ module.exports = {
             }
           });
           console.log(' 5 >>>>>');
-          await page.click('#NextButton');
+          // await page.click('#NextButton');
+          await page.evaluate(() => {
+            const insuranceType = document.querySelector('#NextButton');
+            insuranceType.click();
+          });
           const populatedData = await populateKeyValueData();
           console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
@@ -189,6 +193,29 @@ module.exports = {
             anyWrittenPolicyUsedforDelivery.click();
           });
           await page.evaluate(() => document.querySelector('#Continue').click());
+          await page.waitFor(5000);
+          try{
+
+            try {
+              if (page.$('[id="ui-dialog-title-1"]')) {
+                await page.click(`a[class="ui-dialog-titlebar-close ui-corner-all"]`);
+              }
+
+            } catch (e) {
+              console.log('error close dialog',e);
+            }   
+            await page.waitFor(1000);
+            await page.focus(populatedData.mailingAddress.element);
+            await page.keyboard.down('Control');
+            await page.keyboard.press('A');
+            await page.keyboard.up('Control');
+            await page.keyboard.press('Backspace');
+            await page.waitFor(1000);
+            await page.type(populatedData.mailingAddress.element, '670 Park Avenue');
+            await page.evaluate(() => document.querySelector('#Continue').click());
+          }catch(e){
+            console.log('catch error',e);
+          }
           await GaragedInfo(dataObject, populatedData);
         } catch (err) {
           console.log('err namedInsuredStep:', err);
@@ -219,10 +246,13 @@ module.exports = {
           await page.click(populatedData.garagedZipcode.element);
           await page.type(populatedData.garagedZipcode.element, populatedData.garagedZipcode.value);
 
-          await page.waitFor(1000);
-          await page.type(populatedData.garagedCity.element, populatedData.garagedCity.value);
+          await page.waitFor(1500);
+          await page.evaluate((garagedCity)=>{
+           document.querySelector(garagedCity.element).value = garagedCity.value
+          },populatedData.garagedCity);
+          //await page.type(populatedData.garagedCity.element, populatedData.garagedCity.value);
 
-          await page.waitFor(1000);
+          await page.waitFor(1500);
           await page.evaluate(() => document.querySelector('#Continue').click());
           await houseHold(dataObject, populatedData);
         } catch (err) {
@@ -247,7 +277,24 @@ module.exports = {
             await page.select(populatedData.peopleInhouseHold3.element, populatedData.peopleInhouseHold3.value);
             await page.waitFor(1000);
             await page.evaluate(() => document.querySelector('#Continue').click());
+            await page.waitFor(5000);
+
+            try{
+              try {
+                if (page.$('[id="ui-dialog-title-1"]')) {
+                  await page.click(`a[class="ui-dialog-titlebar-close ui-corner-all"]`);
+                }
+
+              } catch (e) {
+                console.log('error close dialog',e);
+              }   
+              await page.waitFor(1000);
+              await page.evaluate(() => document.querySelector('#Continue').click());
+            }catch(e){
+              console.log('catch error',e);
+            }
             await Drivers(dataObject, populatedData);
+
           } catch (err) {
             console.log('houseHold catch');
             try {
@@ -365,15 +412,30 @@ module.exports = {
             if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
               await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
             }
-            if (page.$('[id="PolicyDriverCandidates4CandidateRelationship"]')) {
-              await page.select(populatedData.peopleInhouseHold3.element, populatedData.peopleInhouseHold3.value);
+            // if (page.$('[id="PolicyDriverCandidates4CandidateRelationship"]')) {
+            //   await page.select(populatedData.peopleInhouseHold3.element, populatedData.peopleInhouseHold3.value);
+            // }
+            // if (page.$('[id="PolicyDriverCandidates5CandidateRelationship"]')) {
+            //   await page.select(populatedData.peopleInhouseHold4.element, populatedData.peopleInhouseHold4.value);
+            // }
+
+            try {
+              if (page.$('[id="ui-dialog-title-1"]')) {
+                await page.evaluate(() => {
+                  const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
+                  if (dismissDialog) {
+                    dismissDialog.click();
+                  }
+                });
+              }
+            } catch (e) {
+              console.log('error close dialog');
             }
-            if (page.$('[id="PolicyDriverCandidates5CandidateRelationship"]')) {
-              await page.select(populatedData.peopleInhouseHold4.element, populatedData.peopleInhouseHold4.value);
-            }
+            await page.waitFor(2000);
             await page.evaluate(() => document.querySelector('#Continue').click());
             await page.waitFor(5000);
             await page.evaluate(() => document.querySelector('#Continue').click());
+
           } catch (e) {
             console.log('move to vehicles');
           }
@@ -517,9 +579,9 @@ module.exports = {
           await page.waitForSelector('#PolicyPremiumTotalWithPIFLabel');
           const downPayments = await page.evaluate(() => {
             const downPaymentsObj = {};
-            downPaymentsObj.paid_in_full_premium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText.replace(/$/g, '');
-            downPaymentsObj.preferred_paymentMethod_premium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText.replace(/$/g, '');
-            downPaymentsObj.total_premium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/$/g, '');
+            downPaymentsObj.paid_in_full_premium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText.replace(/\$/g, '');
+            downPaymentsObj.preferred_paymentMethod_premium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText.replace(/\$/g, '');
+            downPaymentsObj.total_premium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/\$/g, '');
             return downPaymentsObj;
           });
 
