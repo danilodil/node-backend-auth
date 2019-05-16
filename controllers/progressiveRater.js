@@ -1343,26 +1343,36 @@ module.exports = {
 
       // redirect to new quoate form
       async function newQuoteStep(dataObject, populatedData) {
-        console.log('newQuoteStep');
+        console.log('progressive al newQuoteStep');
+        try{
 
-        await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-        await page.waitForSelector(populatedData.newQuoteState.element);
-        await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
-        await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
+          await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
+          console.log('progressive al newQuoteStep 1 >>>>');
 
-        await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          await page.waitForSelector(populatedData.newQuoteState.element);
+          await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
+          await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
 
-        let pageQuote = '';
-        while (true) {
-          await page.waitFor(1000);
-          pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
-            break;
+          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+
+          let pageQuote = '';
+          while (true) {
+            await page.waitFor(1000);
+            pageQuote = await browser.pages();
+            if (pageQuote.length > 2) {
+              pageQuote = pageQuote[2];
+              break;
+            }
           }
+          await namedInsuredStep(pageQuote, dataObject, populatedData);
+        } catch (err) {
+          console.log('err newQuoteStep:', err);
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
         }
-
-        await namedInsuredStep(pageQuote, dataObject, populatedData);
       }
 
       // Named Insured Form

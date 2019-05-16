@@ -123,6 +123,7 @@ module.exports = {
           });
           console.log(' 5 >>>>>');
           // await page.click('#NextButton');
+          await page.waitForSelector('#NextButton');
           await page.evaluate(() => {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
