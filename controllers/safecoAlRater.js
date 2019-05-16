@@ -15,6 +15,7 @@ module.exports = {
       const page = await browser.newPage();
 
       // Request input data
+      req.body.data = await cleanObj(req.body.data);
       const data = {
         firstName: req.body.data.firstName,
         lastName: req.body.data.lastName,
@@ -22,8 +23,8 @@ module.exports = {
         email: req.body.data.email,
         mailingAddress: req.body.data.mailingAddress,
         zipCode: req.body.data.zipCode || '19934',
-        city: req.body.data.city,
-        state: req.body.data.state,
+        city: req.body.data.city || 'Moody',
+        state: req.body.data.state ||'AL',
         socialSecurityStatus: 'R',
         reasonForPolicy: 'N',
         drivers: req.body.data.drivers,
@@ -66,6 +67,15 @@ module.exports = {
       const bodyData = data;
       bodyData.drivers.splice(10, bodyData.drivers.length);
       await startPage();
+
+      function cleanObj(obj) {
+        for (const propName in obj) {
+          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
+            delete obj[propName];
+          }
+        }
+        return obj;
+      }
 
       async function startPage() {
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
