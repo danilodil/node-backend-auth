@@ -222,13 +222,12 @@ module.exports = {
           try {
             await page.waitFor(3000);
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-
           } catch (e) {
             console.log('move to vehicle');
           }
           await vehicles(dataObject, populatedData);
         } catch (err) {
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error at Drivers step' };
           dataObject.results = {
             status: false,
             response,
@@ -280,7 +279,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await vehicleHistory(dataObject, populatedData);
         } catch (err) {
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error at vehicles' };
           dataObject.results = {
             status: false,
             response,
@@ -298,7 +297,7 @@ module.exports = {
           await underWriting(dataObject, populatedData);
         } catch (err) {
           console.log('err underwritingStep ', err);
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error at vehicleHistory step' };
           dataObject.results = {
             status: false,
             response,
@@ -324,13 +323,13 @@ module.exports = {
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
           await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
           await page.select('#ctl00_MainContent_ctl07_ddlAnswer', 'False');
-          
+
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coverages(dataObject);
         } catch (err) {
           console.log('error at underwriting ', err.stack);
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error underWriting step' };
           dataObject.results = {
             status: false,
             response,
@@ -346,7 +345,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await billPlans(dataObject);
         } catch (err) {
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error coverages step' };
           dataObject.results = {
             status: false,
             response,
@@ -367,14 +366,19 @@ module.exports = {
           tHead.forEach((key, i) => {
             if (i !== 0) downPayments[key] = tBody[i];
           });
-
+          const premiumObj = {
+            description: downPayments.DESCRIPTION,
+            downPaymentAmount: downPayments['DOWN PAYMENT'],
+            payments: downPayments.PAYMENTS,
+            totalPremium: downPayments.TOTAL,
+          };
           dataObject.results = {
             status: true,
-            response: downPayments,
+            response: premiumObj,
           };
         } catch (err) {
           console.log('err bill plans ', err);
-          const response = { error: 'There is some data error' };
+          const response = { error: 'There is some data error billPlans step' };
           dataObject.results = {
             status: false,
             response,
@@ -628,7 +632,7 @@ module.exports = {
             };
             clientInputSelect[`primaryUse${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlPrimaryUse']`,
-              value:'Pleasure/Commute',
+              value: 'Pleasure/Commute',
             };
             clientInputSelect[`antiTheft${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlAntiTheft']`,
@@ -657,7 +661,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved national general AL rate.' : 'Failed to retrieved national general AL rate.',
         obj: bodyData.results,
-        totalPremium: bodyData.results.response.TOTAL ? bodyData.results.response.TOTAL.replace(/,/g, '') : null,
+        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();

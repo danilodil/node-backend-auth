@@ -4,6 +4,7 @@
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { cseRater } = require('../constants/appConstant');
+const utils = require('../lib/utils');
 
 module.exports = {
   cseRating: async (req, res, next) => {
@@ -70,16 +71,8 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
-      const bodyData = await cleanObj(req.body.data);
+      const bodyData = await utils.cleanObj(req.body.data);
       bodyData.results = {};
-      function cleanObj(obj) {
-        for (const propName in obj) {
-          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
-            delete obj[propName];
-          }
-        }
-        return obj;
-      }
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
@@ -616,39 +609,31 @@ module.exports = {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicles);
-            console.log('3 >> ');
 
             await page.waitFor(1500);
             const vehicleUse = populatedData.vehicleUse.value; // Business / Work / Pleasure / Farm
-            console.log('4 >> ');
 
             await page.select(populatedData.vehicleMilageType.element, populatedData.vehicleMilageType.value); // Estimated / Recommended
             await page.waitFor(1000);
-            console.log('5 >> ');
             await page.waitForSelector(populatedData.vehicleUse.element);
             await page.select(populatedData.vehicleUse.element, vehicleUse);
             const vehicleMilage = populatedData[`vehicleMilage${j}`];
-            console.log('6 >> ');
 
             if (vehicleUse === 'Work') {
-              console.log('7 >> ');
               await page.evaluate((vehicleMilageData) => {
                 vehicleMilageData.forEach((oneElement) => {
                   document.getElementById(oneElement.element).value = oneElement.value;
                 });
               }, vehicleMilage[vehicleUse]);
             } else {
-              console.log('8 >> ');
               await page.evaluate((vehicleMilageData) => {
                 vehicleMilageData.forEach((oneElement) => {
                   document.getElementById(oneElement.element).value = oneElement.value;
                 });
               }, vehicleMilage.other);
             }
-            console.log('9 >> ');
 
             await page.waitFor(1000);
-            console.log('10 >> ');
             await page.click('#Save');
             await page.waitFor(3000);
             if (j === (bodyData.vehicles.length - 1).toString()) {
@@ -715,7 +700,6 @@ module.exports = {
                 await page.select('select[name="DriverInfo.AttachedVehicleRef"]', primarilyDrives[1].value);
               }
             } else {
-              console.log('else j>>>>>>>>>>', j);
               await page.waitFor(2000);
               await page.evaluate((driverDetails) => {
                 driverDetails.forEach((oneElement) => {
@@ -731,13 +715,10 @@ module.exports = {
               await page.click('#NextPage');
             } else {
               try {
-                console.log(' 1 >>>>>>>');
                 await page.evaluate(() => document.querySelector('#Return').click());
                 await page.waitFor(2000);
                 await page.evaluate(() => document.querySelector('#DriverSelectionController').value = 'Non-Driver');
-                console.log(' 2 >>>>>>>');
                 await page.evaluate(() => document.querySelector('select[name="DriverSelectionController"]').onchange(''));
-                console.log(' 3 >>>>>>>');
               } catch (e) {
                 console.log('new driver');
               }
@@ -779,7 +760,7 @@ module.exports = {
       await page.waitFor(3000);
       const premiumDetails = await page.evaluate(() => {
         const details = {
-          totalPolicyTermPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
+          totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
           TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
           totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
           transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
@@ -795,7 +776,7 @@ module.exports = {
       req.session.data = {
         title: 'Successfully retrieved CSE CA rate.',
         obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPolicyTermPremium ? bodyData.results.response.totalPolicyTermPremium.replace(/,/g, '') : null,
+        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
