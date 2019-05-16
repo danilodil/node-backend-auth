@@ -70,6 +70,7 @@ module.exports = {
       async function startPage() {
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
+        await page.waitForSelector('#rad1');
         console.log(' startPage 1 >>>>>');
         await page.evaluate(() => {
           const insuranceType = document.querySelector('#rad1');
