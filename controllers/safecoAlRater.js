@@ -72,7 +72,7 @@ module.exports = {
         // await page.setViewport({ width: 1500, height: 920 });
         console.log(' startPage 1 >>>>>');
         await page.evaluate(() => {
-          const insuranceType = document.querySelector('#div2 > input[type="radio"]');
+          const insuranceType = document.querySelector('#rad1');
           insuranceType.click();
         });
         console.log('startPage 2 >>>>>');
@@ -409,9 +409,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#Continue').click());
           await page.waitFor(5000);
           try {
-            if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
-              await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
-            }
             // if (page.$('[id="PolicyDriverCandidates4CandidateRelationship"]')) {
             //   await page.select(populatedData.peopleInhouseHold3.element, populatedData.peopleInhouseHold3.value);
             // }
@@ -420,6 +417,9 @@ module.exports = {
             // }
 
             try {
+              if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
+                await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
+              }
               if (page.$('[id="ui-dialog-title-1"]')) {
                 await page.evaluate(() => {
                   const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
