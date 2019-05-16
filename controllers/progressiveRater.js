@@ -941,6 +941,7 @@ module.exports = {
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
+      console.log('progressive al chrone launch');
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
@@ -1327,7 +1328,9 @@ module.exports = {
 
       // Login
       async function loginStep() {
+        console.log('progressive al loginStep');
         await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+        console.log('progressive al loginStep 1 >>>>');
         await page.waitForSelector('#user1');
         await page.type('#user1', username);
         await page.type('#password1', password);
