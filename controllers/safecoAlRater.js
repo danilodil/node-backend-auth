@@ -14,13 +14,13 @@ module.exports = {
       // const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
-      // page.on('dialog', async (dialog) => {
-      //   try {
-      //     await dialog.dismiss();
-      //   } catch (e) {
-      //     console.log('dialog close');
-      //   }
-      // });
+      page.on('dialog', async (dialog) => {
+        try {
+          await dialog.dismiss();
+        } catch (e) {
+          console.log('dialog close');
+        }
+      });
 
       // Request input data
       req.body.data = await utils.cleanObj(req.body.data);
@@ -77,9 +77,12 @@ module.exports = {
       await startPage();
 
       async function startPage() {
+        console.log('Safeco startPage');
+        await page.waitFor(2000);
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
-        await page.waitForSelector('#rad1');
+        await page.waitFor(3000);
+        // await page.waitForSelector('#rad1');
         await page.evaluate(() => {
           const insuranceType = document.querySelector('#rad1');
           insuranceType.click();
@@ -106,9 +109,9 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
-          await page.waitFor(2000);
+          await page.waitFor(3000);
           // await page.click('#NextButton');
-          await page.waitForSelector('#NextButton',{ timeout: 60000 });
+          // await page.waitForSelector('#NextButton',{ timeout: 60000 });
           await page.evaluate(() => {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
