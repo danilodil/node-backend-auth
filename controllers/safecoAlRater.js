@@ -82,7 +82,7 @@ module.exports = {
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
         await page.waitFor(3000);
-        // await page.waitForSelector('#rad1');
+        await page.waitForSelector('#rad1',{ timeout: 120000 });
         await page.evaluate(() => {
           const insuranceType = document.querySelector('#rad1');
           insuranceType.click();
@@ -111,7 +111,7 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           await page.waitFor(3000);
           // await page.click('#NextButton');
-          // await page.waitForSelector('#NextButton',{ timeout: 60000 });
+          await page.waitForSelector('#NextButton',{ timeout: 120000 });
           await page.evaluate(() => {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
