@@ -12,7 +12,7 @@ module.exports = {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless: false });
-      const page = await browser.newPage();
+      let page = await browser.newPage();
 
       page.on('dialog', async (dialog) => {
         try {
@@ -107,8 +107,17 @@ module.exports = {
           console.log('newQuoteStep');
           await page.waitFor(2000);
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
-          await page.waitFor(5000);
-          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
+          await page.waitFor(3000);
+          await page.click('#header > div > div > div.rowcontainer.logo-search-bar-wrapper > div > div > div.col-xs-2.hidden-xs > div > div > div > a')
+          while (true) {
+            await page.waitFor(1000);
+            const pageQuote = await browser.pages();
+            if (pageQuote.length > 2) {
+              page = pageQuote[2];
+              break;
+            }
+          }
+          // await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
           await page.waitFor(3000);
           // await page.click('#NextButton');
           await page.waitForSelector('#NextButton',{ timeout: 120000 });
@@ -199,7 +208,7 @@ module.exports = {
                 await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
               }
             } catch (e) {
-              console.log('error close dialog', e);
+              console.log('error close dialog');
             }
             await page.waitFor(1000);
             await page.focus(populatedData.mailingAddress.element);
@@ -211,7 +220,7 @@ module.exports = {
             await page.type(populatedData.mailingAddress.element, '670 Park Avenue');
             await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
-            console.log('catch error', e);
+            console.log('catch error');
           }
           await GaragedInfo(dataObject, populatedData);
         } catch (err) {
@@ -282,12 +291,12 @@ module.exports = {
                   await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
                 }
               } catch (e) {
-                console.log('error close dialog', e);
+                console.log('error close dialog');
               }
               await page.waitFor(1000);
               await page.evaluate(() => document.querySelector('#Continue').click());
             } catch (e) {
-              console.log('catch error', e);
+              console.log('catch error');
             }
             await Drivers(dataObject, populatedData);
           } catch (err) {
