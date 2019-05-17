@@ -98,6 +98,7 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
           await page.waitFor(3000);
           await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
+          await page.waitFor(2000);
           page.on('dialog', async (dialog) => {
             try {
               await dialog.dismiss();
@@ -106,7 +107,7 @@ module.exports = {
             }
           });
           // await page.click('#NextButton');
-          await page.waitForSelector('#NextButton');
+          await page.waitForSelector('#NextButton',{ timeout: 60000 });
           await page.evaluate(() => {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
