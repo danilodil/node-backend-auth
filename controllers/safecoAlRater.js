@@ -82,9 +82,9 @@ module.exports = {
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
         await page.waitFor(3000);
-        await page.waitForSelector('#rad1',{ timeout: 120000 });
+        await page.waitForSelector('#div2',{ timeout: 120000 });
         await page.evaluate(() => {
-          const insuranceType = document.querySelector('#rad1');
+          const insuranceType = document.querySelector('#div2');
           insuranceType.click();
         });
         await page.click('input[class="DPeCButton"]');
