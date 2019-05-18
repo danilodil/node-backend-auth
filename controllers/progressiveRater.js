@@ -4,6 +4,7 @@
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { rater } = require('../constants/appConstant');
+const utils = require('../lib/utils');
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
@@ -64,7 +65,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       };
 
-      const bodyData = await cleanObj(req.body.data);
+      const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length); // you can add max 12 drivers
       // For login
       await loginStep();
@@ -590,9 +591,9 @@ module.exports = {
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
-          ress.total_premium = Elements[2].textContent.replace(/\n/g, '').trim();
-          ress.down_pmt_amt = Elements[3].textContent.replace(/\n/g, '').trim();
-          ress.pmt_amt = Elements[4].textContent.replace(/\n/g, '').trim();
+          ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
+          ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
+          ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
           ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
 
           let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
@@ -622,7 +623,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved progressive DE rate.' : 'Failed to retrieved progressive DE rate.',
         obj: bodyData.results,
-        totalPremium: bodyData.results.response.total_premium ? bodyData.results.response.total_premium.replace(/,/g, '') : null,
+        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
@@ -689,15 +690,6 @@ module.exports = {
           });
         }
         return selected;
-      }
-
-      function cleanObj(obj) {
-        for (const propName in obj) {
-          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
-            delete obj[propName];
-          }
-        }
-        return obj;
       }
 
       function populateKeyValueData() {
@@ -992,18 +984,9 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
-      const bodyData = await cleanObj(req.body.data);
+      const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
       bodyData.results = {};
-
-      function cleanObj(obj) {
-        for (const propName in obj) {
-          if (obj[propName] === null || obj[propName] === undefined || obj[propName] === '') {
-            delete obj[propName];
-          }
-        }
-        return obj;
-      }
 
       function populateKeyValueData() {
         const clientInputSelect = {
@@ -1327,39 +1310,57 @@ module.exports = {
 
       // Login
       async function loginStep() {
-        await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
-        await page.waitForSelector('#user1');
-        await page.type('#user1', username);
-        await page.type('#password1', password);
+        try {
+          console.log('loginStep');
+          await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+          await page.waitForSelector('#user1');
+          await page.type('#user1', username);
+          await page.type('#password1', password);
 
-        await page.click('#image1');
-        await page.waitForNavigation({ timeout: 0 });
-        const populatedData = await populateKeyValueData(bodyData);
-        await newQuoteStep(bodyData, populatedData);
+          await page.click('#image1');
+          await page.waitFor(3000);
+          // await page.waitForNavigation({ timeout: 0 });
+          const populatedData = await populateKeyValueData(bodyData);
+          await newQuoteStep(bodyData, populatedData);
+        } catch (err) {
+          console.log('err loginStep:', err);
+          const response = { error: 'There is some error validations at loginStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
       }
 
       // redirect to new quoate form
       async function newQuoteStep(dataObject, populatedData) {
         console.log('newQuoteStep');
+        try {
+          await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
+          await page.waitForSelector(populatedData.newQuoteState.element);
+          await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
+          await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
 
-        await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-        await page.waitForSelector(populatedData.newQuoteState.element);
-        await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
-        await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
+          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
 
-        await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-
-        let pageQuote = '';
-        while (true) {
-          await page.waitFor(1000);
-          pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
-            break;
+          let pageQuote = '';
+          while (true) {
+            await page.waitFor(1000);
+            pageQuote = await browser.pages();
+            if (pageQuote.length > 2) {
+              pageQuote = pageQuote[2];
+              break;
+            }
           }
+          await namedInsuredStep(pageQuote, dataObject, populatedData);
+        } catch (err) {
+          console.log('err newQuoteStep:', err);
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
         }
-
-        await namedInsuredStep(pageQuote, dataObject, populatedData);
       }
 
       // Named Insured Form
@@ -1501,7 +1502,6 @@ module.exports = {
             }
           }
           for (const j in dataObject.drivers) {
-            console.log(' j >>>>>', j);
             if (j === 0) {
               await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
             }
@@ -1740,9 +1740,9 @@ module.exports = {
         const downPayment = await pageQuote.evaluate(() => {
           const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
           const ress = {};
-          ress.total_premium = Elements[2].textContent.replace(/\n/g, '').trim();
-          ress.down_pmt_amt = Elements[3].textContent.replace(/\n/g, '').trim();
-          ress.pmt_amt = Elements[4].textContent.replace(/\n/g, '').trim();
+          ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
+          ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
+          ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
           ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
 
           let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
@@ -1775,7 +1775,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved progressive AL rate.' : 'Failed to retrieved progressive AL rate.',
         obj: bodyData.results,
-        totalPremium: bodyData.results.response.total_premium ? bodyData.results.response.total_premium.replace(/,/g, '') : null,
+        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
