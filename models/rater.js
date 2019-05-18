@@ -19,6 +19,9 @@ const Rater = sequelize.define('Rater', {
   result: {
     type: DataTypes.STRING,
   },
+  error: {
+    type: DataTypes.STRING,
+  },
   succeeded: {
     type: DataTypes.BOOLEAN,
   },

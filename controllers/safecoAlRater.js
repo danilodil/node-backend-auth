@@ -4,7 +4,7 @@
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
-
+const utils = require('../lib/utils');
 
 module.exports = {
   safecoAl: async (req, res, next) => {
@@ -12,9 +12,18 @@ module.exports = {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       // const browser = await puppeteer.launch({ headless: false });
-      const page = await browser.newPage();
+      let page = await browser.newPage();
+
+      page.on('dialog', async (dialog) => {
+        try {
+          await dialog.dismiss();
+        } catch (e) {
+          console.log('dialog close');
+        }
+      });
 
       // Request input data
+      req.body.data = await utils.cleanObj(req.body.data);
       const data = {
         firstName: req.body.data.firstName,
         lastName: req.body.data.lastName,
@@ -22,8 +31,8 @@ module.exports = {
         email: req.body.data.email,
         mailingAddress: req.body.data.mailingAddress,
         zipCode: req.body.data.zipCode || '19934',
-        city: req.body.data.city,
-        state: req.body.data.state,
+        city: req.body.data.city || 'Moody',
+        state: req.body.data.state || 'AL',
         socialSecurityStatus: 'R',
         reasonForPolicy: 'N',
         drivers: req.body.data.drivers,
@@ -68,16 +77,17 @@ module.exports = {
       await startPage();
 
       async function startPage() {
+        console.log('Safeco startPage');
+        await page.waitFor(2000);
         await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
         // await page.setViewport({ width: 1500, height: 920 });
-        console.log(' startPage 1 >>>>>');
+        await page.waitFor(3000);
+        await page.waitForSelector('#div2',{ timeout: 120000 });
         await page.evaluate(() => {
-          const insuranceType = document.querySelector('#div2 > input[type="radio"]');
+          const insuranceType = document.querySelector('#div2');
           insuranceType.click();
         });
-        console.log('startPage 2 >>>>>');
         await page.click('input[class="DPeCButton"]');
-        console.log('startPage 3 >>>>>');
         await loginStep();
       }
 
@@ -86,10 +96,8 @@ module.exports = {
         await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
         await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
         await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
-        console.log(' 1 >>>>>');
         await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
         await page.waitForNavigation({ waitUntil: 'load' });
-        console.log(' 2 >>>>>');
         await newQuoteStep();
       }
 
@@ -98,26 +106,26 @@ module.exports = {
         try {
           console.log('newQuoteStep');
           await page.waitFor(2000);
-          console.log(' 3 >>>>>');
           await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
           await page.waitFor(3000);
-          console.log(' 4 >>>>>');
-          await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
-          page.on('dialog', async (dialog) => {
-            try {
-              await dialog.dismiss();
-            } catch (e) {
-              console.log('dialog close');
+          await page.click('#header > div > div > div.rowcontainer.logo-search-bar-wrapper > div > div > div.col-xs-2.hidden-xs > div > div > div > a')
+          while (true) {
+            await page.waitFor(1000);
+            const pageQuote = await browser.pages();
+            if (pageQuote.length > 2) {
+              page = pageQuote[2];
+              break;
             }
-          });
-          console.log(' 5 >>>>>');
+          }
+          // await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
+          await page.waitFor(3000);
           // await page.click('#NextButton');
+          await page.waitForSelector('#NextButton',{ timeout: 120000 });
           await page.evaluate(() => {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
           });
           const populatedData = await populateKeyValueData();
-          console.log(' 6 >>>>>');
           await policyInformation(bodyData, populatedData);
         } catch (err) {
           console.log('err newQuoteStep:', err);
@@ -194,16 +202,14 @@ module.exports = {
           });
           await page.evaluate(() => document.querySelector('#Continue').click());
           await page.waitFor(5000);
-          try{
-
+          try {
             try {
               if (page.$('[id="ui-dialog-title-1"]')) {
-                await page.click(`a[class="ui-dialog-titlebar-close ui-corner-all"]`);
+                await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
               }
-
             } catch (e) {
-              console.log('error close dialog',e);
-            }   
+              console.log('error close dialog');
+            }
             await page.waitFor(1000);
             await page.focus(populatedData.mailingAddress.element);
             await page.keyboard.down('Control');
@@ -213,8 +219,8 @@ module.exports = {
             await page.waitFor(1000);
             await page.type(populatedData.mailingAddress.element, '670 Park Avenue');
             await page.evaluate(() => document.querySelector('#Continue').click());
-          }catch(e){
-            console.log('catch error',e);
+          } catch (e) {
+            console.log('catch error');
           }
           await GaragedInfo(dataObject, populatedData);
         } catch (err) {
@@ -247,10 +253,10 @@ module.exports = {
           await page.type(populatedData.garagedZipcode.element, populatedData.garagedZipcode.value);
 
           await page.waitFor(1500);
-          await page.evaluate((garagedCity)=>{
-           document.querySelector(garagedCity.element).value = garagedCity.value
-          },populatedData.garagedCity);
-          //await page.type(populatedData.garagedCity.element, populatedData.garagedCity.value);
+          await page.evaluate((garagedCity) => {
+            document.querySelector(garagedCity.element).value = garagedCity.value;
+          }, populatedData.garagedCity);
+          // await page.type(populatedData.garagedCity.element, populatedData.garagedCity.value);
 
           await page.waitFor(1500);
           await page.evaluate(() => document.querySelector('#Continue').click());
@@ -279,22 +285,20 @@ module.exports = {
             await page.evaluate(() => document.querySelector('#Continue').click());
             await page.waitFor(5000);
 
-            try{
+            try {
               try {
                 if (page.$('[id="ui-dialog-title-1"]')) {
-                  await page.click(`a[class="ui-dialog-titlebar-close ui-corner-all"]`);
+                  await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
                 }
-
               } catch (e) {
-                console.log('error close dialog',e);
-              }   
+                console.log('error close dialog');
+              }
               await page.waitFor(1000);
               await page.evaluate(() => document.querySelector('#Continue').click());
-            }catch(e){
-              console.log('catch error',e);
+            } catch (e) {
+              console.log('catch error');
             }
             await Drivers(dataObject, populatedData);
-
           } catch (err) {
             console.log('houseHold catch');
             try {
@@ -322,7 +326,6 @@ module.exports = {
           await page.waitFor(1000);
 
           for (const j in dataObject.drivers) {
-            console.log('driver j >>>>>', j);
             try {
               if (page.$('[id="ui-dialog-title-1"]')) {
                 await page.evaluate(() => {
@@ -409,9 +412,6 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#Continue').click());
           await page.waitFor(5000);
           try {
-            if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
-              await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
-            }
             // if (page.$('[id="PolicyDriverCandidates4CandidateRelationship"]')) {
             //   await page.select(populatedData.peopleInhouseHold3.element, populatedData.peopleInhouseHold3.value);
             // }
@@ -420,6 +420,9 @@ module.exports = {
             // }
 
             try {
+              if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
+                await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
+              }
               if (page.$('[id="ui-dialog-title-1"]')) {
                 await page.evaluate(() => {
                   const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
@@ -435,7 +438,6 @@ module.exports = {
             await page.evaluate(() => document.querySelector('#Continue').click());
             await page.waitFor(5000);
             await page.evaluate(() => document.querySelector('#Continue').click());
-
           } catch (e) {
             console.log('move to vehicles');
           }
@@ -579,9 +581,9 @@ module.exports = {
           await page.waitForSelector('#PolicyPremiumTotalWithPIFLabel');
           const downPayments = await page.evaluate(() => {
             const downPaymentsObj = {};
-            downPaymentsObj.paid_in_full_premium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText.replace(/\$/g, '');
-            downPaymentsObj.preferred_paymentMethod_premium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText.replace(/\$/g, '');
-            downPaymentsObj.total_premium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/\$/g, '');
+            downPaymentsObj.paidInFullPremium = document.querySelector('#PolicyPremiumTotalWithPIFSpan').innerText.replace(/\$/g, '');
+            downPaymentsObj.preferredPaymentMethodPremium = document.querySelector('#PolicyPreferredPaymentMethodPremiumSpan').innerText.replace(/\$/g, '');
+            downPaymentsObj.totalPremium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/\$/g, '');
             return downPaymentsObj;
           });
 
@@ -803,7 +805,7 @@ module.exports = {
       req.session.data = {
         title: bodyData.results.status === true ? 'Successfully retrieved safeco AL rate.' : 'Failed to retrieved safeco AL rate.',
         obj: bodyData.results,
-        totalPremium: bodyData.results.response.total_premium ? bodyData.results.response.total_premium.replace(/,/g, '') : null,
+        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
       };
       browser.close();
       return next();
