@@ -473,6 +473,7 @@ module.exports = {
 
       // For Login
       async function loginStep(browser, page) {
+        console.log('CSE CA Login Step.');
         await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
         await page.waitForSelector('#frmLogin > div > div.signInTile');
         await page.type('#j_username', username);
@@ -486,7 +487,7 @@ module.exports = {
       }
 
       async function newQuoteStep(browser, page, populatedData) {
-        console.log('newQuoteStep');
+        console.log('CSE CA New Quote Step.');
 
         try {
           const AllPages = await browser.pages();
@@ -576,13 +577,13 @@ module.exports = {
           });
           await page.click('#NextPage');
         } catch (e) {
-          console.log('error at newQuoteStep :: ', e);
+          console.log('Error at CSE CA New Quote Step. :', e);
           const response = { error: 'There is some error validations at newQuoteStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result : ', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -595,7 +596,7 @@ module.exports = {
 
       // add vehicle
       async function vehicleStep(browser, page, populatedData) {
-        console.log('vehicleStep');
+        console.log('CSE CA Vehicle Step.');
         try {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
@@ -643,13 +644,13 @@ module.exports = {
             }
           }
         } catch (e) {
-          console.log('error at vehicleStep :: ', e);
+          console.log('Error at CSE CA Vehicle Step :', e);
           const response = { error: 'There is some error validations at vehicleStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -662,7 +663,7 @@ module.exports = {
 
       // add policy
       async function policyStep(browser, page, populatedData) {
-        console.log('policyStep');
+        console.log('CSE CA Policy Step.');
         // Policy Coverage
         const { policyCoverage } = populatedData;
         await page.waitFor(4000);
@@ -681,7 +682,7 @@ module.exports = {
       // Add driver/ Non driver
       async function driverStep(browser, page, populatedData) {
         try {
-          console.log('driverStep');
+          console.log('CSE CA Driver Step.');
           await page.waitForSelector('#EditLink');
           await page.click('#EditLink');
           // Driver Detail Edit
@@ -725,13 +726,13 @@ module.exports = {
             }
           }
         } catch (e) {
-          console.log('driverStep error', e);
+          console.log('Error at CSE CA Driver Step :', e);
           const response = { error: 'There is some error validations at driverStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -745,8 +746,6 @@ module.exports = {
       await loginStep(browser, page);
 
       await page.waitFor(3000);
-      // await page.click('#NextPage');
-
       await page.waitForSelector('#NextPage');
       await page.click('#NextPage');
       await page.waitFor(3000);
@@ -772,7 +771,7 @@ module.exports = {
         status: true,
         response: premiumDetails,
       };
-      console.log('final result >> ', JSON.stringify(bodyData.results));
+      console.log('Result :', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'Successfully retrieved CSE CA rate.',
         obj: bodyData.results,
@@ -781,7 +780,7 @@ module.exports = {
       browser.close();
       return next();
     } catch (error) {
-      console.log('error >> ', error);
+      console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
     }
   },
