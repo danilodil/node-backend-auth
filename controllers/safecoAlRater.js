@@ -79,7 +79,7 @@ module.exports = {
       async function startPageStep() {
         try{
 
-          console.log('Safeco startPage');
+          console.log('Safeco Start Page Step');
           await page.waitFor(2000);
           await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitFor(3000);
