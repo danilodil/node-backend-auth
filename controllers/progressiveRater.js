@@ -70,47 +70,65 @@ module.exports = {
       await loginStep();
 
       async function loginStep() {
-        console.log('Progressive DE Login Step.');
-        await page.goto(rater.LOGIN_URL, { waitUntil: 'load' });
-        await page.waitForSelector('#user1');
-        await page.type('#user1', username);
-        await page.type('#password1', password);
+        try{
 
-        await page.click('#image1');
-        await page.waitFor(1000);
-        const populatedData = await populateKeyValueData(bodyData);
-        await newQuoteStep(populatedData);
+          console.log('Progressive DE Login Step.');
+          await page.goto(rater.LOGIN_URL, { waitUntil: 'load' });
+          await page.waitForSelector('#user1');
+          await page.type('#user1', username);
+          await page.type('#password1', password);
+  
+          await page.click('#image1');
+          await page.waitFor(1000);
+          const populatedData = await populateKeyValueData(bodyData);
+          await newQuoteStep(populatedData);
+
+        }catch(error){
+          const response = { error: 'There is some error validations at loginStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
+        }
       }
 
       // For redirect to new quoate form
       async function newQuoteStep(populatedData) {
-        console.log('Progressive DE New Quote Step.');
 
-        const AllPages = await browser.pages();
-        if (AllPages.length > 2) {
-          for (let i = 2; i < AllPages.length; i += 1) {
-            await AllPages[i].close();
+        try{
+          console.log('Progressive DE New Quote Step.');
+          const AllPages = await browser.pages();
+          if (AllPages.length > 2) {
+            for (let i = 2; i < AllPages.length; i += 1) {
+              await AllPages[i].close();
+            }
           }
-        }
-
-        await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-
-        await page.waitForSelector('#QuoteStateList');
-        await page.select('#QuoteStateList', 'DE');
-        await page.select('#Prds', 'AU');
-        await page.waitFor(1000);
-        await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-
-
-        while (true) {
+  
+          await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
+  
+          await page.waitForSelector('#QuoteStateList');
+          await page.select('#QuoteStateList', 'DE');
+          await page.select('#Prds', 'AU');
           await page.waitFor(1000);
-          const pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            page = pageQuote[2];
-            break;
+          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+  
+  
+          while (true) {
+            await page.waitFor(1000);
+            const pageQuote = await browser.pages();
+            if (pageQuote.length > 2) {
+              page = pageQuote[2];
+              break;
+            }
           }
+          await namedInsuredStep(populatedData);
+        }catch(error){
+        const response = { error: 'There is some error validations at newQuoteStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
         }
-        await namedInsuredStep(populatedData);
       }
 
       // For Named Insured Form
@@ -224,7 +242,7 @@ module.exports = {
           await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           const response = { error: 'There is some error validations at namedInsuredStep' };
-          dataObject.results = {
+          bodyData.results = {
             status: false,
             response,
           };
@@ -321,7 +339,7 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Vehicle Step:', err.satck);
           const response = { error: 'There is some error validations at vehicleStep' };
-          dataObject.results = {
+          bodyData.results = {
             status: false,
             response,
           };
@@ -419,7 +437,7 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Driver Step:', err);
           const response = { error: 'There is some error validations at driverStep' };
-          dataObject.results = {
+          bodyData.results = {
             status: false,
             response,
           };
@@ -526,94 +544,118 @@ module.exports = {
       }
 
       async function coveragesStep(pageQuote, dataObject) {
-        console.log('Progressive DE Coverages Step.');
-        await pageQuote.waitFor(2000);
-        await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
-        await pageQuote.select('#pol_ubi_exprnc', 'N');
+        try{
 
-        for (const j in dataObject.coverage) {
-          await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
-
-          const liabilityOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.veh_liab"]>option`);
-          const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
-          await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
-
-          const bipdOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.BIPD"]>option`);
-          const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
-          await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
-
-          const umuimOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.UMUMPD"]>option`);
-          const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
-          await pageQuote.select(`select[name="VEH.${j}.UMUMPD"]`, umuimValue);
-
-          const pipOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PIP"]>option`);
-          const pipPayValue = await pageQuote.evaluate(selectSubStringOption, pipOptions, dataObject.coverage[j].PIP);
-          await pageQuote.select(`select[name="VEH.${j}.PIP"]`, pipPayValue);
-
-          const compOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COMP"]>option`);
-          const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
-          await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
-
-          const colOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COLL"]>option`);
-          const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
-          await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
-
-          const rentOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.RENT"]>option`);
-          const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
-          await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
-
-          const roadsideOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.ROADSD"]>option`);
-          const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
-          await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
-
-          const payoffOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PAYOFF"]>option`);
-          const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
-          await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+          console.log('Progressive DE Coverages Step.');
           await pageQuote.waitFor(2000);
-        }
+          await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
+          await pageQuote.select('#pol_ubi_exprnc', 'N');
+  
+          for (const j in dataObject.coverage) {
+            await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
+  
+            const liabilityOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.veh_liab"]>option`);
+            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+            await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
+  
+            const bipdOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.BIPD"]>option`);
+            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+            await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
+  
+            const umuimOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.UMUMPD"]>option`);
+            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+            await pageQuote.select(`select[name="VEH.${j}.UMUMPD"]`, umuimValue);
+  
+            const pipOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PIP"]>option`);
+            const pipPayValue = await pageQuote.evaluate(selectSubStringOption, pipOptions, dataObject.coverage[j].PIP);
+            await pageQuote.select(`select[name="VEH.${j}.PIP"]`, pipPayValue);
+  
+            const compOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COMP"]>option`);
+            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+            await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
+  
+            const colOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COLL"]>option`);
+            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+            await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
+  
+            const rentOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.RENT"]>option`);
+            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+            await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
+  
+            const roadsideOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.ROADSD"]>option`);
+            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+            await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
+  
+            const payoffOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PAYOFF"]>option`);
+            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+            await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+            await pageQuote.waitFor(2000);
+          }
+  
+          await pageQuote.waitForSelector('#pmt_optn_desc_presto');
+          await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
+          await pageQuote.waitFor(500);
+          const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
+          await recalcElement.click();
+          await pageQuote.waitFor(8000);
+          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await processDataStep(pageQuote, dataObject);
 
-        await pageQuote.waitForSelector('#pmt_optn_desc_presto');
-        await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
-        await pageQuote.waitFor(500);
-        const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
-        await recalcElement.click();
-        await pageQuote.waitFor(8000);
-        await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-        await processDataStep(pageQuote, dataObject);
+        }catch(error){
+          console.log('Error at Progressive DE Coverages Step ', error);
+          const response = { error: 'There is some error validations at coveragesStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+       
       }
 
       async function processDataStep(pageQuote, dataObject) {
-        console.log('Progressive DE Process Data Step.');
-        await pageQuote.waitFor(4000);
-        const downPayment = await pageQuote.evaluate(() => {
-          const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
-          const ress = {};
-          ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
-          ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
-          ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
-          ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
+        try{
 
-          let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
-          while (true) {
-            if (previousElement.querySelector('th')) {
-              ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
-              break;
+          console.log('Progressive DE Process Data Step.');
+          await pageQuote.waitFor(4000);
+          const downPayment = await pageQuote.evaluate(() => {
+            const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
+            const ress = {};
+            ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
+            ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
+            ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
+            ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
+  
+            let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
+            while (true) {
+              if (previousElement.querySelector('th')) {
+                ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
+                break;
+              }
+              if (previousElement.previousElementSibling.tagName === 'TR') {
+                previousElement = previousElement.previousElementSibling;
+              } else {
+                break;
+              }
             }
-            if (previousElement.previousElementSibling.tagName === 'TR') {
-              previousElement = previousElement.previousElementSibling;
-            } else {
-              break;
-            }
-          }
-          return ress;
-        });
+            return ress;
+          });
+  
+          dataObject.results = {
+            status: true,
+            response: downPayment,
+          };
+          await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
+          await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
 
-        dataObject.results = {
-          status: true,
-          response: downPayment,
-        };
-        await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
-        await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
+        }catch(error){
+          console.log('Error at Progressive DE Process Data Step ', error);
+          const response = { error: 'There is some error validations at coveragesStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+      
       }
 
       console.log('Result :', JSON.stringify(bodyData.results));
@@ -1658,94 +1700,118 @@ module.exports = {
       }
 
       async function coveragesStep(pageQuote, dataObject) {
-        console.log('Progressive AL Coverages Step.');
-        await pageQuote.waitFor(2000);
-        await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
-        await pageQuote.select('#pol_ubi_exprnc', 'N');
+        try{
 
-        for (const j in dataObject.coverage) {
-          await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
-
-          const liabilityOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.veh_liab"]>option`);
-          const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
-          await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
-
-          const bipdOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.BIPD"]>option`);
-          const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
-          await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
-
-          const umuimOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.UMUIM"]>option`);
-          const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
-          await pageQuote.select(`select[name="VEH.${j}.UMUIM"]`, umuimValue);
-
-          const medPayOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.MEDPAY"]>option`);
-          const medPayValue = await pageQuote.evaluate(selectSubStringOption, medPayOptions, dataObject.coverage[j].MEDPAY);
-          await pageQuote.select(`select[name="VEH.${j}.MEDPAY"]`, medPayValue);
-
-          const compOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COMP"]>option`);
-          const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
-          await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
-
-          const colOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COLL"]>option`);
-          const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
-          await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
-
-          const rentOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.RENT"]>option`);
-          const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
-          await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
-
-          const roadsideOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.ROADSD"]>option`);
-          const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
-          await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
-
-          const payoffOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.PAYOFF"]>option`);
-          const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
-          await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+          console.log('Progressive AL Coverages Step.');
           await pageQuote.waitFor(2000);
-        }
+          await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
+          await pageQuote.select('#pol_ubi_exprnc', 'N');
+  
+          for (const j in dataObject.coverage) {
+            await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
+  
+            const liabilityOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.veh_liab"]>option`);
+            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+            await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
+  
+            const bipdOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.BIPD"]>option`);
+            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+            await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
+  
+            const umuimOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.UMUIM"]>option`);
+            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+            await pageQuote.select(`select[name="VEH.${j}.UMUIM"]`, umuimValue);
+  
+            const medPayOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.MEDPAY"]>option`);
+            const medPayValue = await pageQuote.evaluate(selectSubStringOption, medPayOptions, dataObject.coverage[j].MEDPAY);
+            await pageQuote.select(`select[name="VEH.${j}.MEDPAY"]`, medPayValue);
+  
+            const compOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COMP"]>option`);
+            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+            await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
+  
+            const colOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COLL"]>option`);
+            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+            await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
+  
+            const rentOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.RENT"]>option`);
+            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+            await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
+  
+            const roadsideOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.ROADSD"]>option`);
+            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+            await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
+  
+            const payoffOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.PAYOFF"]>option`);
+            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+            await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
+            await pageQuote.waitFor(2000);
+          }
+  
+          await pageQuote.waitForSelector('#pmt_optn_desc_presto');
+          await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
+          await pageQuote.waitFor(500);
+          const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
+          await recalcElement.click();
+          await pageQuote.waitFor(8000);
+          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await processDataStep(pageQuote, dataObject);
 
-        await pageQuote.waitForSelector('#pmt_optn_desc_presto');
-        await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
-        await pageQuote.waitFor(500);
-        const recalcElement = await pageQuote.$('[id="tot_pol_prem-button"]');
-        await recalcElement.click();
-        await pageQuote.waitFor(8000);
-        await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-        await processDataStep(pageQuote, dataObject);
+        }catch(error){
+          console.log('Error at Progressive AL Coverages Step:', error);
+          const response = { error: 'There is some error validations at coveragesStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+       
       }
 
       async function processDataStep(pageQuote, dataObject) {
-        console.log('Progressive AL Process Data Step.');
-        await pageQuote.waitFor(6000);
-        const downPayment = await pageQuote.evaluate(() => {
-          const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
-          const ress = {};
-          ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
-          ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
-          ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
-          ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
+        try{
 
-          let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
-          while (true) {
-            if (previousElement.querySelector('th')) {
-              ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
-              break;
+          console.log('Progressive AL Process Data Step.');
+          await pageQuote.waitFor(6000);
+          const downPayment = await pageQuote.evaluate(() => {
+            const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
+            const ress = {};
+            ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
+            ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
+            ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
+            ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
+  
+            let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
+            while (true) {
+              if (previousElement.querySelector('th')) {
+                ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
+                break;
+              }
+              if (previousElement.previousElementSibling.tagName === 'TR') {
+                previousElement = previousElement.previousElementSibling;
+              } else {
+                break;
+              }
             }
-            if (previousElement.previousElementSibling.tagName === 'TR') {
-              previousElement = previousElement.previousElementSibling;
-            } else {
-              break;
-            }
-          }
-          return ress;
-        });
+            return ress;
+          });
+  
+          dataObject.results = {
+            status: true,
+            response: downPayment,
+          };
+          await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
+          await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
 
-        dataObject.results = {
-          status: true,
-          response: downPayment,
-        };
-        await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
-        await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
+        }catch(error){
+          console.log('Error at Progressive AL Process Data Step:', error);
+          const response = { error: 'There is some error validations at processDataStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+       
       }
 
       await loginStep();
