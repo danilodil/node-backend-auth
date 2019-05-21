@@ -96,7 +96,9 @@ module.exports = {
       await loginStep();
 
       async function loginStep() {
-        console.log('National AL Login Step.');
+        try{
+
+          console.log('National AL Login Step.');
         await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' }); // wait until page load
         await page.waitForSelector('#txtUserID');
         await page.type('#txtUserID', username);
@@ -105,18 +107,40 @@ module.exports = {
         await page.waitForNavigation({ timeout: 0 });
         const populatedData = await populateKeyValueData(bodyData);
         await newQuoteStep(bodyData, populatedData);
+
+        }catch(error){
+          console.log('Error at National AL Log In  Step:');
+          const response = { error: 'There is some error validations at loginStep' };
+          bodyData.results = {
+            status: false,
+            response,
+          };
+        }
+        
       }
 
       // For redirect to new quoate form
       async function newQuoteStep(dataObject, populatedData) {
-        console.log('National AL New Quote Step.');
-        await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
-        await page.waitForSelector(populatedData.newQuoteState.element);
-        await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
-        await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
-        await page.waitFor(1000);
-        await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
-        await namedInsuredStep(dataObject, populatedData);
+        try{
+
+          console.log('National AL New Quote Step.');
+          await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector(populatedData.newQuoteState.element);
+          await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
+          await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
+          await page.waitFor(1000);
+          await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
+          await namedInsuredStep(dataObject, populatedData);
+
+        }catch(error){
+          console.log('Error at National AL New Quote  Step:');
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          dataObject.results = {
+            status: false,
+            response,
+          };
+        }
+      
       }
 
       // For Named Insured Form
@@ -155,7 +179,7 @@ module.exports = {
           await page.select(populatedData.hasMovedInLast60Days.element, populatedData.hasMovedInLast60Days.value);
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await Drivers(dataObject, populatedData);
+          await DriversStep(dataObject, populatedData);
         } catch (err) {
           console.log('Error at National AL Named Insured Step:');
           const response = { error: 'There is some error validations at namedInsuredStep' };
@@ -167,7 +191,7 @@ module.exports = {
       }
 
       // For driver Form
-      async function Drivers(dataObject, populatedData) {
+      async function DriversStep(dataObject, populatedData) {
         console.log('National AL Drivers Step.');
         try {
           await page.waitFor(1000);
@@ -222,7 +246,7 @@ module.exports = {
           } catch (e) {
             console.log('National AL Move to vehicle');
           }
-          await vehicles(dataObject, populatedData);
+          await vehiclesStep(dataObject, populatedData);
         } catch (err) {
           console.log('Error at National AL Driver Step.');
           const response = { error: 'There is some data error at Drivers step' };
@@ -234,7 +258,7 @@ module.exports = {
       }
 
       // For Vehicles Form
-      async function vehicles(dataObject, populatedData) {
+      async function vehiclesStep(dataObject, populatedData) {
         console.log('National AL Vehicles Step.');
 
         try {
@@ -275,7 +299,7 @@ module.exports = {
             await page.evaluate(selectedValue, populatedData[`ownershipStatus${j}`].element, populatedData[`ownershipStatus${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await vehicleHistory(dataObject, populatedData);
+          await vehicleHistoryStep(dataObject, populatedData);
         } catch (err) {
           console.log('Error at National AL Vehicles Steps.');
           const response = { error: 'There is some data error at vehicles' };
@@ -286,14 +310,14 @@ module.exports = {
         }
       }
 
-      async function vehicleHistory(dataObject, populatedData) {
+      async function vehicleHistoryStep(dataObject, populatedData) {
         console.log('National AL VehicleHistory Step.');
         try {
           await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
           await page.waitFor(1000);
 
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await underWriting(dataObject, populatedData);
+          await underWritingStep(dataObject, populatedData);
         } catch (err) {
           console.log('Error at National AL vehicleHistory Step :', err);
           const response = { error: 'There is some data error at vehicleHistory step' };
@@ -304,7 +328,7 @@ module.exports = {
         }
       }
 
-      async function underWriting(dataObject, populatedData) {
+      async function underWritingStep(dataObject, populatedData) {
         console.log('National AL Underwriting Step.');
         try {
           await page.waitFor(1200);
@@ -325,7 +349,7 @@ module.exports = {
 
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await coverages(dataObject);
+          await coveragesStep(dataObject);
         } catch (err) {
           console.log('Error at National AL Underwriting :', err.stack);
           const response = { error: 'There is some data error underWriting step' };
@@ -336,13 +360,13 @@ module.exports = {
         }
       }
 
-      async function coverages(dataObject) {
+      async function coveragesStep(dataObject) {
         console.log('National AL Coverages Step.');
         try {
           await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(600);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await billPlans(dataObject);
+          await billPlansStep(dataObject);
         } catch (err) {
           console.log('Error at National AL coverages Step.');
           const response = { error: 'There is some data error coverages step' };
@@ -353,7 +377,7 @@ module.exports = {
         }
       }
 
-      async function billPlans(dataObject) {
+      async function billPlansStep(dataObject) {
         console.log('National AL BillPlans Step.');
         try {
           await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });

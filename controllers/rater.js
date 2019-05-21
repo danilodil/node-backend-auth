@@ -120,7 +120,7 @@ module.exports = {
           }
         }
       });
-      req.session.data = bestRate;
+      req.session.data = bestRate.result;
       return next();
     } catch (error) {
       console.log('error >> ', error.stack);
