@@ -472,7 +472,7 @@ module.exports = {
       }
 
       // For Login
-      async function loginStep(browser, page) {
+      async function loginStep() {
         console.log('CSE CA Login Step.');
         await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
         await page.waitForSelector('#frmLogin > div > div.signInTile');
@@ -483,10 +483,10 @@ module.exports = {
         await page.waitForNavigation({ timeout: 0 });
         const populatedData = await populateKeyValueData(bodyData);
 
-        await newQuoteStep(browser, page, populatedData);
+        await newQuoteStep(populatedData);
       }
 
-      async function newQuoteStep(browser, page, populatedData) {
+      async function newQuoteStep(populatedData) {
         console.log('CSE CA New Quote Step.');
 
         try {
@@ -591,11 +591,11 @@ module.exports = {
           browser.close();
           return next();
         }
-        await vehicleStep(browser, page, populatedData);
+        await vehicleStep(populatedData);
       }
 
       // add vehicle
-      async function vehicleStep(browser, page, populatedData) {
+      async function vehicleStep(populatedData) {
         console.log('CSE CA Vehicle Step.');
         try {
           for (const j in bodyData.vehicles) {
@@ -658,11 +658,11 @@ module.exports = {
           browser.close();
           return next();
         }
-        await policyStep(browser, page, populatedData);
+        await policyStep(populatedData);
       }
 
       // add policy
-      async function policyStep(browser, page, populatedData) {
+      async function policyStep(populatedData) {
         console.log('CSE CA Policy Step.');
         // Policy Coverage
         const { policyCoverage } = populatedData;
@@ -676,11 +676,11 @@ module.exports = {
 
         await page.click('#NextPage');
         await page.waitFor(1000);
-        await driverStep(browser, page, populatedData);
+        await driverStep(populatedData);
       }
 
       // Add driver/ Non driver
-      async function driverStep(browser, page, populatedData) {
+      async function driverStep(populatedData) {
         try {
           console.log('CSE CA Driver Step.');
           await page.waitForSelector('#EditLink');
@@ -721,7 +721,7 @@ module.exports = {
                 await page.evaluate(() => document.querySelector('#DriverSelectionController').value = 'Non-Driver');
                 await page.evaluate(() => document.querySelector('select[name="DriverSelectionController"]').onchange(''));
               } catch (e) {
-                console.log('new driver');
+                console.log('CSE CA Adding New Driver');
               }
             }
           }
@@ -743,7 +743,7 @@ module.exports = {
       }
 
       // For login
-      await loginStep(browser, page);
+      await loginStep();
 
       await page.waitFor(3000);
       await page.waitForSelector('#NextPage');
