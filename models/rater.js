@@ -16,6 +16,12 @@ const Rater = sequelize.define('Rater', {
   totalPremium: {
     type: DataTypes.STRING,
   },
+  months: {
+    type: DataTypes.STRING,
+  },
+  downPayment: {
+    type: DataTypes.STRING,
+  },
   result: {
     type: DataTypes.STRING,
   },
