@@ -684,7 +684,13 @@ module.exports = {
         title: bodyData.results.status === true ? 'Successfully retrieved national general AL rate.' : 'Failed to retrieved national general AL rate.',
         obj: bodyData.results,
         totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
+        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
+        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
       };
+      if(bodyData.results.status){
+        delete bodyData.results.response.totalPremium;
+        delete bodyData.results.response.downPaymentAmount;
+      }
       browser.close();
       return next();
     } catch (error) {

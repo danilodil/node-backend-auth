@@ -77,8 +77,8 @@ module.exports = {
       await startPageStep();
 
       async function startPageStep() {
+        let retryStartPage = true;
         try{
-
           console.log('Safeco Start Page Step');
           await page.waitFor(2000);
           await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
@@ -89,9 +89,14 @@ module.exports = {
             insuranceType.click();
           });
           await page.click('input[class="DPeCButton"]');
+          retryStartPage = false;
+
           await loginStep();
 
         }catch(error){
+          if(retryStartPage){
+            await startPageStep();
+          }
           console.log('Error at Safeco AL startPage Step:', error);
           const response = { error: 'There is some error validations at startPage step' };
           bodyData.results = {
@@ -103,6 +108,7 @@ module.exports = {
       }
 
       async function loginStep() {
+        let retryLogIn = true;
         try{
 
           console.log('Safeco AL Login Step.');
@@ -111,9 +117,13 @@ module.exports = {
           await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
           await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
           await page.waitForNavigation({ waitUntil: 'load' });
+          retryLogIn = false;
           await newQuoteStep();
 
         }catch(error){
+          if(retryLogIn){
+            await loginStep();
+          }
           console.log('Error at Safeco AL Login Step:', error);
           const response = { error: 'There is some error validations at loginStep' };
           bodyData.results = {
@@ -125,6 +135,7 @@ module.exports = {
 
       // For redirect to new quoate form
       async function newQuoteStep() {
+        let retryNewquote = true;
         try {
           console.log('Safeco AL New Quote Step.');
           await page.waitFor(2000);
@@ -146,9 +157,13 @@ module.exports = {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
           });
+          retryNewquote = false;
           const populatedData = await populateKeyValueData();
           await policyInformationStep(bodyData, populatedData);
         } catch (err) {
+          if(retryNewquote){
+            await loginStep();
+          }
           console.log('Error at Safeco AL New Quote Step:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
           bodyData.results = {
@@ -817,7 +832,12 @@ module.exports = {
         title: bodyData.results.status === true ? 'Successfully retrieved safeco AL rate.' : 'Failed to retrieved safeco AL rate.',
         obj: bodyData.results,
         totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
+        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
+        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
       };
+      if(bodyData.results.status){
+        delete bodyData.results.response.totalPremium;
+      }
       browser.close();
       return next();
     } catch (error) {
