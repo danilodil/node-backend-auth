@@ -5,7 +5,7 @@ const rater = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/cse', [
+router.put('/cse/ca', [
   cseRaterController.cseRating,
   rater.saveRating,
 ]);
