@@ -94,16 +94,16 @@ module.exports = {
           await loginStep();
 
         }catch(error){
-          if(retryStartPage){
-            console.log('Error at Safeco AL startPageStep And Called startPageStep Again:');
-            await startPageStep();
-          }
           console.log('Error at Safeco AL startPage Step:', error);
           const response = { error: 'There is some error validations at startPage step' };
           bodyData.results = {
             status: false,
             response,
           };
+          if(retryStartPage){
+            console.log('Error at Safeco AL startPageStep And Called startPageStep Again:');
+            await startPageStep();
+          }
         }
         
       }
@@ -122,16 +122,16 @@ module.exports = {
           await newQuoteStep();
 
         }catch(error){
-          if(retryLogIn){
-            console.log('Error at Safeco AL loginStep And Called loginStep Again:');
-            await loginStep();
-          }
           console.log('Error at Safeco AL Login Step:', error);
           const response = { error: 'There is some error validations at loginStep' };
           bodyData.results = {
             status: false,
             response,
           };
+          if(retryLogIn){
+            console.log('Error at Safeco AL loginStep And Called loginStep Again:');
+            await loginStep();
+          }
         }
       }
 
@@ -163,16 +163,16 @@ module.exports = {
           const populatedData = await populateKeyValueData();
           await policyInformationStep(bodyData, populatedData);
         } catch (err) {
-          if(retryNewquote){
-            console.log('Error at Safeco AL newQuoteStep And Called loginStep Again:');
-            await loginStep();
-          }
           console.log('Error at Safeco AL New Quote Step:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
           bodyData.results = {
             status: false,
             response,
           };
+          if(retryNewquote){
+            console.log('Error at Safeco AL newQuoteStep And Called loginStep Again:');
+            await loginStep();
+          }
         }
       }
 
