@@ -10,17 +10,8 @@ module.exports = {
   safecoAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false });
-      let page = await browser.newPage();
-
-      page.on('dialog', async (dialog) => {
-        try {
-          await dialog.dismiss();
-        } catch (e) {
-          console.log('dialog close');
-        }
-      });
+      let browser = null;
+      let page = null;
 
       // Request input data
       req.body.data = await utils.cleanObj(req.body.data);
@@ -80,6 +71,18 @@ module.exports = {
         let retryStartPage = true;
         try{
           console.log('Safeco Start Page Step');
+          browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+          // const browser = await puppeteer.launch({ headless: false });
+          page = await browser.newPage();
+    
+          page.on('dialog', async (dialog) => {
+            try {
+              await dialog.dismiss();
+            } catch (e) {
+              console.log('dialog close');
+            }
+          });
+    
           await page.waitFor(2000);
           await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitFor(3000);
@@ -102,6 +105,7 @@ module.exports = {
           };
           if(retryStartPage){
             console.log('Error at Safeco AL startPageStep And Called startPageStep Again:');
+            browser.close();
             await startPageStep();
           }
         }
@@ -129,8 +133,9 @@ module.exports = {
             response,
           };
           if(retryLogIn){
-            console.log('Error at Safeco AL loginStep And Called loginStep Again:');
-            await loginStep();
+            console.log('Error at Safeco AL loginStep And Called startPageStep Again:');
+            browser.close();
+            await startPageStep();
           }
         }
       }
@@ -170,8 +175,9 @@ module.exports = {
             response,
           };
           if(retryNewquote){
-            console.log('Error at Safeco AL newQuoteStep And Called loginStep Again:');
-            await loginStep();
+            console.log('Error at Safeco AL newQuoteStep And Called startPageStep Again:');
+            browser.close();
+            await startPageStep();
           }
         }
       }
