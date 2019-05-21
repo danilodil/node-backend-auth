@@ -95,6 +95,7 @@ module.exports = {
 
         }catch(error){
           if(retryStartPage){
+            console.log('Error at Safeco AL startPageStep And Called startPageStep Again:');
             await startPageStep();
           }
           console.log('Error at Safeco AL startPage Step:', error);
@@ -122,6 +123,7 @@ module.exports = {
 
         }catch(error){
           if(retryLogIn){
+            console.log('Error at Safeco AL loginStep And Called loginStep Again:');
             await loginStep();
           }
           console.log('Error at Safeco AL Login Step:', error);
@@ -162,6 +164,7 @@ module.exports = {
           await policyInformationStep(bodyData, populatedData);
         } catch (err) {
           if(retryNewquote){
+            console.log('Error at Safeco AL newQuoteStep And Called loginStep Again:');
             await loginStep();
           }
           console.log('Error at Safeco AL New Quote Step:', err);
