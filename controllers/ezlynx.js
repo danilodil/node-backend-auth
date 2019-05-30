@@ -74,12 +74,16 @@ module.exports = {
 
       const returnNewDate = async (date, daysAfter) => {
         try {
-          const dd = (date.getDate() + daysAfter).toString().padStart(2, 0);
-          const mm = (date.getMonth() + 1).toString().padStart(2, 0);
-          const y = date.getFullYear();
+          if (typeof daysAfter == 'undefined' || !daysAfter) {
+            daysAfter = 0;
+          }
+          let newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset()*60000));
+          const dd = (newDate.getDate() + daysAfter).toString().padStart(2, 0);
+          const mm = (newDate.getMonth() + 1).toString().padStart(2, 0);
+          const y = newDate.getFullYear();
           return (`${y}-${mm}-${dd}`);
         } catch (error) {
-          console.log(`Error on this date ${date}`, error);
+          console.log(`Error on this date ${newDate}`, error);
         }
       };
 
@@ -117,13 +121,34 @@ module.exports = {
                   ...(await returnValue(driver.children.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(driver.children.DOB)), 0) }),
                   ...(await returnValue(driver.children.DLNumber) !== '' && { DLNumber: await returnValue(driver.children.DLNumber) }),
                   ...(await returnValue(driver.children.DLState) !== '' && { DLState: await returnValue(driver.children.DLState) }),
+                  ...(await returnValue(driver.children.DateLicensed) !== '' && { DateLicensed: await returnNewDate(new Date(await returnValue(driver.children.DateLicensed))) }),
+                  DLStatus: 'Valid',
+                  ...(await returnValue(driver.children.AgeLicensed) !== '' && { AgeLicensed: await returnNewDate(new Date(await returnValue(driver.children.AgeLicensed))) }),
                   ...(await returnValue(driver.children.MaritalStatus) !== '' && { MaritalStatus: await returnValue(driver.children.MaritalStatus) }),
-                  Relation: 'Insured',
-                  ...(await returnValue(driver.children.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(driver.children.Occupation))) }),
+                  ...(await returnValue(driver.children.Relation) !== '' && { Relation: await returnValue(driver.children.Relation) }),
+                  ...(await returnValue(driver.children.Industry) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(driver.children.Industry))) }),
                   ...(await returnValue(driver.children.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(driver.children.Occupation)) }),
                 },
               ],
             };
+            if (!driverObj.children['Accident'] && (driver.children['Accident'])) {
+              driverObj.children['Accident'] = {
+                  ...(await returnValue(driver.children.Accident.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Accident.Date))) }),
+                  ...(await returnValue(driver.children.Accident.accidentType) !== '' && { accidentType: await returnValue(driver.children.Accident.accidentType) })
+              };
+            }
+            if (!driverObj.children['Violation'] && (driver.children['Violation'])) {
+                driverObj.children['Violation'] = {
+                  ...(await returnValue(driver.children.Violation.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Violation.Date))) }),
+                  ...(await returnValue(driver.children.Violation.violationType) !== '' && { violationType: await returnValue(driver.children.Violation.violationType) })
+                };
+            }
+            if (!driverObj.children['CompLoss'] && (driver.children['CompLoss'])) {
+                driverObj.children['CompLoss'] = {
+                  ...(await returnValue(driver.children.CompLoss.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.CompLoss.Date))) }),
+                  ...(await returnValue(driver.children.CompLoss.Description) !== '' && { Description: await returnValue(driver.children.CompLoss.Description) })
+                };
+            }
             driversObj.push(driverObj);
             if (!req.body.Contact.Drivers[+i + 1]) {
               return driversObj;
@@ -200,12 +225,14 @@ module.exports = {
             const vehicleUseage = (await returnValue(vehicleUse.children.Useage) !== '' ? vehicleUseOptions[stringSimilarity.findBestMatch(await returnValue(vehicleUse.children.Useage), vehicleUseOptions).bestMatchIndex] : '');
             const vehicleUseObj = {
               name: 'VehicleUse',
-              attrs: { id: vehicleUse.attrs.id },
+              attrs: { id: vehicleUse.id },
               children: [
                 {
                   ...(await returnValue(vehicleUseage) !== '' && { Useage: vehicleUseage }),
                   ...(await returnValue(vehicleUse.children.OneWayMiles) !== '' && { OneWayMiles: await returnValue(vehicleUse.children.OneWayMiles) }),
-                  ...(await returnValue(vehicleUse.children.DaysPerWeek) !== '' && { DaysPerWeek: await returnValue(vehicleUse.children.DaysPerWeek) }),
+                  // ...(await returnValue(vehicleUse.children.DaysPerWeek) !== '' && { DaysPerWeek: await returnValue(vehicleUse.children.DaysPerWeek) }),
+                  DaysPerWeek: '5',
+                  WeeksPerMonth: '4',
                   ...(await returnValue(vehicleUse.children.AnnualMiles) !== '' && { AnnualMiles: await returnValue(vehicleUse.children.AnnualMiles) }),
                   ...(await returnValue(vehicleUse.children.Ownership) !== '' && { Ownership: await returnValue(vehicleUse.children.Ownership) }),
                   ...(await returnValue(vehicleUse.children.PrincipalOperator) !== '' && { PrincipalOperator: await returnValue(vehicleUse.children.PrincipalOperator) }),
@@ -226,7 +253,6 @@ module.exports = {
 
       // Add Homeownership + years at home question by default to auto
       // Add tracking for multi-car discount
-      // Add Relation in new multiple obj feature on FE
       // Match Driver and Vehicle on FE
 
       const applicantAuto = {
@@ -241,7 +267,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation))) }),
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Industry) !== '' && { Industry: await await returnValue(req.body.Contact.Applicant.PersonalInfo.Industry) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
             Relation: 'Insured',
@@ -249,7 +275,7 @@ module.exports = {
           ...((await returnValue(req.body.Contact.Applicant.Address) !== '' && await returnValue(req.body.Contact.Applicant.Address.Phone) !== '') && {
             Address: {
               AddressCode: 'StreetAddress',
-              ...(await returnValue(req.body.Contact.Applicant.Address.StreetName) !== '' && {
+              ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) !== '' && {
                 Addr1: {
                   ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) !== '' && { StreetName: await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) }),
                   ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetNumber) !== '' && { StreetNumber: await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetNumber) }),
@@ -268,36 +294,35 @@ module.exports = {
             },
           }),
         },
-        // Need prior carrier - expiration - years/months with for both
-        // PriorPolicyInfo: {
-        //    ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
-        //    ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)}),
-        //    YearsWithPriorCarrier: {
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
-        //    },
-        //    YearsWithContinuosCoverage: {
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.Years)}),
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.Months)}),
-        //    }
-        // },
-        // PolicyInfo: {
-        //    PolicyTerm: '6 Month',
-        //    Package: 'No',
-        //    Effective: await returnNewDate(new Date(), 3),
-        // },
-        // ResidenceInfo: {
-        //    CurrentAddress: {
-        //       YearsAtCurrent: {
-        //          Years: 3,
-        //          Months: 0
-        //       },
-        //       Ownership: 'Other'
-        //    }
-        // },
+        PriorPolicyInfo: {
+           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
+           ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)))}),
+           YearsWithPriorCarrier: {
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
+           },
+           YearsWithContinuousCoverage: {
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years)}),
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months)}),
+           },
+           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit) !== '' && {PriorLiabilityLimit: await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit)}),
+        },
+        PolicyInfo: {
+           PolicyTerm: '6 Month',
+           Package: 'No',
+           Effective: await returnNewDate(new Date(), 0),
+           CreditCheckAuth: 'Yes'
+        },
+        ...((await returnValue(req.body.Contact.Applicant.ResidenceInfo) !== '' && await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) !== '') && {
+          ResidenceInfo: {
+            CurrentAddress: {
+                ...(await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) !== '' && {Ownership: await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership)}),
+            }
+          }
+        }),
         ...((await returnValue(req.body.Contact.Drivers) !== '' && await returnValue(req.body.Contact.Drivers[0].children.Name) !== '') && { Drivers: await returnDrivers() }),
         ...((await returnValue(req.body.Contact.Vehicles) !== '' && await returnValue(req.body.Contact.Vehicles[0].children.Model) !== '') && { Vehicles: await returnVehicles() }),
-        // ... ((await returnValue(req.body.Contact.VehiclesUse) !== '' && await returnValue(req.body.Contact.VehiclesUse[0].children.Useage) !== '') && {VehiclesUse: await returnVehiclesUse()}),
+        ... ((await returnValue(req.body.Contact.VehiclesUse) !== '' && await returnValue(req.body.Contact.VehiclesUse[0].children.Useage) !== '') && {VehiclesUse: await returnVehiclesUse()}),
         ...((await returnValue(req.body.Contact.GeneralInfo) !== '' && await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '') && {
           GeneralInfo: {
             ...(await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '' && { RatingStateCode: await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) }),
@@ -510,5 +535,6 @@ module.exports = {
       console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
+  
   },
 };
