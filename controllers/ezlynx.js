@@ -333,6 +333,24 @@ module.exports = {
       const applicantHome = {
         Applicant: {
           ApplicantType: 'Applicant',
+          ...((await returnValue(req.body.Contact.Applicant.AltDwelling) !== '' && await returnValue(req.body.Contact.Applicant.AltDwelling.DifferentAddress) !== '') && (await returnValue(req.body.Contact.Applicant.AltDwelling.Address.City) !== '') && {
+            AltDwelling: {
+              Address: {
+                AddressCode: 'StreetAddress',
+                ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.StreetName) !== '' && {
+                  Addr1: {
+                    ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.StreetName) !== '' && { StreetName: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.StreetName) }),
+                    ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.StreetNumber) !== '' && { StreetNumber: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.StreetNumber) }),
+                    ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.UnitNumber) !== '' && { UnitNumber: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Addr1.UnitNumber) }),
+                  },
+                }),
+                ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.City) !== '' && { City: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.City) }),
+                ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.StateCode) !== '' && { StateCode: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.StateCode) }),
+                ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Zip5) !== '' && { Zip5: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Zip5) }),
+                Validation: 'Valid'
+              }
+            },
+          }),
           PersonalInfo: {
             Name: {
               FirstName: await returnValue(req.body.Contact.Applicant.PersonalInfo.Name.FirstName),
@@ -342,18 +360,19 @@ module.exports = {
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB) !== '' && { DOB: await returnNewDate(new Date(await returnValue(req.body.Contact.Applicant.PersonalInfo.DOB)), 0) }),
             ...((await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) !== '') && { Gender: await returnValue(req.body.Contact.Applicant.PersonalInfo.Gender) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) !== '' && { MaritalStatus: await returnValue(req.body.Contact.Applicant.PersonalInfo.MaritalStatus) }),
-            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Industry: await returnIndustry(await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation))) }),
+            Relation: 'Insured',
+            ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Industry) !== '' && { Industry: await await returnValue(req.body.Contact.Applicant.PersonalInfo.Industry) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation) !== '' && { Occupation: await returnClosestOccupation(await returnValue(req.body.Contact.Applicant.PersonalInfo.Occupation)) }),
             ...(await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) !== '' && { Education: await returnValue(req.body.Contact.Applicant.PersonalInfo.Education) }),
-            Relation: 'Insured',
           },
           ...((await returnValue(req.body.Contact.Applicant.Address) !== '' && await returnValue(req.body.Contact.Applicant.Address.Phone) !== '') && {
             Address: {
               AddressCode: 'StreetAddress',
-              ...(await returnValue(req.body.Contact.Applicant.Address.StreetName) !== '' && {
+              ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) !== '' && {
                 Addr1: {
                   ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) !== '' && { StreetName: await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetName) }),
                   ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetNumber) !== '' && { StreetNumber: await returnValue(req.body.Contact.Applicant.Address.Addr1.StreetNumber) }),
+                  ...(await returnValue(req.body.Contact.Applicant.Address.Addr1.UnitNumber) !== '' && { UnitNumber: await returnValue(req.body.Contact.Applicant.Address.Addr1.UnitNumber) }),
                 },
               }),
               ...(await returnValue(req.body.Contact.Applicant.Address.City) !== '' && { City: await returnValue(req.body.Contact.Applicant.Address.City) }),
@@ -366,56 +385,43 @@ module.exports = {
                 },
               }),
               ...(await returnValue(req.body.Contact.Applicant.Address.Email) !== '' && { Email: await returnValue(req.body.Contact.Applicant.Address.Email) }),
+              Validation: 'Valid'
             },
           }),
         },
-        // Need prior carrier - expiration - years/months with for both
-        // PriorPolicyInfo: {
-        //    ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
-        //    ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)}),
-        //    YearsWithPriorCarrier: {
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
-        //    },
-        //    YearsWithContinuosCoverage: {
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.Years)}),
-        //       ... (await returnValue(req.body.Contact.PriorPolicyInfo.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.Months)}),
-        //    }
-        // },
-        // PolicyInfo: {
-        //    PolicyTerm: '6 Month',
-        //    Package: 'No',
-        //    Effective: await returnNewDate(new Date(), 3),
-        // },
-        // ResidenceInfo: {
-        //    CurrentAddress: {
-        //       YearsAtCurrent: {
-        //          Years: 3,
-        //          Months: 0
-        //       },
-        //       Ownership: 'Other'
-        //    }
-        // },
-        ...(await returnValue(req.body.Contact.RatingInfo) !== '' && {
+        PriorPolicyInfo: {
+           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
+           ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)))}),
+           YearsWithPriorCarrier: {
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
+           },
+           YearsWithContinuousCoverage: {
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years)}),
+              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months)}),
+           },
+        },
+        PolicyInfo: {
+           PolicyTerm: '12 Month',
+           Package: 'No',
+           Effective: await returnNewDate(new Date(), 0),
+           CreditCheckAuth: 'Yes'
+        },
+        ...((await returnValue(req.body.Contact.RatingInfo) !== '' && await returnValue(req.body.Contact.RatingInfo.SquareFootage) !== '') && {
           RatingInfo: {
             ...(await returnValue(req.body.Contact.RatingInfo.PropertyInsCancelledLapsed) !== '' && { PropertyInsCancelledLapsed: await returnValue(req.body.Contact.RatingInfo.PropertyInsCancelledLapsed) }),
             ...(await returnValue(req.body.Contact.RatingInfo.YearBuilt) !== '' && { YearBuilt: await returnValue(req.body.Contact.RatingInfo.YearBuilt) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Dwelling) !== '' && { Dwelling: await returnValue(req.body.Contact.RatingInfo.Dwelling) }),
             ...(await returnValue(req.body.Contact.RatingInfo.DwellingUse) !== '' && { DwellingUse: await returnValue(req.body.Contact.RatingInfo.DwellingUse) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.NumberOfFullTimeDomEmps) !== '' && { NumberOfFullTimeDomEmps: await returnValue(req.body.Contact.RatingInfo.NumberOfFullTimeDomEmps) }),
             ...(await returnValue(req.body.Contact.RatingInfo.DistanceToFireHydrant) !== '' && { DistanceToFireHydrant: await returnValue(req.body.Contact.RatingInfo.DistanceToFireHydrant) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WithinCityLimits) !== '' && { WithinCityLimits: await returnValue(req.body.Contact.RatingInfo.WithinCityLimits) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.WithinProtectedSuburb) !== '' && { WithinProtectedSuburb: await returnValue(req.body.Contact.RatingInfo.WithinProtectedSuburb) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.DistanceToFireStation) !== '' && { DistanceToFireStation: await returnValue(req.body.Contact.RatingInfo.DistanceToFireStation) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WithinFireDistrict) !== '' && { WithinFireDistrict: await returnValue(req.body.Contact.RatingInfo.WithinFireDistrict) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.ProtectionClass) !== '' && { ProtectionClass: await returnValue(req.body.Contact.RatingInfo.ProtectionClass) }),
+            ProtectionClass: '1',
+            ...(await returnValue(req.body.Contact.RatingInfo.DistanceToFireStation) !== '' && { DistanceToFireStation: await returnValue(req.body.Contact.RatingInfo.DistanceToFireStation) }),
             ...(await returnValue(req.body.Contact.RatingInfo.NumberOfStories) !== '' && { NumberOfStories: await returnValue(req.body.Contact.RatingInfo.NumberOfStories) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Construction) !== '' && { Construction: await returnValue(req.body.Contact.RatingInfo.Construction) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Structure) !== '' && { Structure: await returnValue(req.body.Contact.RatingInfo.Structure) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.Roof) !== '' && { Roof: await returnValue(req.body.Contact.RatingInfo.Roof) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.RoofULClass) !== '' && { RoofULClass: await returnValue(req.body.Contact.RatingInfo.RoofULClass) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.DistanceToBrush) !== '' && { DistanceToBrush: await returnValue(req.body.Contact.RatingInfo.DistanceToBrush) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.DistanceToTidalWater) !== '' && { DistanceToTidalWater: await returnValue(req.body.Contact.RatingInfo.DistanceToTidalWater) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.Roof) !== '' && { Roof: await returnValue(req.body.Contact.RatingInfo.Roof.toUpperCase()) }),
             ...(await returnValue(req.body.Contact.RatingInfo.SwimmingPool) !== '' && { SwimmingPool: await returnValue(req.body.Contact.RatingInfo.SwimmingPool) }),
             ...(await returnValue(req.body.Contact.RatingInfo.SwimmingPoolFenced) !== '' && { SwimmingPoolFenced: await returnValue(req.body.Contact.RatingInfo.SwimmingPoolFenced) }),
             ...(await returnValue(req.body.Contact.RatingInfo.SwimmingPoolType) !== '' && { SwimmingPoolType: await returnValue(req.body.Contact.RatingInfo.SwimmingPoolType) }),
@@ -423,34 +429,73 @@ module.exports = {
             ...(await returnValue(req.body.Contact.RatingInfo.HeatingType) !== '' && { HeatingType: await returnValue(req.body.Contact.RatingInfo.HeatingType) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WoodBurningStove) !== '' && { WoodBurningStove: await returnValue(req.body.Contact.RatingInfo.WoodBurningStove) }),
             ...(await returnValue(req.body.Contact.RatingInfo.NumberOfWoodBurningStoves) !== '' && { NumberOfWoodBurningStoves: await returnValue(req.body.Contact.RatingInfo.NumberOfWoodBurningStoves) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdate) !== '' && { RoofingUpdate: await returnValue(req.body.Contact.RatingInfo.RoofingUpdate) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) !== '' && { RoofingUpdate: 'COMPLETE UPDATE'}),
             ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) !== '' && { RoofingUpdateYear: await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.ElectricalUpdate) !== '' && { ElectricalUpdate: await returnValue(req.body.Contact.RatingInfo.ElectricalUpdate) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.PlumbingUpdate) !== '' && { PlumbingUpdate: await returnValue(req.body.Contact.RatingInfo.PlumbingUpdate) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) !== '' && { ElectricalUpdate: 'COMPLETE UPDATE' }),
+            ...(await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) !== '' && { ElectricalUpdateYear: await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.PlumbingUpdateYear) !== '' && { PlumbingUpdate: 'COMPLETE UPDATE' }),
             ...(await returnValue(req.body.Contact.RatingInfo.PlumbingUpdateYear) !== '' && { PlumbingUpdateYear: await returnValue(req.body.Contact.RatingInfo.PlumbingUpdateYear) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.HeatingUpdate) !== '' && { HeatingUpdate: await returnValue(req.body.Contact.RatingInfo.HeatingUpdate) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.HeatingUpdateYear) !== '' && { HeatingUpdate: 'COMPLETE UPDATE' }),
             ...(await returnValue(req.body.Contact.RatingInfo.HeatingUpdateYear) !== '' && { HeatingUpdateYear: await returnValue(req.body.Contact.RatingInfo.HeatingUpdateYear) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.ElectricCircuitBreaker) !== '' && { ElectricCircuitBreaker: await returnValue(req.body.Contact.RatingInfo.ElectricCircuitBreaker) }),
             ...(await returnValue(req.body.Contact.RatingInfo.UnderConstruction) !== '' && { UnderConstruction: await returnValue(req.body.Contact.RatingInfo.UnderConstruction) }),
             ...(await returnValue(req.body.Contact.RatingInfo.SquareFootage) !== '' && { SquareFootage: await returnValue(req.body.Contact.RatingInfo.SquareFootage) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.NumberOfApartments) !== '' && { NumberOfApartments: await returnValue(req.body.Contact.RatingInfo.NumberOfApartments) }),
             ...(await returnValue(req.body.Contact.RatingInfo.PurchaseDate) !== '' && { PurchaseDate: await returnValue(req.body.Contact.RatingInfo.PurchaseDate) }),
             ...(await returnValue(req.body.Contact.RatingInfo.PurchasePrice) !== '' && { PurchasePrice: await returnValue(req.body.Contact.RatingInfo.PurchasePrice) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Trampoline) !== '' && { Trampoline: await returnValue(req.body.Contact.RatingInfo.Trampoline) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.SecondaryHeatingSource) !== '' && { SecondaryHeatingSource: await returnValue(req.body.Contact.RatingInfo.SecondaryHeatingSource) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.SecondaryHeatingSourceType) !== '' && { SecondaryHeatingSourceType: await returnValue(req.body.Contact.RatingInfo.SecondaryHeatingSourceType) }),
             ...(await returnValue(req.body.Contact.RatingInfo.BusinessOnPremises) !== '' && { BusinessOnPremises: await returnValue(req.body.Contact.RatingInfo.BusinessOnPremises) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.FirstMortgagee) !== '' && { FirstMortgagee: await returnValue(req.body.Contact.RatingInfo.FirstMortgagee) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.SecondMortgagee) !== '' && { SecondMortgagee: await returnValue(req.body.Contact.RatingInfo.SecondMortgagee) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.ThirdMortgagee) !== '' && { ThirdMortgagee: await returnValue(req.body.Contact.RatingInfo.ThirdMortgagee) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.EquityLineOfCredit) !== '' && { EquityLineOfCredit: await returnValue(req.body.Contact.RatingInfo.EquityLineOfCredit) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.CoSigner) !== '' && { CoSigner: await returnValue(req.body.Contact.RatingInfo.CoSigner) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.NumberOfOtherInterests) !== '' && { NumberOfOtherInterests: await returnValue(req.body.Contact.RatingInfo.NumberOfOtherInterests) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended) !== '' && { ReplacementCostExtended: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended) }),
+            ...(await returnValue(req.body.Contact.RatingInfo.NumberOfEmployees) !== '' && { NumberOfEmployees: await returnValue(req.body.Contact.RatingInfo.NumberOfEmployees) }),
+            // ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended) !== '' && await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Kitchens) !== '') && {
+            //   ReplacementCostExtended: {
+            //     ConstructionMethod: 'Unknown',
+            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations) !== '' && await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.HasBasement) !== '') && {
+            //       Foundations: {
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinish) !== '' && { Basement: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinish) }),
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinish) !== '' && {
+            //           BasementInformation: {
+            //             ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementTypeInfo) !== '' && { BasementType: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementTypeInfo) }),
+            //             ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinish) !== '' && { BasementFinished: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinish) }),
+            //             ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinishedType) !== '' && { BasementFinishedType: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.BasementFinishedType) }),
+            //           },
+            //         }),
+            //       },
+            //     }),
+            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations) !== '' && 
+            //           await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations[await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)])) !== '' && {
+            //       Foundations: {
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations[await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)]) !== '' && { [await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)]: 100 }),
+            //       },
+            //     }),
+            //     ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.LandUnderFoundation) !== '' && { LandUnderFoundation: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.LandUnderFoundation) }),
+            //     ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Kitchens) !== '' && { Kitchens: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Kitchens) }),
+            //     ...((await returnValue(req.body.Contact.RatingInfo.HeatingAndCoolingType) !== '' && await returnValue(req.body.Contact.RatingInfo.HeatingAndCoolingType.AirConditioning) !== '') && {
+            //       HeatingAndCoolingType: {
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.AirConditioning) !== '' && { AirConditioning: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.AirConditioning) }),
+            //         ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.FirePlace) !== '' && await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.FirePlace.NumberOfFirePlaces) !== '') && {
+            //           FirePlace: {
+            //             ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.FirePlace) !== '' && { FirePlace: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.FirePlace) }),
+            //             ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.NumberOfFirePlaces) !== '' && { NumberOfFirePlaces: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.HeatingAndCoolingType.NumberOfFirePlaces) }),
+            //           },
+            //         }),
+            //       },
+            //     }),
+            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports) !== '' && await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports.NumberOfCars) !== '') && {
+            //       GaragesAndCarports: {
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports.GaragesAndCarports) !== '' && { GaragesAndCarports: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports.GaragesAndCarports) }),
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports.NumberOfCars) !== '' && { NumberOfCars: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.GaragesAndCarports.NumberOfCars) }),
+            //       },
+            //     }),
+            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths) !== '' && await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths.FullBaths) !== '') && {
+            //       Baths: {
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths.FullBaths) !== '' && { FullBaths: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths.FullBaths) }),
+            //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths.HalfBaths) !== '' && { HalfBaths: await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Baths.HalfBaths) }),
+            //       },
+            //     }),
+            //   },
+            // }),
             ...(await returnValue(req.body.Contact.RatingInfo.RoofShape) !== '' && { RoofShape: await returnValue(req.body.Contact.RatingInfo.RoofShape) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WindSpeed) !== '' && { WindSpeed: await returnValue(req.body.Contact.RatingInfo.WindSpeed) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Foundation) !== '' && { Foundation: await returnValue(req.body.Contact.RatingInfo.Foundation) }),
-          },
+          }
         }),
         ...((await returnValue(req.body.Contact.GeneralInfo) !== '' && await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '') && {
           GeneralInfo: {
@@ -463,6 +508,7 @@ module.exports = {
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
       const xml_body = xml_head.concat(data, `</EZ${req.params.type.toUpperCase()}>`);
+
 
       const encodedData = base64.encode(xml_body);
 
