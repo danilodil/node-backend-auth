@@ -97,7 +97,7 @@ module.exports = {
           clientId,
           succeeded: true,
         },
-        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium'],
+        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium', 'succeeded'],
       };
 
       const raterData = await Rater.findAll(newRater);
