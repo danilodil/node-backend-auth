@@ -44,6 +44,8 @@ module.exports = {
         const updateObj = {};
         if (req.session.data && req.session.data.totalPremium) {
           updateObj.totalPremium = req.session.data.totalPremium;
+          updateObj.months = req.session.data.months;
+          updateObj.downPayment = req.session.data.downPayment;
           updateObj.succeeded = true;
           updateObj.result = JSON.stringify(req.session.data.obj.response);
           updateObj.error = null;
@@ -61,6 +63,8 @@ module.exports = {
       };
       if (req.session.data && req.session.data.totalPremium) {
         newRater.totalPremium = req.session.data.totalPremium;
+        newRater.months = req.session.data.months;
+        newRater.downPayment = req.session.data.downPayment;
         newRater.succeeded = true;
         newRater.result = JSON.stringify(req.session.data.obj.response);
       } else {
@@ -97,7 +101,7 @@ module.exports = {
           clientId,
           succeeded: true,
         },
-        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium', 'succeeded'],
+        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium','months','downPayment', 'succeeded'],
       };
 
       const raterData = await Rater.findAll(newRater);
