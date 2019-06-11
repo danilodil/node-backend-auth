@@ -3,7 +3,7 @@
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { rater } = require('../constants/appConstant');
+const { progressiveRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless:false });
+      //const browser = await puppeteer.launch({ headless: false });
       let page = await browser.newPage();
       const staticDetailsObj = {
         firstName: 'Test',
@@ -69,33 +69,43 @@ module.exports = {
       bodyData.drivers.splice(9, bodyData.drivers.length); // Its add max 12 drivers
       await loginStep();
 
+      let loginRetryAttemptCounter = 2;
       async function loginStep() {
-        try{
-
+        try {
           console.log('Progressive DE Login Step.');
-          await page.goto(rater.LOGIN_URL, { waitUntil: 'load' });
+          await page.goto(progressiveRater.LOGIN_URL, { waitUntil: 'load' });
           await page.waitForSelector('#user1');
           await page.type('#user1', username);
           await page.type('#password1', password);
-  
+
           await page.click('#image1');
           await page.waitFor(1000);
           const populatedData = await populateKeyValueData(bodyData);
           await newQuoteStep(populatedData);
 
-        }catch(error){
-          const response = { error: 'There is some error validations at loginStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
+        } catch (error) {
+          console.log('Error at Progressive DE LoginStep:', error);
+          if (!loginRetryAttemptCounter) {
+            const response = { error: 'There is some error validations at loginStep' };
+            req.session.data = {
+              title: 'Failed to retrieved Progressive DE rate.',
+              status: false,
+              response,
+            };
+            browser.close();
+            return next();
+          } else {
+            console.log('Reattempt Progressive DE login');
+            loginRetryAttemptCounter--;
+            loginStep();
+          }
         }
       }
 
       // For redirect to new quoate form
       async function newQuoteStep(populatedData) {
 
-        try{
+        try {
           console.log('Progressive DE New Quote Step.');
           const AllPages = await browser.pages();
           if (AllPages.length > 2) {
@@ -103,16 +113,16 @@ module.exports = {
               await AllPages[i].close();
             }
           }
-  
-          await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
-  
+
+          await page.goto(progressiveRater.NEW_QUOTE_URL, { waitUntil: 'load' });
+
           await page.waitForSelector('#QuoteStateList');
           await page.select('#QuoteStateList', 'DE');
           await page.select('#Prds', 'AU');
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-  
-  
+
+
           while (true) {
             await page.waitFor(1000);
             const pageQuote = await browser.pages();
@@ -122,12 +132,15 @@ module.exports = {
             }
           }
           await namedInsuredStep(populatedData);
-        }catch(error){
-        const response = { error: 'There is some error validations at newQuoteStep' };
-          bodyData.results = {
+        } catch (error) {
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
@@ -242,10 +255,13 @@ module.exports = {
           await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           const response = { error: 'There is some error validations at namedInsuredStep' };
-          bodyData.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
         await vehicleStep(populatedData);
       }
@@ -339,10 +355,13 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Vehicle Step:', err.satck);
           const response = { error: 'There is some error validations at vehicleStep' };
-          bodyData.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
         await driverStep(populatedData);
       }
@@ -437,16 +456,19 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Driver Step:', err);
           const response = { error: 'There is some error validations at driverStep' };
-          bodyData.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-        await violationStep(page, bodyData, populatedData);
+        await violationStep(page, populatedData);
       }
 
       // For Violations Form
-      async function violationStep(pageQuote, dataObject, populatedData) {
+      async function violationStep(pageQuote, populatedData) {
         console.log('Progressive DE Violation Step.');
 
         try {
@@ -454,7 +476,7 @@ module.exports = {
           const drvrViolCdS = await pageQuote.evaluate(getSelctVal, `${populatedData.priorIncident0.element}>option`);
           const drvrViolCd = await pageQuote.evaluate(getValToSelect, drvrViolCdS, populatedData.priorIncident0.value);
           const priorIncidentDate = populatedData.priorIncidentDate0.value;
-          for (const j in dataObject.drivers) {
+          for (const j in bodyData.drivers) {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
@@ -465,19 +487,20 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Violation Step :', err);
           const response = { error: 'There is some error validations at violationStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-        await underwritingStep(pageQuote, dataObject, populatedData);
+        await underwritingStep(pageQuote, populatedData);
       }
 
       // For Underwriting Form
-      async function underwritingStep(pageQuote, dataObject, populatedData) {
+      async function underwritingStep(pageQuote, populatedData) {
         console.log('Progressive DE Underwriting Step.');
-        dataObject.results = {};
-
         try {
           await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
           await pageQuote.waitFor(3000);
@@ -520,78 +543,84 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive DE Underwriting Step ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-        await errorStep(pageQuote, dataObject);
+        await errorStep(pageQuote);
       }
 
-      async function errorStep(pageQuote, dataObject) {
+      async function errorStep(pageQuote) {
         try {
           console.log('Progressive DE Error Step.');
           await pageQuote.waitFor(4000);
           await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 });
           const response = { error: 'There is some error in data' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         } catch (e) {
-          await coveragesStep(pageQuote, dataObject);
+          await coveragesStep(pageQuote);
         }
       }
 
-      async function coveragesStep(pageQuote, dataObject) {
-        try{
+      async function coveragesStep(pageQuote) {
+        try {
 
           console.log('Progressive DE Coverages Step.');
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
-  
-          for (const j in dataObject.coverage) {
+
+          for (const j in bodyData.coverage) {
             await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
-  
+
             const liabilityOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.veh_liab"]>option`);
-            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, bodyData.coverage[j].Liability);
             await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
-  
+
             const bipdOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.BIPD"]>option`);
-            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, bodyData.coverage[j].BIPD);
             await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
-  
+
             const umuimOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.UMUMPD"]>option`);
-            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, bodyData.coverage[j].UMUIM);
             await pageQuote.select(`select[name="VEH.${j}.UMUMPD"]`, umuimValue);
-  
+
             const pipOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PIP"]>option`);
-            const pipPayValue = await pageQuote.evaluate(selectSubStringOption, pipOptions, dataObject.coverage[j].PIP);
+            const pipPayValue = await pageQuote.evaluate(selectSubStringOption, pipOptions, bodyData.coverage[j].PIP);
             await pageQuote.select(`select[name="VEH.${j}.PIP"]`, pipPayValue);
-  
+
             const compOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COMP"]>option`);
-            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, bodyData.coverage[j].COMP);
             await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
-  
+
             const colOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.COLL"]>option`);
-            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, bodyData.coverage[j].COLL);
             await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
-  
+
             const rentOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.RENT"]>option`);
-            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, bodyData.coverage[j].RENTAL);
             await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
-  
+
             const roadsideOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.ROADSD"]>option`);
-            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, bodyData.coverage[j].ROADSIDE);
             await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
-  
+
             const payoffOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.PAYOFF"]>option`);
-            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, bodyData.coverage[j].PAYOFF);
             await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
             await pageQuote.waitFor(2000);
           }
-  
+
           await pageQuote.waitForSelector('#pmt_optn_desc_presto');
           await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
           await pageQuote.waitFor(500);
@@ -599,36 +628,40 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await processDataStep(pageQuote, dataObject);
+          await processDataStep(pageQuote);
 
-        }catch(error){
+        } catch (error) {
           console.log('Error at Progressive DE Coverages Step ', error);
           const response = { error: 'There is some error validations at coveragesStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-       
+
       }
 
-      async function processDataStep(pageQuote, dataObject) {
-        try{
+      async function processDataStep(pageQuote) {
+        try {
 
           console.log('Progressive DE Process Data Step.');
           await pageQuote.waitFor(4000);
-          const downPayment = await pageQuote.evaluate(() => {
+          const premiumDetails = await pageQuote.evaluate(() => {
             const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
-            const ress = {};
-            ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
-            ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
-            ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
-            ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
-  
+            const premiumDetailsObj = {
+              totalPremium: Elements[2].textContent.replace(/\n/g, '').trim(),
+              downPaymentAmount: Elements[3].textContent.replace(/\n/g, '').trim(),
+              paymentAmount: Elements[4].textContent.replace(/\n/g, '').trim(),
+              term: Elements[1].textContent.replace(/\n/g, '').trim(),
+            };
+
             let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
             while (true) {
               if (previousElement.querySelector('th')) {
-                ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
+                premiumDetailsObj.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
                 break;
               }
               if (previousElement.previousElementSibling.tagName === 'TR') {
@@ -637,42 +670,36 @@ module.exports = {
                 break;
               }
             }
-            return ress;
+            return premiumDetailsObj;
           });
-  
-          dataObject.results = {
-            status: true,
-            response: downPayment,
-          };
+
           await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
           await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
 
-        }catch(error){
+          req.session.data = {
+            title: 'Successfully retrieved progressive DE rate.',
+            status: true,
+            response: premiumDetails,
+            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+            months: premiumDetails.plan ? premiumDetails.plan : null,
+            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+          };
+          browser.close();
+          return next();
+
+        } catch (error) {
           console.log('Error at Progressive DE Process Data Step ', error);
-          const response = { error: 'There is some error validations at coveragesStep' };
-          dataObject.results = {
+          const response = { error: 'There is some error validations at processDataStep' };
+          req.session.data = {
+            title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-      
-      }
 
-      console.log('Result :', JSON.stringify(bodyData.results));
-      req.session.data = {
-        title: bodyData.results.status === true ? 'Successfully retrieved progressive DE rate.' : 'Failed to retrieved progressive DE rate.',
-        obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
-        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
-        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
-      };
-      if(bodyData.results.status){
-        delete bodyData.results.response.totalPremium;
-        delete bodyData.results.response.plan;
-        delete bodyData.results.response.downPaymentAmount;
       }
-      browser.close();
-      return next();
 
       // For dimiss alert dialog
       function dismissDialog(page1) {
@@ -948,12 +975,10 @@ module.exports = {
               value: 'R',
             };
 
-            // if (element.relationship) {
             clientInputSelect[`driverRelationship${j}`] = {
               element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
               value: element.relationship || staticDetailsObj.drivers[0].relationship,
             };
-            // }
 
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
@@ -977,7 +1002,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false });
+      //const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
       const staticDetailsObj = {
         firstName: 'Test',
@@ -1032,7 +1057,6 @@ module.exports = {
       };
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
-      bodyData.results = {};
 
       function populateKeyValueData() {
         const clientInputSelect = {
@@ -1057,10 +1081,6 @@ module.exports = {
             element: 'input[name="DRV.0.drvr_lst_nam"]',
             value: bodyData.lastName || staticDetailsObj.lastName,
           },
-          // suffixName: {
-          //   element: 'select[name="DRV.0.drvr_sfx_nam"]',
-          //   value: bodyData.suffixName || staticDetailsObj.suffixName,
-          // },
           dateOfBirth: {
             elementId: 'DRV.0.drvr_dob',
             element: 'input[name="DRV.0.drvr_dob"]',
@@ -1355,10 +1375,11 @@ module.exports = {
       }
 
       // Login
+      let loginReAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
       async function loginStep() {
         try {
           console.log('Progressive AL Login Step.');
-          await page.goto(rater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+          await page.goto(progressiveRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
           await page.waitForSelector('#user1');
           await page.type('#user1', username);
           await page.type('#password1', password);
@@ -1366,22 +1387,31 @@ module.exports = {
           await page.click('#image1');
           await page.waitFor(3000);
           const populatedData = await populateKeyValueData(bodyData);
-          await newQuoteStep(bodyData, populatedData);
+          await newQuoteStep(populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Login Step:', err);
-          const response = { error: 'There is some error validations at loginStep' };
-          dataObject.results = {
-            status: false,
-            response,
-          };
+          if (!loginReAttemptCounter) {
+            const response = { error: 'There is some error validations at loginStep' };
+            req.session.data = {
+              title: 'Failed to retrieved Progressive AL rate.',
+              status: false,
+              response,
+            };
+            browser.close();
+            return next();
+          } else {
+            console.log('Reattempt Progressive AL login');
+            loginReAttemptCounter--;
+            loginStep();
+          }
         }
       }
 
       // redirect to new quoate form
-      async function newQuoteStep(dataObject, populatedData) {
+      async function newQuoteStep(populatedData) {
         console.log('Progressive AL New Quote Step.');
         try {
-          await page.goto(rater.NEW_QUOTE_URL, { waitUntil: 'load' });
+          await page.goto(progressiveRater.NEW_QUOTE_URL, { waitUntil: 'load' });
           await page.waitForSelector(populatedData.newQuoteState.element);
           await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
@@ -1396,19 +1426,22 @@ module.exports = {
               break;
             }
           }
-          await namedInsuredStep(pageQuote, dataObject, populatedData);
+          await namedInsuredStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL New Quote Step:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // Named Insured Form
-      async function namedInsuredStep(pageQuote, dataObject, populatedData) {
+      async function namedInsuredStep(pageQuote, populatedData) {
         console.log('Progressive AL Named Insured Step.');
         try {
           await pageQuote.waitForSelector('#policy');
@@ -1438,32 +1471,35 @@ module.exports = {
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await vehicleStep(pageQuote, dataObject, populatedData);
+          await vehicleStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Named Insured Step:', err);
           const response = { error: 'There is some error validations at namedInsuredStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // Vehicles Form
-      async function vehicleStep(pageQuote, dataObject, populatedData) {
+      async function vehicleStep(pageQuote, populatedData) {
         console.log('Progressive AL Vehicle Step.');
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
-          for (const j in dataObject.vehicles) {
-            if (j < dataObject.vehicles.length - 1) {
+          for (const j in bodyData.vehicles) {
+            if (j < bodyData.vehicles.length - 1) {
               const addElement = await pageQuote.$('[id="VEH.0.add"]');
               await addElement.click();
               await pageQuote.waitFor(1000);
             }
           }
 
-          for (const j in dataObject.vehicles) {
+          for (const j in bodyData.vehicles) {
             await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
             const modelYears = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleYear${j}`].element}>option`);
             let modelYear = await pageQuote.evaluate(getValToSelect, modelYears, populatedData[`vehicleYear${j}`].value);
@@ -1521,31 +1557,34 @@ module.exports = {
             }
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await driverStep(pageQuote, dataObject, populatedData);
+          await driverStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Vehicle Step:', err);
           const response = { error: 'There is some error validations at vehicleStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // driver Form
-      async function driverStep(pageQuote, dataObject, populatedData) {
+      async function driverStep(pageQuote, populatedData) {
         console.log('Progressive AL Driver Step.');
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('img[id="DRV.0.add"]');
-          for (const j in dataObject.drivers) {
-            if (j < dataObject.drivers.length - 1) {
+          for (const j in bodyData.drivers) {
+            if (j < bodyData.drivers.length - 1) {
               const addElement = await pageQuote.$('[id="DRV.0.add"]');
               await addElement.click();
               await pageQuote.waitFor(1000);
             }
           }
-          for (const j in dataObject.drivers) {
+          for (const j in bodyData.drivers) {
             if (j === 0) {
               await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
             }
@@ -1608,19 +1647,22 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await violationStep(pageQuote, dataObject, populatedData);
+          await violationStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Driver Step:', err);
           const response = { error: 'There is some error validations at driverStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // Violations Form
-      async function violationStep(pageQuote, dataObject, populatedData) {
+      async function violationStep(pageQuote, populatedData) {
         console.log('Progressive AL Violation Step.');
 
         try {
@@ -1629,7 +1671,7 @@ module.exports = {
           const drvrViolCdS = await pageQuote.evaluate(getSelectValues, `${populatedData.priorIncident0.element}>option`);
           const drvrViolCd = await pageQuote.evaluate(getValToSelect, drvrViolCdS, populatedData.priorIncident0.value);
 
-          for (const j in dataObject.drivers) {
+          for (const j in bodyData.drivers) {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
@@ -1638,19 +1680,22 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await underwritingStep(pageQuote, dataObject, populatedData);
+          await underwritingStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Violation Step', err);
           const response = { error: 'There is some error validations at violationStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // Underwriting Form
-      async function underwritingStep(pageQuote, dataObject, populatedData) {
+      async function underwritingStep(pageQuote, populatedData) {
         console.log('Progressive AL Underwriting Step');
 
         try {
@@ -1684,77 +1729,83 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
           const response = { error: 'There is some error validations at underwritingStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-        await errorStep(pageQuote, dataObject);
+        await errorStep(pageQuote);
       }
 
-      async function errorStep(pageQuote, dataObject) {
+      async function errorStep(pageQuote) {
         try {
           console.log('Progressive AL Error Step.');
           await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 });
           const response = { error: 'There is some error in data' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         } catch (e) {
-          await coveragesStep(pageQuote, dataObject);
+          await coveragesStep(pageQuote);
         }
       }
 
-      async function coveragesStep(pageQuote, dataObject) {
-        try{
+      async function coveragesStep(pageQuote) {
+        try {
 
           console.log('Progressive AL Coverages Step.');
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
-  
-          for (const j in dataObject.coverage) {
+
+          for (const j in bodyData.coverage) {
             await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
-  
+
             const liabilityOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.veh_liab"]>option`);
-            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, dataObject.coverage[j].Liability);
+            const liabilityValue = await pageQuote.evaluate(selectSubStringOption, liabilityOptions, bodyData.coverage[j].Liability);
             await pageQuote.select(`select[name="VEH.${j}.veh_liab"]`, liabilityValue);
-  
+
             const bipdOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.BIPD"]>option`);
-            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, dataObject.coverage[j].BIPD);
+            const bipdValue = await pageQuote.evaluate(selectSubStringOption, bipdOptions, bodyData.coverage[j].BIPD);
             await pageQuote.select(`select[name="VEH.${j}.BIPD"]`, bipdValue);
-  
+
             const umuimOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.UMUIM"]>option`);
-            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, dataObject.coverage[j].UMUIM);
+            const umuimValue = await pageQuote.evaluate(selectSubStringOption, umuimOptions, bodyData.coverage[j].UMUIM);
             await pageQuote.select(`select[name="VEH.${j}.UMUIM"]`, umuimValue);
-  
+
             const medPayOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.MEDPAY"]>option`);
-            const medPayValue = await pageQuote.evaluate(selectSubStringOption, medPayOptions, dataObject.coverage[j].MEDPAY);
+            const medPayValue = await pageQuote.evaluate(selectSubStringOption, medPayOptions, bodyData.coverage[j].MEDPAY);
             await pageQuote.select(`select[name="VEH.${j}.MEDPAY"]`, medPayValue);
-  
+
             const compOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COMP"]>option`);
-            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, dataObject.coverage[j].COMP);
+            const compValue = await pageQuote.evaluate(selectSubStringOption, compOptions, bodyData.coverage[j].COMP);
             await pageQuote.select(`select[name="VEH.${j}.COMP"]`, compValue);
-  
+
             const colOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.COLL"]>option`);
-            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, dataObject.coverage[j].COLL);
+            const colValue = await pageQuote.evaluate(selectSubStringOption, colOptions, bodyData.coverage[j].COLL);
             await pageQuote.select(`select[name="VEH.${j}.COLL"]`, colValue);
-  
+
             const rentOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.RENT"]>option`);
-            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, dataObject.coverage[j].RENTAL);
+            const rentValue = await pageQuote.evaluate(selectSubStringOption, rentOptions, bodyData.coverage[j].RENTAL);
             await pageQuote.select(`select[name="VEH.${j}.RENT"]`, rentValue);
-  
+
             const roadsideOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.ROADSD"]>option`);
-            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, dataObject.coverage[j].ROADSIDE);
+            const roadsideValue = await pageQuote.evaluate(selectSubStringOption, roadsideOptions, bodyData.coverage[j].ROADSIDE);
             await pageQuote.select(`select[name="VEH.${j}.ROADSD"]`, roadsideValue);
-  
+
             const payoffOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.PAYOFF"]>option`);
-            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, dataObject.coverage[j].PAYOFF);
+            const payoffValue = await pageQuote.evaluate(selectSubStringOption, payoffOptions, bodyData.coverage[j].PAYOFF);
             await pageQuote.select(`select[name="VEH.${j}.PAYOFF"]`, payoffValue);
             await pageQuote.waitFor(2000);
           }
-  
+
           await pageQuote.waitForSelector('#pmt_optn_desc_presto');
           await pageQuote.select('#pmt_optn_desc_presto', 'P0500');
           await pageQuote.waitFor(500);
@@ -1762,32 +1813,35 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await processDataStep(pageQuote, dataObject);
+          await processDataStep(pageQuote);
 
-        }catch(error){
+        } catch (error) {
           console.log('Error at Progressive AL Coverages Step:', error);
           const response = { error: 'There is some error validations at coveragesStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-       
+
       }
 
-      async function processDataStep(pageQuote, dataObject) {
-        try{
+      async function processDataStep(pageQuote) {
+        try {
 
           console.log('Progressive AL Process Data Step.');
           await pageQuote.waitFor(6000);
-          const downPayment = await pageQuote.evaluate(() => {
+          const premiumDetails = await pageQuote.evaluate(() => {
             const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
             const ress = {};
             ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
             ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
             ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
             ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
-  
+
             let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
             while (true) {
               if (previousElement.querySelector('th')) {
@@ -1802,42 +1856,37 @@ module.exports = {
             }
             return ress;
           });
-  
-          dataObject.results = {
-            status: true,
-            response: downPayment,
-          };
+
           await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
           await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
 
-        }catch(error){
+          req.session.data = {
+            title: 'Successfully retrieved progressive AL rate.',
+            status: true,
+            response: premiumDetails,
+            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+            months: premiumDetails.plan ? premiumDetails.plan : null,
+            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+          };
+          browser.close();
+          return next();
+
+        } catch (error) {
           console.log('Error at Progressive AL Process Data Step:', error);
           const response = { error: 'There is some error validations at processDataStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-       
+
       }
 
       await loginStep();
 
-      console.log('Result :', JSON.stringify(bodyData.results));
-      req.session.data = {
-        title: bodyData.results.status === true ? 'Successfully retrieved progressive AL rate.' : 'Failed to retrieved progressive AL rate.',
-        obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
-        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
-        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
-      };
-      if(bodyData.results.status){
-        delete bodyData.results.response.totalPremium;
-        delete bodyData.results.response.plan;
-        delete bodyData.results.response.downPaymentAmount;
-      }
-      browser.close();
-      return next();
     } catch (error) {
       console.log('Error at Progressive AL :', error);
       return next(Boom.badRequest('Failed to retrieved progressive AL rate.'));

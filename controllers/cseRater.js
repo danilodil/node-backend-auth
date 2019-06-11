@@ -13,7 +13,7 @@ module.exports = {
 
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless:false });
+      //const browser = await puppeteer.launch({ headless:false });
       const page = await browser.newPage();
 
       const staticDetailsObj = {
@@ -72,16 +72,13 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       };
       const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.results = {};
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
         optVals = [];
-
         document.querySelectorAll(inputID).forEach((opt) => {
           optVals.push({ name: opt.innerText, value: opt.value });
         });
-
         return optVals;
       }
 
@@ -472,18 +469,37 @@ module.exports = {
       }
 
       // For Login
+      let loginReAttemptCounter = cseRater.LOGIN_REATTEMPT;
       async function loginStep() {
-        console.log('CSE CA Login Step.');
-        await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
-        await page.waitForSelector('#frmLogin > div > div.signInTile');
-        await page.type('#j_username', username);
-        await page.type('#j_password', password);
+        try {
+          console.log('CSE CA Login Step.');
+          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+          await page.waitForSelector('#frmLogin > div > div.signInTile');
+          await page.type('#j_username', username);
+          await page.type('#j_password', password);
 
-        await page.click('#SignIn');
-        await page.waitForNavigation({ timeout: 0 });
-        const populatedData = await populateKeyValueData(bodyData);
+          await page.click('#SignIn');
+          await page.waitForNavigation({ timeout: 0 });
+          const populatedData = await populateKeyValueData(bodyData);
 
-        await newQuoteStep(populatedData);
+          await newQuoteStep(populatedData);
+        } catch (error) {
+          console.log('Error at CSE CA Login Step:', err);
+          if (!loginReAttemptCounter) {
+            const response = { error: 'There is some error validations at loginStep' };
+            req.session.data = {
+              title: 'Failed to retrieved CSE CA rate.',
+              status: false,
+              response,
+            };
+            browser.close();
+            return next();
+          } else {
+            console.log('Reattempt CSE CA login');
+            loginReAttemptCounter--;
+            loginStep();
+          }
+        }
       }
 
       async function newQuoteStep(populatedData) {
@@ -524,11 +540,9 @@ module.exports = {
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          // page.on('console', msg => console.log('PAGE LOG:', msg._text));
           page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
-              // console.log(JSON.stringify(oneElement));
               if (oneElement.value === 'AAGCA') {
                 setTimeout(() => {
                   document.getElementById(oneElement.element).value = oneElement.value;
@@ -579,14 +593,10 @@ module.exports = {
         } catch (e) {
           console.log('Error at CSE CA New Quote Step. :', e);
           const response = { error: 'There is some error validations at newQuoteStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
-          console.log('Result : ', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            response,
           };
           browser.close();
           return next();
@@ -646,14 +656,10 @@ module.exports = {
         } catch (e) {
           console.log('Error at CSE CA Vehicle Step :', e);
           const response = { error: 'There is some error validations at vehicleStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
-          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            response,
           };
           browser.close();
           return next();
@@ -663,20 +669,31 @@ module.exports = {
 
       // add policy
       async function policyStep(populatedData) {
-        console.log('CSE CA Policy Step.');
-        // Policy Coverage
-        const { policyCoverage } = populatedData;
-        await page.waitFor(4000);
-        await page.waitForSelector('#Line\\.BILimit');
-        await page.evaluate((policyCoverage) => {
-          policyCoverage.forEach((oneElement) => {
-            document.getElementById(oneElement.element).value = oneElement.value;
-          });
-        }, policyCoverage);
+        try {
+          console.log('CSE CA Policy Step.');
+          const { policyCoverage } = populatedData;
+          await page.waitFor(4000);
+          await page.waitForSelector('#Line\\.BILimit');
+          await page.evaluate((policyCoverage) => {
+            policyCoverage.forEach((oneElement) => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+          }, policyCoverage);
 
-        await page.click('#NextPage');
-        await page.waitFor(1000);
-        await driverStep(populatedData);
+          await page.click('#NextPage');
+          await page.waitFor(1000);
+          await driverStep(populatedData);
+        } catch (e) {
+          console.log('Error at CSE CA policyStep :', e);
+          const response = { error: 'There is some error validations at policyStep' };
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            response,
+          };
+          browser.close();
+          return next();
+        }
       }
 
       // Add driver/ Non driver
@@ -728,21 +745,17 @@ module.exports = {
         } catch (e) {
           console.log('Error at CSE CA Driver Step :', e);
           const response = { error: 'There is some error validations at driverStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
           console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            response,
           };
           browser.close();
           return next();
         }
       }
 
-      // For login
       await loginStep();
 
       await page.waitFor(3000);
@@ -767,19 +780,15 @@ module.exports = {
         return details;
       });
 
-      bodyData.results = {
-        status: true,
-        response: premiumDetails,
-      };
-      console.log('Result :', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'Successfully retrieved CSE CA rate.',
-        obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
-        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
-        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
+        status: true,
+        response: premiumDetails,
+        totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+        months: premiumDetails.plan ? premiumDetails.plan : null,
+        downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
       };
-      if(bodyData.results.status){
+      if (bodyData.results.status) {
         delete bodyData.results.response.totalPremium;
       }
       browser.close();

@@ -29,12 +29,14 @@ exports.ezLynx = {
   UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx',
 };
 
-exports.rater = {
+exports.progressiveRater = {
   LOGIN_URL: 'https://www.foragentsonly.com/login/',
   NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
+  LOGIN_REATTEMPT: 2,
 };
 
 exports.cseRater = {
+  LOGIN_REATTEMPT: 2,
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 

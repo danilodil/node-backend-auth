@@ -4,6 +4,7 @@
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { nationalGeneralAlRater } = require('../constants/appConstant');
+const utils = require('../lib/utils');
 
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
@@ -12,28 +13,7 @@ module.exports = {
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       //const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
-      const data = {
-        producer: '610979',
-        inputBy: '20000739',
-        plan: 'G5',
-        firstName: req.body.data.firstName,
-        lastName: req.body.data.lastName,
-        suffixName: 'IV',
-        email: req.body.data.email,
-        birthDate: req.body.data.birthDate,
-        mailingAddress: req.body.data.mailingAddress,
-        phone1: '455',
-        phone2: '555',
-        phone3: '5555',
-        city: req.body.data.city,
-        state: req.body.data.state,
-        zipCode: req.body.data.zipCode,
-        security1: '122',
-        security2: '22',
-        security3: '2222',
-        drivers: req.body.data.drivers,
-        vehicles: req.body.data.vehicles,
-      };
+
       const staticDataObj = {
         newQuoteState: 'AL',
         newQuoteProduct: 'PPA',
@@ -91,38 +71,40 @@ module.exports = {
           },
         ],
       };
-      const bodyData = data;
+      const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
       await loginStep();
 
       async function loginStep() {
-        try{
+        try {
 
           console.log('National AL Login Step.');
-        await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' }); // wait until page load
-        await page.waitForSelector('#txtUserID');
-        await page.type('#txtUserID', username);
-        await page.type('#txtPassword', password);
-        await page.click('#btnLogin');
-        await page.waitForNavigation({ timeout: 0 });
-        const populatedData = await populateKeyValueData(bodyData);
-        await newQuoteStep(bodyData, populatedData);
+          await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector('#txtUserID');
+          await page.type('#txtUserID', username);
+          await page.type('#txtPassword', password);
+          await page.click('#btnLogin');
+          await page.waitForNavigation({ timeout: 0 });
+          const populatedData = await populateKeyValueData(bodyData);
+          await newQuoteStep(populatedData);
 
-        }catch(error){
+        } catch (error) {
           console.log('Error at National AL Log In  Step:');
           const response = { error: 'There is some error validations at loginStep' };
-          bodyData.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-        
+
       }
 
       // For redirect to new quoate form
-      async function newQuoteStep(dataObject, populatedData) {
-        try{
-
+      async function newQuoteStep(populatedData) {
+        try {
           console.log('National AL New Quote Step.');
           await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector(populatedData.newQuoteState.element);
@@ -130,21 +112,24 @@ module.exports = {
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.waitFor(1000);
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
-          await namedInsuredStep(dataObject, populatedData);
+          await namedInsuredStep(populatedData);
 
-        }catch(error){
+        } catch (error) {
           console.log('Error at National AL New Quote  Step:');
           const response = { error: 'There is some error validations at newQuoteStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
-      
+
       }
 
       // For Named Insured Form
-      async function namedInsuredStep(dataObject, populatedData) {
+      async function namedInsuredStep(populatedData) {
         console.log('National AL Named Insured Step.');
 
         try {
@@ -179,26 +164,29 @@ module.exports = {
           await page.select(populatedData.hasMovedInLast60Days.element, populatedData.hasMovedInLast60Days.value);
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await DriversStep(dataObject, populatedData);
+          await DriversStep(populatedData);
         } catch (err) {
           console.log('Error at National AL Named Insured Step:');
           const response = { error: 'There is some error validations at namedInsuredStep' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // For driver Form
-      async function DriversStep(dataObject, populatedData) {
+      async function DriversStep(populatedData) {
         console.log('National AL Drivers Step.');
         try {
           await page.waitFor(1000);
           await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
 
-          for (const j in dataObject.drivers) {
-            if (j < dataObject.drivers.length - 1) {
+          for (const j in bodyData.drivers) {
+            if (j < bodyData.drivers.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredDriverLabel1_btnAddDriver"]');
               await addElement.click();
               await page.waitFor(2000);
@@ -213,7 +201,7 @@ module.exports = {
           await page.waitFor(600);
           await page.select('#ctl00_MainContent_Driver1_ddlMaritalStatus', '-1');
 
-          for (let j in dataObject.drivers) {
+          for (let j in bodyData.drivers) {
             j = parseInt(j) + 1;
             await page.waitFor(600);
             await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
@@ -246,27 +234,30 @@ module.exports = {
           } catch (e) {
             console.log('National AL Move to vehicle');
           }
-          await vehiclesStep(dataObject, populatedData);
+          await vehiclesStep(populatedData);
         } catch (err) {
           console.log('Error at National AL Driver Step.');
           const response = { error: 'There is some data error at Drivers step' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
       // For Vehicles Form
-      async function vehiclesStep(dataObject, populatedData) {
+      async function vehiclesStep(populatedData) {
         console.log('National AL Vehicles Step.');
 
         try {
           await page.waitFor(2000);
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
-          for (const j in dataObject.vehicles) {
-            if (j < dataObject.vehicles.length - 1) {
+          for (const j in bodyData.vehicles) {
+            if (j < bodyData.vehicles.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredAutoLabel1_btnAddAuto"]');
               await addElement.click();
               await page.waitFor(2000);
@@ -275,7 +266,7 @@ module.exports = {
           await page.waitFor(1000);
           await page.waitForSelector('#ctl00_MainContent_AutoControl1_txtZip');
           await clearInputText('#ctl00_MainContent_AutoControl1_txtZip');
-          for (const j in dataObject.vehicles) {
+          for (const j in bodyData.vehicles) {
             await page.waitFor(600);
             await page.waitForSelector(populatedData[`vehicleVin${j}`].element);
             await page.evaluate((vehicleVinInput) => {
@@ -299,36 +290,42 @@ module.exports = {
             await page.evaluate(selectedValue, populatedData[`ownershipStatus${j}`].element, populatedData[`ownershipStatus${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await vehicleHistoryStep(dataObject, populatedData);
+          await vehicleHistoryStep(populatedData);
         } catch (err) {
           console.log('Error at National AL Vehicles Steps.');
           const response = { error: 'There is some data error at vehicles' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
-      async function vehicleHistoryStep(dataObject, populatedData) {
+      async function vehicleHistoryStep(populatedData) {
         console.log('National AL VehicleHistory Step.');
         try {
           await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
           await page.waitFor(1000);
 
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await underWritingStep(dataObject, populatedData);
+          await underWritingStep(populatedData);
         } catch (err) {
           console.log('Error at National AL vehicleHistory Step :', err);
           const response = { error: 'There is some data error at vehicleHistory step' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
-      async function underWritingStep(dataObject, populatedData) {
+      async function underWritingStep(populatedData) {
         console.log('National AL Underwriting Step.');
         try {
           await page.waitFor(1200);
@@ -349,35 +346,41 @@ module.exports = {
 
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await coveragesStep(dataObject);
+          await coveragesStep();
         } catch (err) {
           console.log('Error at National AL Underwriting :', err.stack);
           const response = { error: 'There is some data error underWriting step' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
-      async function coveragesStep(dataObject) {
+      async function coveragesStep() {
         console.log('National AL Coverages Step.');
         try {
           await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(600);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await billPlansStep(dataObject);
+          await billPlansStep();
         } catch (err) {
           console.log('Error at National AL coverages Step.');
           const response = { error: 'There is some data error coverages step' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
-      async function billPlansStep(dataObject) {
+      async function billPlansStep() {
         console.log('National AL BillPlans Step.');
         try {
           await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
@@ -388,23 +391,34 @@ module.exports = {
           tHead.forEach((key, i) => {
             if (i !== 0) downPayments[key] = tBody[i];
           });
-          const premiumObj = {
+          const premiumDetails = {
             description: downPayments.DESCRIPTION,
             downPaymentAmount: downPayments['DOWN PAYMENT'],
             payments: downPayments.PAYMENTS,
             totalPremium: downPayments.TOTAL,
           };
-          dataObject.results = {
+
+          req.session.data = {
+            title: 'Successfully retrieved national general AL rate.',
             status: true,
-            response: premiumObj,
+            response: premiumDetails,
+            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+            months: premiumDetails.plan ? premiumDetails.plan : null,
+            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
           };
+          browser.close();
+          return next();
+
         } catch (err) {
           console.log('Error at National AL Bill plans:', err);
           const response = { error: 'There is some data error billPlans step' };
-          dataObject.results = {
+          req.session.data = {
+            title: 'Failed to retrieved National AL rate.',
             status: false,
             response,
           };
+          browser.close();
+          return next();
         }
       }
 
@@ -679,20 +693,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      console.log('Result :', JSON.stringify(bodyData.results));
-      req.session.data = {
-        title: bodyData.results.status === true ? 'Successfully retrieved national general AL rate.' : 'Failed to retrieved national general AL rate.',
-        obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
-        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
-        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
-      };
-      if(bodyData.results.status){
-        delete bodyData.results.response.totalPremium;
-        delete bodyData.results.response.downPaymentAmount;
-      }
-      browser.close();
-      return next();
     } catch (error) {
       console.log('Error at National AL : ', error.stack);
       return next(Boom.badRequest('Failed to retrieved national general AL rate.'));

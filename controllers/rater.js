@@ -33,7 +33,7 @@ module.exports = {
 
     const raterData = await Rater.findOne(existRater);
 
-    if (raterData && req.session.data.obj.status) {
+    if (raterData && req.session.data.status) {
       const currentPremium = parseFloat(req.session.data.totalPremium);
       const previousPremium = parseFloat(raterData.totalPremium);
       let isLessTotalPremium = true;
@@ -47,7 +47,7 @@ module.exports = {
           updateObj.months = req.session.data.months;
           updateObj.downPayment = req.session.data.downPayment;
           updateObj.succeeded = true;
-          updateObj.result = JSON.stringify(req.session.data.obj.response);
+          updateObj.result = JSON.stringify(req.session.data.response);
           updateObj.error = null;
           await raterData.update(updateObj);
         }
@@ -59,16 +59,15 @@ module.exports = {
         clientId,
         vendorName: req.body.vendorName,
         succeeded: false,
-        // result: JSON.stringify(req.session.data),
       };
       if (req.session.data && req.session.data.totalPremium) {
         newRater.totalPremium = req.session.data.totalPremium;
         newRater.months = req.session.data.months;
         newRater.downPayment = req.session.data.downPayment;
         newRater.succeeded = true;
-        newRater.result = JSON.stringify(req.session.data.obj.response);
+        newRater.result = JSON.stringify(req.session.data.response);
       } else {
-        newRater.error = req.session.data.obj.response.error;
+        newRater.error = req.session.data.response.error;
       }
       await Rater.create(newRater);
     }
