@@ -472,7 +472,8 @@ module.exports = {
       }
 
       // For Login
-      async function loginStep(browser, page) {
+      async function loginStep() {
+        console.log('CSE CA Login Step.');
         await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
         await page.waitForSelector('#frmLogin > div > div.signInTile');
         await page.type('#j_username', username);
@@ -482,11 +483,11 @@ module.exports = {
         await page.waitForNavigation({ timeout: 0 });
         const populatedData = await populateKeyValueData(bodyData);
 
-        await newQuoteStep(browser, page, populatedData);
+        await newQuoteStep(populatedData);
       }
 
-      async function newQuoteStep(browser, page, populatedData) {
-        console.log('newQuoteStep');
+      async function newQuoteStep(populatedData) {
+        console.log('CSE CA New Quote Step.');
 
         try {
           const AllPages = await browser.pages();
@@ -576,13 +577,13 @@ module.exports = {
           });
           await page.click('#NextPage');
         } catch (e) {
-          console.log('error at newQuoteStep :: ', e);
+          console.log('Error at CSE CA New Quote Step. :', e);
           const response = { error: 'There is some error validations at newQuoteStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result : ', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -590,12 +591,12 @@ module.exports = {
           browser.close();
           return next();
         }
-        await vehicleStep(browser, page, populatedData);
+        await vehicleStep(populatedData);
       }
 
       // add vehicle
-      async function vehicleStep(browser, page, populatedData) {
-        console.log('vehicleStep');
+      async function vehicleStep(populatedData) {
+        console.log('CSE CA Vehicle Step.');
         try {
           for (const j in bodyData.vehicles) {
             const vehicles = populatedData[`vehicles${j}`];
@@ -643,13 +644,13 @@ module.exports = {
             }
           }
         } catch (e) {
-          console.log('error at vehicleStep :: ', e);
+          console.log('Error at CSE CA Vehicle Step :', e);
           const response = { error: 'There is some error validations at vehicleStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -657,12 +658,12 @@ module.exports = {
           browser.close();
           return next();
         }
-        await policyStep(browser, page, populatedData);
+        await policyStep(populatedData);
       }
 
       // add policy
-      async function policyStep(browser, page, populatedData) {
-        console.log('policyStep');
+      async function policyStep(populatedData) {
+        console.log('CSE CA Policy Step.');
         // Policy Coverage
         const { policyCoverage } = populatedData;
         await page.waitFor(4000);
@@ -675,13 +676,13 @@ module.exports = {
 
         await page.click('#NextPage');
         await page.waitFor(1000);
-        await driverStep(browser, page, populatedData);
+        await driverStep(populatedData);
       }
 
       // Add driver/ Non driver
-      async function driverStep(browser, page, populatedData) {
+      async function driverStep(populatedData) {
         try {
-          console.log('driverStep');
+          console.log('CSE CA Driver Step.');
           await page.waitForSelector('#EditLink');
           await page.click('#EditLink');
           // Driver Detail Edit
@@ -720,18 +721,18 @@ module.exports = {
                 await page.evaluate(() => document.querySelector('#DriverSelectionController').value = 'Non-Driver');
                 await page.evaluate(() => document.querySelector('select[name="DriverSelectionController"]').onchange(''));
               } catch (e) {
-                console.log('new driver');
+                console.log('CSE CA Adding New Driver');
               }
             }
           }
         } catch (e) {
-          console.log('driverStep error', e);
+          console.log('Error at CSE CA Driver Step :', e);
           const response = { error: 'There is some error validations at driverStep' };
           bodyData.results = {
             status: false,
             response,
           };
-          console.log('final result >> ', JSON.stringify(bodyData.results));
+          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             obj: bodyData.results,
@@ -742,11 +743,9 @@ module.exports = {
       }
 
       // For login
-      await loginStep(browser, page);
+      await loginStep();
 
       await page.waitFor(3000);
-      // await page.click('#NextPage');
-
       await page.waitForSelector('#NextPage');
       await page.click('#NextPage');
       await page.waitFor(3000);
@@ -772,16 +771,21 @@ module.exports = {
         status: true,
         response: premiumDetails,
       };
-      console.log('final result >> ', JSON.stringify(bodyData.results));
+      console.log('Result :', JSON.stringify(bodyData.results));
       req.session.data = {
         title: 'Successfully retrieved CSE CA rate.',
         obj: bodyData.results,
         totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
+        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
+        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
       };
+      if(bodyData.results.status){
+        delete bodyData.results.response.totalPremium;
+      }
       browser.close();
       return next();
     } catch (error) {
-      console.log('error >> ', error);
+      console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
     }
   },
