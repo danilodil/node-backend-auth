@@ -6,6 +6,9 @@ const Rater = require('../models/rater');
 module.exports = {
   saveRating: async (req, res, next) => {
     console.log('Inside saveRating');
+    if (req.session.data && !req.session.data.totalPremium) {
+      return next();
+    }
 
     let companyId = null;
     let clientId = null;
@@ -33,24 +36,20 @@ module.exports = {
 
     const raterData = await Rater.findOne(existRater);
 
-    if (raterData && req.session.data.status) {
+    if (raterData && raterData.totalPremium && req.session.data.status) {
       const currentPremium = parseFloat(req.session.data.totalPremium);
       const previousPremium = parseFloat(raterData.totalPremium);
-      let isLessTotalPremium = true;
-      if (raterData.totalPremium && req.session.data.totalPremium) {
-        isLessTotalPremium = req.session.data.totalPremium && (currentPremium < previousPremium);
-      }
-      if (isLessTotalPremium) {
-        const updateObj = {};
-        if (req.session.data && req.session.data.totalPremium) {
-          updateObj.totalPremium = req.session.data.totalPremium;
-          updateObj.months = req.session.data.months;
-          updateObj.downPayment = req.session.data.downPayment;
-          updateObj.succeeded = true;
-          updateObj.result = JSON.stringify(req.session.data.response);
-          updateObj.error = null;
-          await raterData.update(updateObj);
-        }
+      if (currentPremium < previousPremium) {
+        const updateObj = {
+          totalPremium: req.session.data.totalPremium,
+          months: req.session.data.months,
+          downPayment: req.session.data.downPayment,
+          succeeded: true,
+          result: JSON.stringify(req.session.data.response),
+          error: null,
+        };
+
+        await raterData.update(updateObj);
       }
     }
     if (!raterData) {
@@ -58,20 +57,15 @@ module.exports = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
-        succeeded: false,
+        succeeded: req.session.data.status,
+        totalPremium: req.session.data.totalPremium,
+        months: req.session.data.months,
+        downPayment: req.session.data.downPayment,
+        result: JSON.stringify(req.session.data.response),
+        error: req.session.data.response.error || null,
       };
-      if (req.session.data && req.session.data.totalPremium) {
-        newRater.totalPremium = req.session.data.totalPremium;
-        newRater.months = req.session.data.months;
-        newRater.downPayment = req.session.data.downPayment;
-        newRater.succeeded = true;
-        newRater.result = JSON.stringify(req.session.data.response);
-      } else {
-        newRater.error = req.session.data.response.error;
-      }
       await Rater.create(newRater);
     }
-    delete req.session.data.totalPremium;
     return next();
   },
   getRating: async (req, res, next) => {
@@ -100,7 +94,7 @@ module.exports = {
           clientId,
           succeeded: true,
         },
-        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium','months','downPayment', 'succeeded'],
+        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded'],
       };
 
       const raterData = await Rater.findAll(newRater);
