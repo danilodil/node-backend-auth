@@ -13,7 +13,7 @@ module.exports = {
 
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless:false });
+      //const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
       const staticDetailsObj = {
@@ -468,7 +468,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      // For Login
       let loginReAttemptCounter = cseRater.LOGIN_REATTEMPT;
       async function loginStep() {
         try {
@@ -484,7 +483,7 @@ module.exports = {
 
           await newQuoteStep(populatedData);
         } catch (error) {
-          console.log('Error at CSE CA Login Step:', err);
+          console.log('Error at CSE CA Login Step:', error);
           if (!loginReAttemptCounter) {
             const response = { error: 'There is some error validations at loginStep' };
             req.session.data = {
@@ -580,6 +579,11 @@ module.exports = {
             document.getElementById('Question_cserules_notStreetLic').value = 'No';
           });
           await page.waitFor(1000);
+
+          // await page.evaluate(() => {
+          //   document.getElementById('Question_cserules_physDamWithPriorLiability').value = 'No';
+          // });
+          // await page.waitFor(1000);
 
           await page.evaluate(() => {
             document.getElementById('Question_cserules_useBusiness').value = 'Yes';
@@ -742,10 +746,10 @@ module.exports = {
               }
             }
           }
+          await summaryStep();
         } catch (e) {
           console.log('Error at CSE CA Driver Step :', e);
           const response = { error: 'There is some error validations at driverStep' };
-          console.log('Result :', JSON.stringify(bodyData.results));
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
@@ -756,43 +760,44 @@ module.exports = {
         }
       }
 
+      async function summaryStep() {
+        console.log('CSE CA summary Step.');
+        await page.waitFor(3000);
+        await page.waitForSelector('#NextPage');
+        await page.click('#NextPage');
+        await page.waitFor(3000);
+
+        await page.waitForSelector('#NextPage');
+        await page.click('#NextPage');
+        await page.waitFor(3000);
+
+        await page.waitForSelector('#NextPage');
+        await page.click('#NextPage');
+        await page.waitFor(3000);
+        const premiumDetails = await page.evaluate(() => {
+          const details = {
+            totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
+            TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
+            totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
+            transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
+          };
+          return details;
+        });
+
+        req.session.data = {
+          title: 'Successfully retrieved CSE CA rate.',
+          status: true,
+          response: premiumDetails,
+          totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+          months: premiumDetails.plan ? premiumDetails.plan : null,
+          downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+        };
+        browser.close();
+        return next();
+      }
+
       await loginStep();
 
-      await page.waitFor(3000);
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-      const premiumDetails = await page.evaluate(() => {
-        const details = {
-          totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
-          TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
-          totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
-          transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
-        };
-        return details;
-      });
-
-      req.session.data = {
-        title: 'Successfully retrieved CSE CA rate.',
-        status: true,
-        response: premiumDetails,
-        totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
-        months: premiumDetails.plan ? premiumDetails.plan : null,
-        downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
-      };
-      if (bodyData.results.status) {
-        delete bodyData.results.response.totalPremium;
-      }
-      browser.close();
-      return next();
     } catch (error) {
       console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));

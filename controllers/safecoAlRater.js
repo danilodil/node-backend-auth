@@ -11,7 +11,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false });
+      //const browser = await puppeteer.launch({ headless: false });
       let page = await browser.newPage();
 
       page.on('dialog', async (dialog) => {
@@ -22,7 +22,6 @@ module.exports = {
         }
       });
 
-      // Request input data
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
 
@@ -248,16 +247,16 @@ module.exports = {
             if (errorMessage) {
               response.error = 'Unable to process due to site down.';
             }
-            req.session.data = {
-              title: 'Failed to retrieved Safeco AL rate.',
-              status: false,
-              response,
-            };
-            browser.close();
-            return next();
           } catch (e) {
             console.log('Safeco AL Unable to process due to site down.');
           }
+          req.session.data = {
+            title: 'Failed to retrieved Safeco AL rate.',
+            status: false,
+            response,
+          };
+          browser.close();
+          return next();
         }
       }
 
@@ -450,10 +449,10 @@ module.exports = {
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
             }
-            await page.waitFor(2000);
-            await page.evaluate(() => document.querySelector('#Continue').click());
-            await page.waitFor(5000);
-            await page.evaluate(() => document.querySelector('#Continue').click());
+            //await page.waitFor(2000);
+            //await page.evaluate(() => document.querySelector('#Continue').click());
+            //await page.waitFor(5000);
+            //await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
             console.log('Safeco AL Move to vehicles');
           }
