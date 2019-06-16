@@ -11,7 +11,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless: false });
+      //const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
       const staticDataObj = {
@@ -71,10 +71,65 @@ module.exports = {
           },
         ],
       };
+      const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
       const populatedData = await populateKeyValueData(bodyData);
       await loginStep();
+
+      if (params.quoteId) {
+        await processExistingQuote();
+      }
+
+      if (!params.stepName) {
+        await newQuoteStep();
+        await namedInsuredStep();
+        await DriversStep();
+        await vehiclesStep();
+        await underWritingStep();
+
+      } else if (params.stepName === 'namedInsured' && !params.quoteId) {
+        await newQuoteStep();
+        await namedInsuredStep();
+        await page.waitFor(1000);
+        const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+        req.session.data = {
+          title: 'Successfully finished National AL Named Insured Step',
+          status: true,
+          quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'namedInsured' && params.quoteId) {
+        await namedInsuredStep();
+        req.session.data = {
+          title: 'Successfully finished National AL Named Insured Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'drivers' && params.quoteId) {
+        await DriversStep();
+        req.session.data = {
+          title: 'Successfully finished National AL Drivers Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'vehicles' && params.quoteId) {
+        await vehiclesStep();
+        req.session.data = {
+          title: 'Successfully finished National AL vehicle Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'summary' && params.quoteId) {
+        await underWritingStep();
+      }
 
       async function loginStep() {
         try {
@@ -85,7 +140,7 @@ module.exports = {
           await page.type('#txtPassword', password);
           await page.click('#btnLogin');
           await page.waitForNavigation({ timeout: 0 });
-          await processQuote();
+          //await processQuote();
         } catch (error) {
           console.log('Error at National AL Log In  Step:', error);
           const response = { error: 'There is some error validations at loginStep' };
@@ -99,57 +154,16 @@ module.exports = {
         }
       }
 
-      async function processQuote() {
+      async function processExistingQuote() {
         try {
           console.log('National AL Existing Quote Id Step.');
-          if (bodyData.quoteId && bodyData.stepName) {
-            const quoteId = bodyData.quoteId;
-            // eslint-disable-next-line no-shadow
-            await page.evaluate((quoteId) => {
-              document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
-            }, quoteId);
-            await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
-            await page.waitFor(1000);
-
-            if (bodyData.stepName === 'namedInsured') {
-              await namedInsuredStep();
-              req.session.data = {
-                title: 'Successfully finished National AL Named Insured Step',
-                status: true,
-                quoteId,
-              };
-              browser.close();
-              return next();
-            }
-            if (bodyData.stepName === 'drivers') {
-              await DriversStep();
-              req.session.data = {
-                title: 'Successfully finished National AL Drivers Step',
-                status: true,
-                quoteId: bodyData.quoteId,
-              };
-              browser.close();
-              return next();
-            }
-            if (bodyData.stepName === 'vehicles') {
-              await vehiclesStep();
-              req.session.data = {
-                title: 'Successfully finished National AL vehicle Step',
-                status: true,
-                quoteId: bodyData.quoteId,
-              };
-              browser.close();
-              return next();
-            }
-            if (bodyData.stepName === 'summary') {
-              await underWritingStep();
-            }
-          } else {
-            await newQuoteStep();
-            await DriversStep();
-            await vehiclesStep();
-            await underWritingStep();
-          }
+          const quoteId = params.quoteId;
+          // eslint-disable-next-line no-shadow
+          await page.evaluate((quoteId) => {
+            document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
+          }, quoteId);
+          await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
+          await page.waitFor(1000);
         } catch (error) {
           console.log('Error at National AL Existing Quote Id Step:');
           const response = { error: 'There is some error validations' };
@@ -163,7 +177,6 @@ module.exports = {
         }
       }
 
-      // For redirect to new quoate form
       async function newQuoteStep() {
         try {
           console.log('National AL New Quote Step.');
@@ -173,7 +186,6 @@ module.exports = {
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.waitFor(1000);
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
-          await namedInsuredStep();
         } catch (error) {
           console.log('Error at National AL New Quote  Step:');
           const response = { error: 'There is some error validations at newQuoteStep' };
