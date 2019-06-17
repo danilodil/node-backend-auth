@@ -19,6 +19,7 @@ module.exports = {
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
+        middleName : '',
         birthDate: '12/16/1993',
         email: 'test@mail.com',
         phone: '3026075611',
@@ -30,7 +31,6 @@ module.exports = {
         lengthAtAddress: '1 year or more',
         priorInsurance: 'Yes',
         priorInsuranceCarrier: 'USAA',
-        // must always agree to closure
         vehicles: [
           {
             // Vehicle Type will always be 1981 or newer
@@ -72,6 +72,7 @@ module.exports = {
         haveAnotherProgressivePolicy: 'No',
       };
       const bodyData = await utils.cleanObj(req.body.data);
+      const populatedData = await populateKeyValueData(bodyData);
 
       // For get all select options texts and values
       function getSelectVal(inputID) {
@@ -185,22 +186,22 @@ module.exports = {
             {
               title: 'Bodily Injury',
               element: 'Line.BILimit',
-              value: bodyData.bodilyInjuryCoverage || '25000/50000',
+              value: bodyData.policyCoverage.bodilyInjuryCoverage || '25000/50000',
             },
             {
               title: 'Property Damage',
               element: 'Line.PDLimit',
-              value: bodyData.propertyDamageCoverage || '10000',
+              value: bodyData.policyCoverage.propertyDamageCoverage || '10000',
             },
             {
               title: 'Medical Payments',
               element: 'Line.MedPayLimit',
-              value: bodyData.medicalCoverage || '2000',
+              value: bodyData.policyCoverage.medicalCoverage || '2000',
             },
             {
               title: 'Un/Under-insured Motorist - Bodily Injury',
               element: 'Line.UMBILimit',
-              value: bodyData.underInsuredMotoristCoverage || '15000/30000',
+              value: bodyData.policyCoverage.underInsuredMotoristCoverage || '15000/30000',
             },
             {
               title: 'UM-PD / WCD Applies',
@@ -243,6 +244,11 @@ module.exports = {
                 title: 'Registered State',
                 element: 'Vehicle.RegistrationStateProvCd',
                 value: 'CA',
+              },
+              {
+                title: 'Vehicle VIN',
+                element: 'Vehicle.VehIdentificationNumber',
+                value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
               },
               {
                 title: 'Model Year',
@@ -472,16 +478,12 @@ module.exports = {
       async function loginStep() {
         try {
           console.log('CSE CA Login Step.');
-          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
+          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); 
           await page.waitForSelector('#frmLogin > div > div.signInTile');
           await page.type('#j_username', username);
           await page.type('#j_password', password);
-
           await page.click('#SignIn');
           await page.waitForNavigation({ timeout: 0 });
-          const populatedData = await populateKeyValueData(bodyData);
-
-          await newQuoteStep(populatedData);
         } catch (error) {
           console.log('Error at CSE CA Login Step:', error);
           if (!loginReAttemptCounter) {
@@ -501,7 +503,7 @@ module.exports = {
         }
       }
 
-      async function newQuoteStep(populatedData) {
+      async function newQuoteStep() {
         console.log('CSE CA New Quote Step.');
 
         try {
@@ -515,7 +517,7 @@ module.exports = {
           await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
           await page.click('#NewQuote');
 
-          // product selction
+          //Product selction
           const { productSelection } = populatedData;
           await page.waitForSelector('#Main > div');
           await page.evaluate((productSelectionData) => {
@@ -528,10 +530,24 @@ module.exports = {
           await page.waitFor(1000);
           await page.waitForSelector('#ProductSelectionList');
           await page.click('#ProductSelectionList > table > tbody > tr > td > a');
+          await underWritingStep();
+        } catch (e) {
+          console.log('Error at CSE CA New Quote Step. :', e);
+          const response = { error: 'There is some error validations at newQuoteStep' };
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            response,
+          };
+          browser.close();
+          return next();
+        }
+      }
 
-          // Underwriting Status
+      async function underWritingStep() {
+        console.log('CSE CA underWriting Step.');
+        try {
           const { underwriting } = populatedData;
-
           await page.waitFor(1000);
           page.on('dialog', async (dialog) => {
             console.log(dialog.message());
@@ -539,7 +555,7 @@ module.exports = {
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          page.on('console', msg => console.log('PAGE LOG:', msg));
+          //page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
               if (oneElement.value === 'AAGCA') {
@@ -580,11 +596,6 @@ module.exports = {
           });
           await page.waitFor(1000);
 
-          // await page.evaluate(() => {
-          //   document.getElementById('Question_cserules_physDamWithPriorLiability').value = 'No';
-          // });
-          // await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_useBusiness').value = 'Yes';
           });
@@ -594,9 +605,10 @@ module.exports = {
             document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
           });
           await page.click('#NextPage');
+          await vehicleStep();
         } catch (e) {
-          console.log('Error at CSE CA New Quote Step. :', e);
-          const response = { error: 'There is some error validations at newQuoteStep' };
+          console.log('Error at CSE CA underWriting Step. :', e);
+          const response = { error: 'There is some error validations at underWritingStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
@@ -605,11 +617,9 @@ module.exports = {
           browser.close();
           return next();
         }
-        await vehicleStep(populatedData);
       }
 
-      // add vehicle
-      async function vehicleStep(populatedData) {
+      async function vehicleStep() {
         console.log('CSE CA Vehicle Step.');
         try {
           for (const j in bodyData.vehicles) {
@@ -657,6 +667,7 @@ module.exports = {
               await page.click('#Return');
             }
           }
+          await policyStep();
         } catch (e) {
           console.log('Error at CSE CA Vehicle Step :', e);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -668,11 +679,9 @@ module.exports = {
           browser.close();
           return next();
         }
-        await policyStep(populatedData);
       }
 
-      // add policy
-      async function policyStep(populatedData) {
+      async function policyStep() {
         try {
           console.log('CSE CA Policy Step.');
           const { policyCoverage } = populatedData;
@@ -683,10 +692,9 @@ module.exports = {
               document.getElementById(oneElement.element).value = oneElement.value;
             });
           }, policyCoverage);
-
           await page.click('#NextPage');
           await page.waitFor(1000);
-          await driverStep(populatedData);
+          await driverStep();
         } catch (e) {
           console.log('Error at CSE CA policyStep :', e);
           const response = { error: 'There is some error validations at policyStep' };
@@ -701,12 +709,11 @@ module.exports = {
       }
 
       // Add driver/ Non driver
-      async function driverStep(populatedData) {
+      async function driverStep() {
         try {
           console.log('CSE CA Driver Step.');
           await page.waitForSelector('#EditLink');
           await page.click('#EditLink');
-          // Driver Detail Edit
           for (const j in bodyData.drivers) {
             const editDriverDetails = populatedData[`editDriverDetails${j}`];
             if (j === '0') {
@@ -797,7 +804,8 @@ module.exports = {
       }
 
       await loginStep();
-
+      await newQuoteStep();
+   
     } catch (error) {
       console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
