@@ -5,13 +5,19 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { progressiveRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
+const ENVIRONMENT = require('./../constants/environment');
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless: false });
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      };
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
+      const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
       const staticDetailsObj = {
         firstName: 'Test',
@@ -574,7 +580,6 @@ module.exports = {
 
       async function coveragesStep(pageQuote) {
         try {
-
           console.log('Progressive DE Coverages Step.');
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
@@ -629,7 +634,6 @@ module.exports = {
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
           await processDataStep(pageQuote);
-
         } catch (error) {
           console.log('Error at Progressive DE Coverages Step ', error);
           const response = { error: 'There is some error validations at coveragesStep' };
@@ -1001,8 +1005,13 @@ module.exports = {
   rateAlabama: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless: false });
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      };
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
+      const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
       const staticDetailsObj = {
         firstName: 'Test',
@@ -1055,6 +1064,7 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
+      const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
 
@@ -1068,7 +1078,14 @@ module.exports = {
             element: '#Prds',
             value: 'AU',
           },
-
+          agentCode: {
+            element: 'select[id="AgentCode',
+            value: username,
+          },
+          quoteStatus: {
+            element: '#QuoteStatus',
+            value: '00',
+          },
           firstName: {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
             value: bodyData.firstName || staticDetailsObj.firstName,
@@ -1133,6 +1150,9 @@ module.exports = {
             elementId: 'pol_eff_dt',
             element: 'input[name="pol_eff_dt"]',
             value: bodyData.policyEffectiveDate || staticDetailsObj.policyEffectiveDate,
+          },
+          priorPolicyTerminationDate: {
+            value: bodyData.priorPolicyTerminationDate || staticDetailsObj.priorPolicyTerminationDate,
           },
           priorInsuredCdInd: {
             element: 'select[name="prir_ins_cd_insd"]',
@@ -1363,9 +1383,9 @@ module.exports = {
       }
 
       // dimiss alert dialog
-      function dismissDialog(page1) {
+      function dismissDialog(errorPage) {
         try {
-          page1.on('dialog', async (dialog) => {
+          errorPage.on('dialog', async (dialog) => {
             await dialog.dismiss();
             // await browser.close();
           });
@@ -1376,6 +1396,113 @@ module.exports = {
 
       // Login
       let loginReAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
+      const populatedData = await populateKeyValueData(bodyData);
+      let pageQuote = '';
+      await loginStep();
+      if (!params.stepName) {
+        await newQuoteStep();
+        while (true) {
+          await page.waitFor(1000);
+          pageQuote = await browser.pages();
+          if (pageQuote.length > 2) {
+            pageQuote = pageQuote[2];
+            break;
+          }
+        }
+        await namedInsuredStep();
+        await vehicleStep();
+        await driverStep();
+        await violationStep();
+        await underwritingStep();
+        await coveragesStep();
+        await processDataStep();
+      } else {
+        await processExistingQuote();
+        while (true) {
+          await page.waitFor(1000);
+          pageQuote = await browser.pages();
+          if (pageQuote.length > 2) {
+            pageQuote = pageQuote[2];
+            break;
+          }
+        }
+        if (params.stepName === 'namedInsured') {
+          await namedInsuredStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL Named Insured Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'vehicles') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Vehicles")]', 5000);
+          const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
+          if (redirectToVehicles) redirectToVehicles.click();
+          await vehicleStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL Vehicle Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'drivers') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
+          const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
+          if (redirectToDrivers) redirectToDrivers.click();
+          await driverStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL Driver Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'violations') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
+          const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
+          if (redirectToViolations) redirectToViolations.click();
+          await violationStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL Violations Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'underWriting') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
+          const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
+          if (redirectToUnderWriting) redirectToUnderWriting.click();
+          await underwritingStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL UnderWriting Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'coverage') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
+          const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
+          if (redirectToCoverage) redirectToCoverage.click();
+          await coveragesStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive AL Coverage Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'summary') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Bill Plans")]', 5000);
+          const [redirectToBillPlans] = await pageQuote.$x('//a[contains(text(), "Bill Plans")]');
+          if (redirectToBillPlans) redirectToBillPlans.click();
+          await processDataStep();
+        }
+      }
+
       async function loginStep() {
         try {
           console.log('Progressive AL Login Step.');
@@ -1386,8 +1513,6 @@ module.exports = {
 
           await page.click('#image1');
           await page.waitFor(3000);
-          const populatedData = await populateKeyValueData(bodyData);
-          await newQuoteStep(populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Login Step:', err);
           if (!loginReAttemptCounter) {
@@ -1408,7 +1533,7 @@ module.exports = {
       }
 
       // redirect to new quoate form
-      async function newQuoteStep(populatedData) {
+      async function newQuoteStep() {
         console.log('Progressive AL New Quote Step.');
         try {
           await page.goto(progressiveRater.NEW_QUOTE_URL, { waitUntil: 'load' });
@@ -1416,17 +1541,6 @@ module.exports = {
           await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-
-          let pageQuote = '';
-          while (true) {
-            await page.waitFor(1000);
-            pageQuote = await browser.pages();
-            if (pageQuote.length > 2) {
-              pageQuote = pageQuote[2];
-              break;
-            }
-          }
-          await namedInsuredStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL New Quote Step:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
@@ -1440,8 +1554,35 @@ module.exports = {
         }
       }
 
+      async function processExistingQuote() {
+        console.log('Progressive AL Existing Quote Step.');
+        try {
+          await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
+          await page.waitForSelector('#LastName');
+          await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
+          await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
+          await page.evaluate((policyEffectiveDate) => { (document.getElementById('DateStart')).value = policyEffectiveDate.value; }, populatedData.policyEffectiveDate);
+          await page.evaluate((priorPolicyTerminationDate) => { (document.getElementById('DateEnd')).value = priorPolicyTerminationDate.value; }, populatedData.priorPolicyTerminationDate);
+          await page.type(populatedData.agentCode.element, populatedData.agentCode.value);
+          await page.type('select[id="State"]', 'AL');
+          await page.select(populatedData.quoteStatus.element, populatedData.quoteStatus.value);
+          await page.evaluate(() => document.querySelector('#products_AU').click());
+          await page.waitFor(200);
+          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          await page.evaluate(() => document.querySelector('.insuredNameLink').click());
+        } catch (error) {
+          console.log('Error at Progressive AL Existing Quote Step:', error);
+          const response = { error: 'There is some error validations at progressive AL Existing Step' };
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
+            status: false,
+            response,
+          };
+        }
+      }
+
       // Named Insured Form
-      async function namedInsuredStep(pageQuote, populatedData) {
+      async function namedInsuredStep() {
         console.log('Progressive AL Named Insured Step.');
         try {
           await pageQuote.waitForSelector('#policy');
@@ -1471,7 +1612,6 @@ module.exports = {
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await vehicleStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Named Insured Step:', err);
           const response = { error: 'There is some error validations at namedInsuredStep' };
@@ -1486,7 +1626,7 @@ module.exports = {
       }
 
       // Vehicles Form
-      async function vehicleStep(pageQuote, populatedData) {
+      async function vehicleStep() {
         console.log('Progressive AL Vehicle Step.');
         try {
           await pageQuote.waitFor(2000);
@@ -1557,7 +1697,6 @@ module.exports = {
             }
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await driverStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Vehicle Step:', err);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -1572,7 +1711,7 @@ module.exports = {
       }
 
       // driver Form
-      async function driverStep(pageQuote, populatedData) {
+      async function driverStep() {
         console.log('Progressive AL Driver Step.');
         try {
           await pageQuote.waitFor(2000);
@@ -1647,7 +1786,6 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await violationStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Driver Step:', err);
           const response = { error: 'There is some error validations at driverStep' };
@@ -1662,7 +1800,7 @@ module.exports = {
       }
 
       // Violations Form
-      async function violationStep(pageQuote, populatedData) {
+      async function violationStep() {
         console.log('Progressive AL Violation Step.');
 
         try {
@@ -1680,7 +1818,6 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
-          await underwritingStep(pageQuote, populatedData);
         } catch (err) {
           console.log('Error at Progressive AL Violation Step', err);
           const response = { error: 'There is some error validations at violationStep' };
@@ -1695,7 +1832,7 @@ module.exports = {
       }
 
       // Underwriting Form
-      async function underwritingStep(pageQuote, populatedData) {
+      async function underwritingStep() {
         console.log('Progressive AL Underwriting Step');
 
         try {
@@ -1737,10 +1874,10 @@ module.exports = {
           browser.close();
           return next();
         }
-        await errorStep(pageQuote);
+        await errorStep();
       }
 
-      async function errorStep(pageQuote) {
+      async function errorStep() {
         try {
           console.log('Progressive AL Error Step.');
           await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 });
@@ -1753,13 +1890,12 @@ module.exports = {
           browser.close();
           return next();
         } catch (e) {
-          await coveragesStep(pageQuote);
+          // await coveragesStep(pageQuote);
         }
       }
 
-      async function coveragesStep(pageQuote) {
+      async function coveragesStep() {
         try {
-
           console.log('Progressive AL Coverages Step.');
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
@@ -1813,7 +1949,6 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await processDataStep(pageQuote);
 
         } catch (error) {
           console.log('Error at Progressive AL Coverages Step:', error);
@@ -1826,12 +1961,10 @@ module.exports = {
           browser.close();
           return next();
         }
-
       }
 
-      async function processDataStep(pageQuote) {
+      async function processDataStep() {
         try {
-
           console.log('Progressive AL Process Data Step.');
           await pageQuote.waitFor(6000);
           const premiumDetails = await pageQuote.evaluate(() => {
@@ -1870,7 +2003,6 @@ module.exports = {
           };
           browser.close();
           return next();
-
         } catch (error) {
           console.log('Error at Progressive AL Process Data Step:', error);
           const response = { error: 'There is some error validations at processDataStep' };
@@ -1882,11 +2014,9 @@ module.exports = {
           browser.close();
           return next();
         }
-
       }
 
       await loginStep();
-
     } catch (error) {
       console.log('Error at Progressive AL :', error);
       return next(Boom.badRequest('Failed to retrieved progressive AL rate.'));
