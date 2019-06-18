@@ -12,12 +12,12 @@ module.exports = {
   safecoAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      //const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+
       let browserParams = {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
       if (ENVIRONMENT.ENV === 'local') {
-        browserParams = { headless: false }
+        browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
@@ -70,11 +70,23 @@ module.exports = {
         yearsVehicleOwned: '5',
       };
 
+      const populatedData = await populateKeyValueData();
+
       await startPageStep();
+      await loginStep();
+      await newQuoteStep();
+      await policyInformationStep();
+      await GaragedInfoStep();
+      await houseHoldStep();
+      await DriversStep();
+      await vehiclesStep();
+      await telemeticsStep();
+      await underwritingStep();
+      await coveragesStep();
+      await summaryStep();
 
       async function startPageStep() {
         try {
-
           console.log('Safeco Start Page Step');
           await page.waitFor(2000);
           await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
@@ -85,8 +97,6 @@ module.exports = {
             insuranceType.click();
           });
           await page.click('input[class="DPeCButton"]');
-          await loginStep();
-
         } catch (error) {
           console.log('Error at Safeco AL startPage Step:', error);
           const response = { error: 'There is some error validations at startPage step' };
@@ -98,7 +108,6 @@ module.exports = {
           browser.close();
           return next();
         }
-
       }
 
       async function loginStep() {
@@ -109,8 +118,6 @@ module.exports = {
           await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
           await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
           await page.waitForNavigation({ waitUntil: 'load' });
-          await newQuoteStep();
-
         } catch (error) {
           console.log('Error at Safeco AL Login Step:', error);
           const response = { error: 'There is some error validations at loginStep' };
@@ -124,7 +131,6 @@ module.exports = {
         }
       }
 
-      // For redirect to new quoate form
       async function newQuoteStep() {
         try {
           console.log('Safeco AL New Quote Step.');
@@ -147,8 +153,6 @@ module.exports = {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
           });
-          const populatedData = await populateKeyValueData();
-          await policyInformationStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL New Quote Step:', err);
           const response = { error: 'There is some error validations at newQuoteStep' };
@@ -162,8 +166,7 @@ module.exports = {
         }
       }
 
-      // For Named Insured Form
-      async function policyInformationStep(populatedData) {
+      async function policyInformationStep() {
         console.log('Safeco AL Policy Information Step.');
 
         try {
@@ -246,7 +249,6 @@ module.exports = {
           } catch (e) {
             console.log('catch error');
           }
-          await GaragedInfoStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL Policy Information Step:', err);
           const response = { error: 'There is some error validations at policyInformationStep' };
@@ -268,7 +270,7 @@ module.exports = {
         }
       }
 
-      async function GaragedInfoStep(populatedData) {
+      async function GaragedInfoStep() {
         console.log('Safeco AL Garaged Info Step');
         try {
           await page.waitFor(800);
@@ -286,7 +288,6 @@ module.exports = {
 
           await page.waitFor(1500);
           await page.evaluate(() => document.querySelector('#Continue').click());
-          await houseHoldStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL Garaged Info:', err);
           const response = { error: 'There is some error validations at GaragedInfoStep' };
@@ -300,7 +301,7 @@ module.exports = {
         }
       }
 
-      async function houseHoldStep(populatedData) {
+      async function houseHoldStep() {
         console.log('Safeco AL House Hold Step');
         try {
           try {
@@ -327,7 +328,6 @@ module.exports = {
             } catch (e) {
               console.log('Safeco AL houseHold catch');
             }
-            await DriversStep(populatedData);
           } catch (err) {
             console.log('Safeco AL houseHold catch');
             try {
@@ -335,7 +335,6 @@ module.exports = {
             } catch (e) {
               console.log('Safeco AL next button not found');
             }
-            await DriversStep(populatedData);
           }
         } catch (e) {
           console.log('Error at Safeco AL House Hold:', err);
@@ -350,8 +349,7 @@ module.exports = {
         }
       }
 
-      // For driver Form
-      async function DriversStep(populatedData) {
+      async function DriversStep() {
         console.log('Safeco AL Drivers Step.');
         try {
           await page.waitFor(1000);
@@ -457,14 +455,13 @@ module.exports = {
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
             }
-            //await page.waitFor(2000);
-            //await page.evaluate(() => document.querySelector('#Continue').click());
-            //await page.waitFor(5000);
-            //await page.evaluate(() => document.querySelector('#Continue').click());
+            // await page.waitFor(2000);
+            // await page.evaluate(() => document.querySelector('#Continue').click());
+            // await page.waitFor(5000);
+            // await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
             console.log('Safeco AL Move to vehicles');
           }
-          await vehiclesStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL Driver Step:', err.stack);
           const response = { error: 'There is some error validations at driverStep' };
@@ -478,7 +475,7 @@ module.exports = {
         }
       }
 
-      async function vehiclesStep(populatedData) {
+      async function vehiclesStep() {
         console.log('Safeco AL Vehicles Step.');
         try {
           await page.waitFor(600);
@@ -518,7 +515,6 @@ module.exports = {
           }
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#Continue').click());
-          await telemeticsStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL Vehicles Step:', err.stack);
           const response = { error: 'There is some error validations at vehiclesStep' };
@@ -532,7 +528,7 @@ module.exports = {
         }
       }
 
-      async function telemeticsStep(populatedData) {
+      async function telemeticsStep() {
         console.log('Safeco AL Telemetics Step.');
         try {
           await page.waitFor(1000);
@@ -543,7 +539,6 @@ module.exports = {
           }
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#Continue').click());
-          await underwritingStep(populatedData);
         } catch (err) {
           console.log('err telemetics:', err);
           const response = { error: 'There is some error validations at telemeticsStep' };
@@ -557,20 +552,15 @@ module.exports = {
         }
       }
 
-      async function underwritingStep(populatedData) {
+      async function underwritingStep() {
         console.log('Safeco AL Underwriting Step.');
         try {
           await page.waitFor(1000);
-
           await page.waitForSelector('#PolicyCurrentInsuranceValue');
           await page.select(populatedData.policyCurrentInsuranceValue.element, populatedData.policyCurrentInsuranceValue.value);
-
-
           await page.waitForSelector('#PolicyAutoDataResidenceType');
           await page.select(populatedData.policyDataResidenceType.element, populatedData.policyDataResidenceType.value);
-
           await page.evaluate(() => document.querySelector('#Continue').click());
-          await coveragesStep(populatedData);
         } catch (err) {
           console.log('Error at Safeco AL Underwriting Step:', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -584,7 +574,7 @@ module.exports = {
         }
       }
 
-      async function coveragesStep(populatedData) {
+      async function coveragesStep() {
         console.log('Safeco AL Coverages Step.');
         try {
           await page.waitFor(1000);
@@ -597,7 +587,6 @@ module.exports = {
             await page.select(populatedData[`policyVehiclesCoverage${j}`].element, populatedData[`policyVehiclesCoverage${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#Continue').click());
-          await summaryStep();
         } catch (err) {
           console.log('Error at Safeco AL Coverages Step:', err);
           const response = { error: 'There is some error validations at coveragesStep' };
@@ -634,7 +623,6 @@ module.exports = {
           };
           browser.close();
           return next();
-
         } catch (err) {
           console.log('Error at Safeco AL Summary Step:', err);
           const response = { error: 'There is some error validations at summaryStep' };
@@ -845,7 +833,6 @@ module.exports = {
         }
         return clientInputSelect;
       }
-
     } catch (error) {
       console.log('Error  at Safeco AL :', error);
       return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));

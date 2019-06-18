@@ -5,6 +5,7 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { cseRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
+const ENVIRONMENT = require('./../constants/environment');
 
 module.exports = {
   cseRating: async (req, res, next) => {
@@ -12,8 +13,14 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless: false });
+
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      };
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
+      const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
       const staticDetailsObj = {
@@ -75,6 +82,72 @@ module.exports = {
       const bodyData = await utils.cleanObj(req.body.data);
       const populatedData = await populateKeyValueData(bodyData);
 
+      await loginStep();
+      if (params.quoteId) {
+        await processExistingQuote();
+      } else {
+        await newQuoteStep();
+      }
+
+      if (!params.stepName) {
+        await underWritingStep();
+        await vehicleStep();
+        await policyStep();
+        await driverStep();
+        await summaryStep();
+      } else if (params.stepName === 'underWriting') {
+        await underWritingStep();
+        await page.waitForSelector('#QuoteAppSummary_QuoteAppNumber');
+        const quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
+        req.session.data = {
+          title: 'Successfully finished CSE CA UnderWriting Step',
+          status: true,
+          quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'vehicles' && params.quoteId) {
+        await page.waitForSelector('#Wizard_Vehicles');
+        await page.click('#Wizard_Vehicles');
+        await page.waitFor(200);
+        await vehicleStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Vehicle Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'policy' && params.quoteId) {
+        await page.waitForSelector('#Wizard_AutoGeneral');
+        await page.click('#Wizard_AutoGeneral');
+        await page.waitFor(200);
+        await policyStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Policy Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'drivers' && params.quoteId) {
+        await page.waitForSelector('#Wizard_Drivers');
+        await page.click('#Wizard_Drivers');
+        await page.waitFor(100);
+        await driverStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Drivers Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'summary' && params.quoteId) {
+        await page.waitForSelector('#Wizard_LossHistory');
+        await page.click('#Wizard_LossHistory');
+        await page.waitFor(100);
+        await summaryStep();
+      }
       function getSelectVal(inputID) {
         optVals = [];
         document.querySelectorAll(inputID).forEach((opt) => {
@@ -495,11 +568,10 @@ module.exports = {
             };
             browser.close();
             return next();
-          } else {
-            console.log('Reattempt CSE CA login');
-            loginReAttemptCounter--;
-            loginStep();
           }
+          console.log('Reattempt CSE CA login');
+          loginReAttemptCounter--;
+          loginStep();
         }
       }
 
@@ -536,7 +608,7 @@ module.exports = {
           await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
           await page.click('#NewQuote');
 
-          //Product selction
+          // Product selction
           const { productSelection } = populatedData;
           await page.waitForSelector('#Main > div');
           await page.evaluate((productSelectionData) => {
@@ -573,7 +645,7 @@ module.exports = {
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          //page.on('console', msg => console.log('PAGE LOG:', msg));
+          // page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
               if (oneElement.value === 'AAGCA') {
@@ -811,74 +883,6 @@ module.exports = {
         browser.close();
         return next();
       }
-
-      await loginStep();
-      if (params.quoteId) {
-        await processExistingQuote();
-      } else {
-        await newQuoteStep();
-      }
-
-      if (!params.stepName) {
-        await underWritingStep();
-        await vehicleStep();
-        await policyStep();
-        await driverStep();
-        await summaryStep();
-      } else if (params.stepName === 'underWriting') {
-        await underWritingStep();
-        await page.waitForSelector('#QuoteAppSummary_QuoteAppNumber');
-        const quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
-        req.session.data = {
-          title: 'Successfully finished CSE CA UnderWriting Step',
-          status: true,
-          quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'vehicles' && params.quoteId) {
-        await page.waitForSelector('#Wizard_Vehicles');
-        await page.click('#Wizard_Vehicles');
-        await page.waitFor(200);
-        await vehicleStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Vehicle Step',
-          status: true,
-          quoteId: params.quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'policy' && params.quoteId) {
-        await page.waitForSelector('#Wizard_AutoGeneral');
-        await page.click('#Wizard_AutoGeneral');
-        await page.waitFor(200);
-        await policyStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Policy Step',
-          status: true,
-          quoteId: params.quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'drivers' && params.quoteId) {
-        await page.waitForSelector('#Wizard_Drivers');
-        await page.click('#Wizard_Drivers');
-        await page.waitFor(100);
-        await driverStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Drivers Step',
-          status: true,
-          quoteId: params.quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'summary' && params.quoteId) {
-        await page.waitForSelector('#Wizard_LossHistory');
-        await page.click('#Wizard_LossHistory');
-        await page.waitFor(100);
-        await summaryStep();
-      }
-
     } catch (error) {
       console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
