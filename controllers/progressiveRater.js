@@ -2016,7 +2016,6 @@ module.exports = {
         }
       }
 
-      await loginStep();
     } catch (error) {
       console.log('Error at Progressive AL :', error);
       return next(Boom.badRequest('Failed to retrieved progressive AL rate.'));
