@@ -79,17 +79,17 @@ module.exports = {
 
       if (params.quoteId) {
         await processExistingQuote();
+      } else {
+        await newQuoteStep();
       }
 
       if (!params.stepName) {
-        await newQuoteStep();
         await namedInsuredStep();
         await DriversStep();
         await vehiclesStep();
         await underWritingStep();
 
-      } else if (params.stepName === 'namedInsured' && !params.quoteId) {
-        await newQuoteStep();
+      } else if (params.stepName === 'namedInsured') {
         await namedInsuredStep();
         await page.waitFor(1000);
         const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
@@ -97,15 +97,6 @@ module.exports = {
           title: 'Successfully finished National AL Named Insured Step',
           status: true,
           quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'namedInsured' && params.quoteId) {
-        await namedInsuredStep();
-        req.session.data = {
-          title: 'Successfully finished National AL Named Insured Step',
-          status: true,
-          quoteId: params.quoteId,
         };
         browser.close();
         return next();
