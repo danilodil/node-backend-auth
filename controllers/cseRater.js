@@ -19,7 +19,7 @@ module.exports = {
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
-        middleName : '',
+        middleName: '',
         birthDate: '12/16/1993',
         email: 'test@mail.com',
         phone: '3026075611',
@@ -71,10 +71,10 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
+      const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       const populatedData = await populateKeyValueData(bodyData);
 
-      // For get all select options texts and values
       function getSelectVal(inputID) {
         optVals = [];
         document.querySelectorAll(inputID).forEach((opt) => {
@@ -478,7 +478,7 @@ module.exports = {
       async function loginStep() {
         try {
           console.log('CSE CA Login Step.');
-          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); 
+          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' });
           await page.waitForSelector('#frmLogin > div > div.signInTile');
           await page.type('#j_username', username);
           await page.type('#j_password', password);
@@ -500,6 +500,25 @@ module.exports = {
             loginReAttemptCounter--;
             loginStep();
           }
+        }
+      }
+
+      async function processExistingQuote() {
+        console.log('CSE Rater Existing Quote Id Step');
+        try {
+          await page.waitForSelector('#ToolbarSearchText');
+          await page.$eval('input[name=ToolbarSearchText]', (el, value) => el.value = value, params.quoteId);
+          await page.click('#ToolbarSearch');
+        } catch (error) {
+          console.log('Error at CSE Existing Quote Step. :', error);
+          const response = { error: 'There is some error validations at Existing Quote Step' };
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            response,
+          };
+          browser.close();
+          return next();
         }
       }
 
@@ -530,7 +549,6 @@ module.exports = {
           await page.waitFor(1000);
           await page.waitForSelector('#ProductSelectionList');
           await page.click('#ProductSelectionList > table > tbody > tr > td > a');
-          await underWritingStep();
         } catch (e) {
           console.log('Error at CSE CA New Quote Step. :', e);
           const response = { error: 'There is some error validations at newQuoteStep' };
@@ -568,7 +586,6 @@ module.exports = {
               }
             });
           }, underwriting);
-
           await page.click('#ResetCommercialName');
           await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
           await page.click('#DefaultAddress');
@@ -576,7 +593,6 @@ module.exports = {
           await page.click('#NextPage');
           await page.waitForSelector('#Question_Acknowledgement');
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_Acknowledgement').value = 'YES';
           });
@@ -585,17 +601,14 @@ module.exports = {
             document.getElementById('Question_cserules_isForRent').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_isResidence').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_notStreetLic').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_useBusiness').value = 'Yes';
           });
@@ -605,7 +618,6 @@ module.exports = {
             document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
           });
           await page.click('#NextPage');
-          await vehicleStep();
         } catch (e) {
           console.log('Error at CSE CA underWriting Step. :', e);
           const response = { error: 'There is some error validations at underWritingStep' };
@@ -667,7 +679,6 @@ module.exports = {
               await page.click('#Return');
             }
           }
-          await policyStep();
         } catch (e) {
           console.log('Error at CSE CA Vehicle Step :', e);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -694,7 +705,6 @@ module.exports = {
           }, policyCoverage);
           await page.click('#NextPage');
           await page.waitFor(1000);
-          await driverStep();
         } catch (e) {
           console.log('Error at CSE CA policyStep :', e);
           const response = { error: 'There is some error validations at policyStep' };
@@ -708,7 +718,6 @@ module.exports = {
         }
       }
 
-      // Add driver/ Non driver
       async function driverStep() {
         try {
           console.log('CSE CA Driver Step.');
@@ -753,7 +762,6 @@ module.exports = {
               }
             }
           }
-          await summaryStep();
         } catch (e) {
           console.log('Error at CSE CA Driver Step :', e);
           const response = { error: 'There is some error validations at driverStep' };
@@ -783,6 +791,7 @@ module.exports = {
         await page.waitFor(3000);
         const premiumDetails = await page.evaluate(() => {
           const details = {
+            quoteId: document.getElementById('QuoteAppSummary_QuoteAppNumber').innerText,
             totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
             TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
             totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
@@ -804,8 +813,72 @@ module.exports = {
       }
 
       await loginStep();
-      await newQuoteStep();
-   
+      if (params.quoteId) {
+        await processExistingQuote();
+      } else {
+        await newQuoteStep();
+      }
+
+      if (!params.stepName) {
+        await underWritingStep();
+        await vehicleStep();
+        await policyStep();
+        await driverStep();
+        await summaryStep();
+      } else if (params.stepName === 'underWriting') {
+        await underWritingStep();
+        await page.waitForSelector('#QuoteAppSummary_QuoteAppNumber');
+        const quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
+        req.session.data = {
+          title: 'Successfully finished CSE CA UnderWriting Step',
+          status: true,
+          quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'vehicles' && params.quoteId) {
+        await page.waitForSelector('#Wizard_Vehicles');
+        await page.click('#Wizard_Vehicles');
+        await page.waitFor(200);
+        await vehicleStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Vehicle Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'policy' && params.quoteId) {
+        await page.waitForSelector('#Wizard_AutoGeneral');
+        await page.click('#Wizard_AutoGeneral');
+        await page.waitFor(200);
+        await policyStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Policy Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'drivers' && params.quoteId) {
+        await page.waitForSelector('#Wizard_Drivers');
+        await page.click('#Wizard_Drivers');
+        await page.waitFor(100);
+        await driverStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Drivers Step',
+          status: true,
+          quoteId: params.quoteId,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'summary' && params.quoteId) {
+        await page.waitForSelector('#Wizard_LossHistory');
+        await page.click('#Wizard_LossHistory');
+        await page.waitFor(100);
+        await summaryStep();
+      }
+
     } catch (error) {
       console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));
