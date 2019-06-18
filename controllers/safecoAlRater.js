@@ -5,13 +5,21 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
+const ENVIRONMENT = require('./../constants/environment');
+
 
 module.exports = {
   safecoAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless: false });
+      //const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      };
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false }
+      }
+      const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
 
       page.on('dialog', async (dialog) => {
