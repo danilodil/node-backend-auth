@@ -32,6 +32,7 @@ exports.ezLynx = {
 exports.progressiveRater = {
   LOGIN_URL: 'https://www.foragentsonly.com/login/',
   NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
+  SEARCH_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
   LOGIN_REATTEMPT: 2,
 };
 
