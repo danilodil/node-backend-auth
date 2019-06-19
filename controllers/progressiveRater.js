@@ -1399,24 +1399,7 @@ module.exports = {
       const populatedData = await populateKeyValueData(bodyData);
       let pageQuote = '';
       await loginStep();
-      if (!params.stepName) {
-        await newQuoteStep();
-        while (true) {
-          await page.waitFor(1000);
-          pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
-            break;
-          }
-        }
-        await namedInsuredStep();
-        await vehicleStep();
-        await driverStep();
-        await violationStep();
-        await underwritingStep();
-        await coveragesStep();
-        await processDataStep();
-      } else {
+      if (params.quoteType === 'existing') {
         await processExistingQuote();
         while (true) {
           await page.waitFor(1000);
@@ -1426,6 +1409,27 @@ module.exports = {
             break;
           }
         }
+      } else {
+        await newQuoteStep();
+        while (true) {
+          await page.waitFor(1000);
+          pageQuote = await browser.pages();
+          if (pageQuote.length > 2) {
+            pageQuote = pageQuote[2];
+            break;
+          }
+        }
+      }
+
+      if (!params.stepName) {
+        await namedInsuredStep();
+        await vehicleStep();
+        await driverStep();
+        await violationStep();
+        await underwritingStep();
+        await coveragesStep();
+        await summaryStep();
+      } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
           req.session.data = {
@@ -1435,7 +1439,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'vehicles') {
+        if (params.stepName === 'vehicles' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Vehicles")]', 5000);
           const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
           if (redirectToVehicles) redirectToVehicles.click();
@@ -1447,7 +1451,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'drivers') {
+        if (params.stepName === 'drivers' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
           const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
           if (redirectToDrivers) redirectToDrivers.click();
@@ -1459,7 +1463,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'violations') {
+        if (params.stepName === 'violations' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
           const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
           if (redirectToViolations) redirectToViolations.click();
@@ -1471,7 +1475,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'underWriting') {
+        if (params.stepName === 'underWriting' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
           const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
           if (redirectToUnderWriting) redirectToUnderWriting.click();
@@ -1483,7 +1487,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'coverage') {
+        if (params.stepName === 'coverage' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
           const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
           if (redirectToCoverage) redirectToCoverage.click();
@@ -1495,11 +1499,11 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'summary') {
+        if (params.stepName === 'summary' && params.quoteType === 'existing') {
           await pageQuote.waitForXPath('//a[contains(text(), "Bill Plans")]', 5000);
           const [redirectToBillPlans] = await pageQuote.$x('//a[contains(text(), "Bill Plans")]');
           if (redirectToBillPlans) redirectToBillPlans.click();
-          await processDataStep();
+          await summaryStep();
         }
       }
 
@@ -1963,9 +1967,9 @@ module.exports = {
         }
       }
 
-      async function processDataStep() {
+      async function summaryStep() {
         try {
-          console.log('Progressive AL Process Data Step.');
+          console.log('Progressive AL Summary Step.');
           await pageQuote.waitFor(6000);
           const premiumDetails = await pageQuote.evaluate(() => {
             const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
@@ -2005,7 +2009,7 @@ module.exports = {
           return next();
         } catch (error) {
           console.log('Error at Progressive AL Process Data Step:', error);
-          const response = { error: 'There is some error validations at processDataStep' };
+          const response = { error: 'There is some error validations at summaryStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
