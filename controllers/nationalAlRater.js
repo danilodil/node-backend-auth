@@ -10,8 +10,9 @@ module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      //const browser = await puppeteer.launch({ headless: false });
+      const isSimpleForm = (req.query.simple && req.query.simple === 'true') ? true : false;
+      // const browser = !isSimpleForm ? await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] }) : await puppeteer.launch({ headless: false });
+      const browser = await puppeteer.launch({ headless: false });
       const page = await browser.newPage();
 
       const staticDataObj = {
@@ -76,7 +77,7 @@ module.exports = {
       bodyData.drivers.splice(10, bodyData.drivers.length);
       const populatedData = await populateKeyValueData(bodyData);
       await loginStep();
-
+      console.log('PARAMS: ###', params.quoteId, params.stepName);
       if (params.quoteId) {
         await processExistingQuote();
       }
