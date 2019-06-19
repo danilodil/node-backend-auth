@@ -18,11 +18,12 @@ module.exports = {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      let page = await browser.newPage();
+      const page = await browser.newPage();
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
-        dateOfBirth: '12/16/1993',
+        birthDate: '12/16/1993',
+        suffixName: 'I',
         email: 'test@mail.com',
         phone: '302-222-5555',
         mailingAddress: '216 Humphreys Dr',
@@ -70,12 +71,123 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
-
+      const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length); // Its add max 12 drivers
-      await loginStep();
 
-      let loginRetryAttemptCounter = 2;
+      let loginRetryAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
+      const populatedData = await populateKeyValueData(bodyData);
+      let pageQuote = '';
+
+      await loginStep();
+      if (params.quoteType === 'existing') {
+        await processExistingQuote();
+        while (true) {
+          await page.waitFor(1000);
+          pageQuote = await browser.pages();
+          if (pageQuote.length > 2) {
+            pageQuote = pageQuote[2];
+            break;
+          }
+        }
+      } else {
+        await newQuoteStep();
+        while (true) {
+          await page.waitFor(1000);
+          pageQuote = await browser.pages();
+          if (pageQuote.length > 2) {
+            pageQuote = pageQuote[2];
+            break;
+          }
+        }
+      }
+
+      if (!params.stepName) {
+        await namedInsuredStep();
+        await vehicleStep();
+        await driverStep();
+        await violationStep();
+        await underwritingStep();
+        await coveragesStep();
+        await summaryStep();
+      } else {
+        if (params.stepName === 'namedInsured') {
+          await namedInsuredStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE Named Insured Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'vehicles' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Vehicles")]', 5000);
+          const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
+          if (redirectToVehicles) redirectToVehicles.click();
+          await vehicleStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE Vehicle Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'drivers' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
+          const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
+          if (redirectToDrivers) redirectToDrivers.click();
+          await driverStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE Driver Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'violations' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
+          const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
+          if (redirectToViolations) redirectToViolations.click();
+          await violationStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE Violations Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'underWriting' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
+          const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
+          if (redirectToUnderWriting) redirectToUnderWriting.click();
+          await underwritingStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE UnderWriting Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'coverage' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
+          const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
+          if (redirectToCoverage) redirectToCoverage.click();
+          await coveragesStep();
+          req.session.data = {
+            title: 'Successfully finished Progressive DE Coverage Step',
+            status: true,
+          };
+          browser.close();
+          return next();
+        }
+        if (params.stepName === 'summary' && params.quoteType === 'existing') {
+          await pageQuote.waitForXPath('//a[contains(text(), "Bill Plans")]', 5000);
+          const [redirectToBillPlans] = await pageQuote.$x('//a[contains(text(), "Bill Plans")]');
+          if (redirectToBillPlans) redirectToBillPlans.click();
+          await summaryStep();
+        }
+      }
+
       async function loginStep() {
         try {
           console.log('Progressive DE Login Step.');
@@ -83,12 +195,8 @@ module.exports = {
           await page.waitForSelector('#user1');
           await page.type('#user1', username);
           await page.type('#password1', password);
-
           await page.click('#image1');
           await page.waitFor(1000);
-          const populatedData = await populateKeyValueData(bodyData);
-          await newQuoteStep(populatedData);
-
         } catch (error) {
           console.log('Error at Progressive DE LoginStep:', error);
           if (!loginRetryAttemptCounter) {
@@ -109,8 +217,7 @@ module.exports = {
       }
 
       // For redirect to new quoate form
-      async function newQuoteStep(populatedData) {
-
+      async function newQuoteStep() {
         try {
           console.log('Progressive DE New Quote Step.');
           const AllPages = await browser.pages();
@@ -127,17 +234,6 @@ module.exports = {
           await page.select('#Prds', 'AU');
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-
-
-          while (true) {
-            await page.waitFor(1000);
-            const pageQuote = await browser.pages();
-            if (pageQuote.length > 2) {
-              page = pageQuote[2];
-              break;
-            }
-          }
-          await namedInsuredStep(populatedData);
         } catch (error) {
           const response = { error: 'There is some error validations at newQuoteStep' };
           req.session.data = {
@@ -150,12 +246,38 @@ module.exports = {
         }
       }
 
+      async function processExistingQuote() {
+        console.log('Progressive AL Existing Quote Step.');
+        try {
+          await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
+          await page.waitForSelector('#LastName');
+          await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
+          await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
+          await page.evaluate((policyEffectiveDate) => { (document.getElementById('DateStart')).value = policyEffectiveDate.value; }, populatedData.policyEffectiveDate);
+          await page.evaluate((priorPolicyTerminationDate) => { (document.getElementById('DateEnd')).value = priorPolicyTerminationDate.value; }, populatedData.priorPolicyTerminationDate);
+          await page.type('select[id="State"]', 'DE');
+          await page.select(populatedData.quoteStatus.element, populatedData.quoteStatus.value);
+          await page.evaluate(() => document.querySelector('#products_AU').click());
+          await page.waitFor(200);
+          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          await page.evaluate(() => document.querySelector('.insuredNameLink').click());
+        } catch (error) {
+          console.log('Error at Progressive AL Existing Quote Step:', error);
+          const response = { error: 'There is some error validations at progressive AL Existing Step' };
+          req.session.data = {
+            title: 'Failed to retrieved Progressive AL rate.',
+            status: false,
+            response,
+          };
+        }
+      }
+
       // For Named Insured Form
-      async function namedInsuredStep(populatedData) {
+      async function namedInsuredStep() {
         console.log('Progressive DE named Insured Step.');
         try {
-          await page.waitForSelector('#policy');
-          await page.waitFor(1000);
+          await pageQuote.waitForSelector('#policy');
+          await pageQuote.waitFor(1000);
 
           const namedInsured = [
             {
@@ -191,7 +313,7 @@ module.exports = {
             {
               title: 'Date of Birth',
               element: 'DRV.0.drvr_dob',
-              value: bodyData.birthDate || staticDetailsObj.suffixName,
+              value: bodyData.birthDate || staticDetailsObj.birthDate,
             },
             {
               title: 'Customer E-Mail',
@@ -235,30 +357,29 @@ module.exports = {
             },
 
           ];
-          await page.evaluate((namedInsuredElement) => {
+          await pageQuote.evaluate((namedInsuredElement) => {
             namedInsuredElement.forEach((oneElement) => {
               document.getElementById(oneElement.element).value = oneElement.value;
             });
           }, namedInsured);
 
-          const lenOfResInsd = await page.evaluate(getSelctVal, `${populatedData.lengthAtAddress.element}>option`);
-          const lenOfRes = await page.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
-          await page.select(populatedData.lengthAtAddress.element, lenOfRes);
-          await page.waitFor(500);
+          const lenOfResInsd = await pageQuote.evaluate(getSelctVal, `${populatedData.lengthAtAddress.element}>option`);
+          const lenOfRes = await pageQuote.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
+          await pageQuote.select(populatedData.lengthAtAddress.element, lenOfRes);
+          await pageQuote.waitFor(500);
 
-          const prirInsInd = await page.evaluate(getSelctVal, `${populatedData.priorInsurance.element}>option`);
-          const prirIns = await page.evaluate(getValToSelect, prirInsInd, populatedData.priorInsurance.value);
-          await page.select(populatedData.priorInsurance.element, prirIns);
+          const prirInsInd = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsurance.element}>option`);
+          const prirIns = await pageQuote.evaluate(getValToSelect, prirInsInd, populatedData.priorInsurance.value);
+          await pageQuote.select(populatedData.priorInsurance.element, prirIns);
 
-          await page.waitFor(500);
-          const currInsCoCdDsply = await page.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
-          const currInsCoCd = await page.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
-          await page.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
+          await pageQuote.waitFor(500);
+          const currInsCoCdDsply = await pageQuote.evaluate(getSelctVal, `${populatedData.priorInsuranceCarrier.element}>option`);
+          const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
+          await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
 
-          await page.waitFor(500);
-          await page.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
-
-          await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await pageQuote.waitFor(500);
+          await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
+          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           const response = { error: 'There is some error validations at namedInsuredStep' };
           req.session.data = {
@@ -269,18 +390,17 @@ module.exports = {
           browser.close();
           return next();
         }
-        await vehicleStep(populatedData);
       }
 
       // For Vehicles Form
-      async function vehicleStep(populatedData) {
+      async function vehicleStep() {
         console.log('Progressive DE Vehicle Step.');
         try {
-          await page.waitFor(2000);
-          await page.waitForSelector('#VEH\\.0\\.add');
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#VEH\\.0\\.add');
           for (const j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
-              const addElement = await page.$('[id="VEH.0.add"]');
+              const addElement = await pageQuote.$('[id="VEH.0.add"]');
               await addElement.click();
               await page.waitFor(1000);
             }
@@ -310,54 +430,54 @@ module.exports = {
               },
 
             ];
-            dismissDialog(page);
-            await page.evaluate((vehicleElement) => {
+            dismissDialog(pageQuote);
+            await pageQuote.evaluate((vehicleElement) => {
               vehicleElement.forEach((oneElement) => {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicle);
 
-            const yesrDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_yr']>option`);
-            const yearSelected = await page.evaluate(getValToSelect, yesrDisplay, bodyData.vehicles[j].year);
-            await page.select(`select[id='VEH.${j}.veh_mdl_yr']`, yearSelected);
-            await page.waitFor(500);
+            const yesrDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_yr']>option`);
+            const yearSelected = await pageQuote.evaluate(getValToSelect, yesrDisplay, bodyData.vehicles[j].year);
+            await pageQuote.select(`select[id='VEH.${j}.veh_mdl_yr']`, yearSelected);
+            await pageQuote.waitFor(500);
 
-            const makeDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_make']>option`);
-            let makeSelected = await page.evaluate(getValToSelect, makeDisplay, bodyData.vehicles[j].make);
+            const makeDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_make']>option`);
+            let makeSelected = await pageQuote.evaluate(getValToSelect, makeDisplay, bodyData.vehicles[j].make);
             if (!makeSelected) {
               makeSelected = makeDisplay[0].value;
             }
-            await page.select(`select[id='VEH.${j}.veh_make']`, makeSelected);
-            await page.waitFor(500);
+            await pageQuote.select(`select[id='VEH.${j}.veh_make']`, makeSelected);
+            await pageQuote.waitFor(500);
 
-            const modelDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_nam']>option`);
-            let modelSelected = await page.evaluate(getValToSelect, modelDisplay, bodyData.vehicles[j].model);
+            const modelDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_nam']>option`);
+            let modelSelected = await pageQuote.evaluate(getValToSelect, modelDisplay, bodyData.vehicles[j].model);
             if (!modelSelected) {
               modelSelected = modelDisplay[0].value;
             }
-            await page.select(`select[id='VEH.${j}.veh_mdl_nam']`, modelSelected);
-            await page.waitFor(500);
+            await pageQuote.select(`select[id='VEH.${j}.veh_mdl_nam']`, modelSelected);
+            await pageQuote.waitFor(500);
 
-            const bodyDisplay = await page.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
-            let bodySelected = await page.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].vehicleBodyStyle);
+            const bodyDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
+            let bodySelected = await pageQuote.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].vehicleBodyStyle);
             if (!bodySelected) {
               bodySelected = bodyDisplay[0].value;
             }
-            await page.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
+            await pageQuote.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
 
-            const vehLenOfOwns = await page.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
-            let vehLenOfOwn = await page.evaluate(getValToSelect, vehLenOfOwns, populatedData[`vehicleLengthOfOwnership${j}`].value);
+            const vehLenOfOwns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
+            let vehLenOfOwn = await pageQuote.evaluate(getValToSelect, vehLenOfOwns, populatedData[`vehicleLengthOfOwnership${j}`].value);
             if (!vehLenOfOwn) {
               vehLenOfOwn = vehLenOfOwns[0].value;
             }
-            await page.select(populatedData[`vehicleLengthOfOwnership${j}`].element, vehLenOfOwn);
+            await pageQuote.select(populatedData[`vehicleLengthOfOwnership${j}`].element, vehLenOfOwn);
 
-            const vehUses = await page.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
-            const vehUse = await page.evaluate(getValToSelect, vehUses, populatedData[`vehiclePrimaryUse${j}`].value);
-            await page.select(populatedData[`vehiclePrimaryUse${j}`].element, vehUse);
+            const vehUses = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehiclePrimaryUse${j}`].element}>option`);
+            const vehUse = await pageQuote.evaluate(getValToSelect, vehUses, populatedData[`vehiclePrimaryUse${j}`].value);
+            await pageQuote.select(populatedData[`vehiclePrimaryUse${j}`].element, vehUse);
           }
-          await page.waitFor(2000);
-          await page.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await pageQuote.waitFor(2000);
+          await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           console.log('Error at Progressive DE Vehicle Step:', err.satck);
           const response = { error: 'There is some error validations at vehicleStep' };
@@ -369,24 +489,23 @@ module.exports = {
           browser.close();
           return next();
         }
-        await driverStep(populatedData);
       }
 
       // For driver Form
-      async function driverStep(populatedData) {
+      async function driverStep() {
         console.log('Progressive DE Driver Step.');
         try {
-          await page.waitFor(2000);
-          await page.waitForSelector('#DRV\\.0\\.add');
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#DRV\\.0\\.add');
           for (const j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
-              await page.click('#DRV\\.0\\.add');
-              await page.waitFor(1000);
+              await pageQuote.click('#DRV\\.0\\.add');
+              await pageQuote.waitFor(1000);
             }
           }
           for (const j in bodyData.drivers) {
-            await page.waitForSelector(`#DRV\\.${j}\\.drvr_frst_nam`);
-            await page.waitFor(600);
+            await pageQuote.waitForSelector(`#DRV\\.${j}\\.drvr_frst_nam`);
+            await pageQuote.waitFor(600);
 
             const driver = [
               {
@@ -402,63 +521,63 @@ module.exports = {
                 value: 'SR',
               },
             ];
-            await page.evaluate((driverElement) => {
+            await pageQuote.evaluate((driverElement) => {
               driverElement.forEach((oneElement) => {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, driver);
-            await page.evaluate(ddob => document.querySelector(ddob.element).value = ddob.value, populatedData[`driverDateOfBirth${j}`]);
-            const genders = await page.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
-            const gender = await page.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
-            await page.waitFor(600);
-            await page.click(populatedData[`driverGender${j}`].element);
-            await page.select(populatedData[`driverGender${j}`].element, gender);
-            const maritalStatuss = await page.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-            const maritalStatus = await page.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
-            await page.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
+            await pageQuote.evaluate(ddob => document.querySelector(ddob.element).value = ddob.value, populatedData[`driverDateOfBirth${j}`]);
+            const genders = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
+            const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
+            await pageQuote.waitFor(600);
+            await pageQuote.click(populatedData[`driverGender${j}`].element);
+            await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
+            const maritalStatuss = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
+            const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
+            await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
             if (populatedData[`driverRelationship${j}`]) {
-              const drvrRelationships = await page.evaluate(getSelctVal, `${populatedData[`driverRelationship${j}`].element}>option`);
-              const drvrRelationship = await page.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
-              await page.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
+              const drvrRelationships = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverRelationship${j}`].element}>option`);
+              const drvrRelationship = await pageQuote.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
+              await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
             }
-            await page.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
-            const drvrYearsLics = await page.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
-            const drvrYearsLic = await page.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
-            await page.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
-            await page.waitFor(600);
-            const driverStatusOpt = await page.evaluate(getSelctVal, `${populatedData[`driverStatus${j}`].element}>option`);
-            let driverStatus = await page.evaluate(getValToSelect, driverStatusOpt, populatedData[`driverStatus${j}`].value);
+            await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
+            const drvrYearsLics = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverYearsLicensed${j}`].element}>option`);
+            const drvrYearsLic = await pageQuote.evaluate(getValToSelect, drvrYearsLics, populatedData[`driverYearsLicensed${j}`].value);
+            await pageQuote.select(populatedData[`driverYearsLicensed${j}`].element, drvrYearsLic);
+            await pageQuote.waitFor(600);
+            const driverStatusOpt = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverStatus${j}`].element}>option`);
+            let driverStatus = await pageQuote.evaluate(getValToSelect, driverStatusOpt, populatedData[`driverStatus${j}`].value);
             if (!driverStatus) {
               driverStatus = driverStatusOpt[0].value;
             }
-            await page.select(populatedData[`driverStatus${j}`].element, driverStatus);
-            await page.waitFor(600);
-            const drvrEmplStats = await page.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
-            let drvrEmplStat = await page.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
+            await pageQuote.select(populatedData[`driverStatus${j}`].element, driverStatus);
+            await pageQuote.waitFor(600);
+            const drvrEmplStats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEmployment${j}`].element}>option`);
+            let drvrEmplStat = await pageQuote.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
             if (!drvrEmplStat) {
               drvrEmplStat = drvrEmplStats[0].value;
             }
-            await page.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
-            await page.waitFor(600);
-            const drvOccStats = await page.evaluate(getSelctVal, `${populatedData[`driverOccupation${j}`].element}>option`);
-            let drvrOccStat = await page.evaluate(getValToSelect, drvOccStats, populatedData[`driverOccupation${j}`].value);
+            await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
+            await pageQuote.waitFor(600);
+            const drvOccStats = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverOccupation${j}`].element}>option`);
+            let drvrOccStat = await pageQuote.evaluate(getValToSelect, drvOccStats, populatedData[`driverOccupation${j}`].value);
             if (!drvrOccStat) {
               drvrOccStat = drvOccStats[0].value;
             }
-            await page.select(populatedData[`driverOccupation${j}`].element, drvrOccStat);
-            await page.waitFor(600);
-            const drvrEdLvls = await page.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
-            let drvrEdLvl = await page.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
+            await pageQuote.select(populatedData[`driverOccupation${j}`].element, drvrOccStat);
+            await pageQuote.waitFor(600);
+            const drvrEdLvls = await pageQuote.evaluate(getSelctVal, `${populatedData[`driverEducation${j}`].element}>option`);
+            let drvrEdLvl = await pageQuote.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
             if (!drvrEdLvl) {
               drvrEdLvl = drvrEdLvls[0].value;
             }
-            await page.select(populatedData[`driverEducation${j}`].element, drvrEdLvl);
-            await page.click(populatedData[`driverStateFiling${j}`].element);
-            await page.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
-            await page.click(populatedData[`driverAdvTraining${j}`].element);
-            await page.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
+            await pageQuote.select(populatedData[`driverEducation${j}`].element, drvrEdLvl);
+            await pageQuote.click(populatedData[`driverStateFiling${j}`].element);
+            await pageQuote.select(populatedData[`driverStateFiling${j}`].element, populatedData[`driverStateFiling${j}`].value);
+            await pageQuote.click(populatedData[`driverAdvTraining${j}`].element);
+            await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
           }
-          await page.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive DE Driver Step:', err);
           const response = { error: 'There is some error validations at driverStep' };
@@ -470,11 +589,10 @@ module.exports = {
           browser.close();
           return next();
         }
-        await violationStep(page, populatedData);
       }
 
       // For Violations Form
-      async function violationStep(pageQuote, populatedData) {
+      async function violationStep() {
         console.log('Progressive DE Violation Step.');
 
         try {
@@ -501,11 +619,10 @@ module.exports = {
           browser.close();
           return next();
         }
-        await underwritingStep(pageQuote, populatedData);
       }
 
       // For Underwriting Form
-      async function underwritingStep(pageQuote, populatedData) {
+      async function underwritingStep() {
         console.log('Progressive DE Underwriting Step.');
         try {
           await pageQuote.waitForSelector(populatedData.priorInsuredInd.element);
@@ -546,6 +663,7 @@ module.exports = {
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.waitFor(1500);
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await errorStep();
         } catch (err) {
           console.log('Error at Progressive DE Underwriting Step ', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -557,10 +675,9 @@ module.exports = {
           browser.close();
           return next();
         }
-        await errorStep(pageQuote);
       }
 
-      async function errorStep(pageQuote) {
+      async function errorStep() {
         try {
           console.log('Progressive DE Error Step.');
           await pageQuote.waitFor(4000);
@@ -574,11 +691,11 @@ module.exports = {
           browser.close();
           return next();
         } catch (e) {
-          await coveragesStep(pageQuote);
+          // await coveragesStep(pageQuote);
         }
       }
 
-      async function coveragesStep(pageQuote) {
+      async function coveragesStep() {
         try {
           console.log('Progressive DE Coverages Step.');
           await pageQuote.waitFor(2000);
@@ -633,7 +750,6 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
-          await processDataStep(pageQuote);
         } catch (error) {
           console.log('Error at Progressive DE Coverages Step ', error);
           const response = { error: 'There is some error validations at coveragesStep' };
@@ -648,7 +764,7 @@ module.exports = {
 
       }
 
-      async function processDataStep(pageQuote) {
+      async function summaryStep() {
         try {
 
           console.log('Progressive DE Process Data Step.');
@@ -693,7 +809,7 @@ module.exports = {
 
         } catch (error) {
           console.log('Error at Progressive DE Process Data Step ', error);
-          const response = { error: 'There is some error validations at processDataStep' };
+          const response = { error: 'There is some error validations at summaryStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
@@ -706,9 +822,9 @@ module.exports = {
       }
 
       // For dimiss alert dialog
-      function dismissDialog(page1) {
+      function dismissDialog(errorPage) {
         try {
-          page1.on('dialog', async (dialog) => {
+          errorPage.on('dialog', async (dialog) => {
             // dialog.accept();
             await dialog.dismiss();
             // await browser.close();
@@ -779,7 +895,10 @@ module.exports = {
             element: '#Prds',
             value: 'AU',
           },
-
+          quoteStatus: {
+            element: '#QuoteStatus',
+            value: '00',
+          },
           firstName: {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
             value: bodyData.firstName || staticDetailsObj.firstName,
@@ -882,7 +1001,7 @@ module.exports = {
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           bodyData.vehicles.forEach((element, j) => {
             clientInputSelect[`vehicleVin${j}`] = {
-              element: `select[name='VEH.${j}.veh_vin']`,
+              element: `input[name='VEH.${j}.veh_vin']`,
               value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
             };
             clientInputSelect[`vehicleYear${j}`] = {
