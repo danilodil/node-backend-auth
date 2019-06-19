@@ -5,14 +5,20 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { nationalGeneralAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
+const ENVIRONMENT = require('./../constants/environment');
 
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const isSimpleForm = (req.query.simple && req.query.simple === 'true') ? true : false;
-      // const browser = !isSimpleForm ? await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] }) : await puppeteer.launch({ headless: false });
-      const browser = await puppeteer.launch({ headless: false });
+
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      };
+      if (ENVIRONMENT.ENV === 'local' || req.query.isSimple) {
+        browserParams = { headless: false };
+      }
+      const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
       const staticDataObj = {
@@ -72,6 +78,7 @@ module.exports = {
           },
         ],
       };
+
       const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
@@ -80,17 +87,16 @@ module.exports = {
       console.log('PARAMS: ###', params.quoteId, params.stepName);
       if (params.quoteId) {
         await processExistingQuote();
+      } else {
+        await newQuoteStep();
       }
 
       if (!params.stepName) {
-        await newQuoteStep();
         await namedInsuredStep();
         await DriversStep();
         await vehiclesStep();
         await underWritingStep();
-
-      } else if (params.stepName === 'namedInsured' && !params.quoteId) {
-        await newQuoteStep();
+      } else if (params.stepName === 'namedInsured') {
         await namedInsuredStep();
         await page.waitFor(1000);
         const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
@@ -98,15 +104,6 @@ module.exports = {
           title: 'Successfully finished National AL Named Insured Step',
           status: true,
           quoteId,
-        };
-        browser.close();
-        return next();
-      } else if (params.stepName === 'namedInsured' && params.quoteId) {
-        await namedInsuredStep();
-        req.session.data = {
-          title: 'Successfully finished National AL Named Insured Step',
-          status: true,
-          quoteId: params.quoteId,
         };
         browser.close();
         return next();
@@ -141,7 +138,6 @@ module.exports = {
           await page.type('#txtPassword', password);
           await page.click('#btnLogin');
           await page.waitForNavigation({ timeout: 0 });
-          //await processQuote();
         } catch (error) {
           console.log('Error at National AL Log In  Step:', error);
           const response = { error: 'There is some error validations at loginStep' };
@@ -250,7 +246,6 @@ module.exports = {
         }
       }
 
-      // For driver Form
       async function DriversStep() {
         console.log('National AL Drivers Step.');
         try {
@@ -319,7 +314,6 @@ module.exports = {
         }
       }
 
-      // For Vehicles Form
       async function vehiclesStep() {
         console.log('National AL Vehicles Step.');
 
@@ -493,7 +487,6 @@ module.exports = {
         }
       }
 
-      // for clear input
       async function clearInputText(inputId) {
         await page.focus(inputId);
         await page.keyboard.down('Control');
