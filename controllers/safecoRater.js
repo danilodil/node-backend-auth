@@ -5,7 +5,7 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
+const ENVIRONMENT = require('../constants/environment');
 
 
 module.exports = {
