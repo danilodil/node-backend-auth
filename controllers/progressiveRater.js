@@ -11,6 +11,8 @@ module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
+      const raterStore = req.session.raterStore;
+
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
@@ -19,6 +21,7 @@ module.exports = {
       }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
+
       const staticDetailsObj = {
         firstName: 'Test',
         lastName: 'User',
@@ -33,7 +36,6 @@ module.exports = {
         lengthAtAddress: '1 year or more',
         priorInsurance: 'Yes',
         priorInsuranceCarrier: 'USAA',
-        // must always agree to closure
         vehicles: [
           {
             // Vehicle Type will always be 1981 or newer
@@ -75,12 +77,13 @@ module.exports = {
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length); // Its add max 12 drivers
 
-      let loginRetryAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
+      
       const populatedData = await populateKeyValueData(bodyData);
+     
       let pageQuote = '';
-
+      let loginRetryAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
       await loginStep();
-      if (params.quoteType === 'existing') {
+      if (raterStore) {
         await processExistingQuote();
         while (true) {
           await page.waitFor(1000);
@@ -120,7 +123,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'vehicles' && params.quoteType === 'existing') {
+        if (params.stepName === 'vehicles' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Vehicles")]', 5000);
           const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
           if (redirectToVehicles) redirectToVehicles.click();
@@ -132,7 +135,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'drivers' && params.quoteType === 'existing') {
+        if (params.stepName === 'drivers' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
           const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
           if (redirectToDrivers) redirectToDrivers.click();
@@ -144,7 +147,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'violations' && params.quoteType === 'existing') {
+        if (params.stepName === 'violations' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
           const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
           if (redirectToViolations) redirectToViolations.click();
@@ -156,7 +159,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'underWriting' && params.quoteType === 'existing') {
+        if (params.stepName === 'underWriting' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
           const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
           if (redirectToUnderWriting) redirectToUnderWriting.click();
@@ -168,7 +171,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'coverage' && params.quoteType === 'existing') {
+        if (params.stepName === 'coverage' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
           const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
           if (redirectToCoverage) redirectToCoverage.click();
@@ -181,7 +184,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'summary' && params.quoteType === 'existing') {
+        if (params.stepName === 'summary' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Bill Plans")]', 5000);
           const [redirectToBillPlans] = await pageQuote.$x('//a[contains(text(), "Bill Plans")]');
           if (redirectToBillPlans) redirectToBillPlans.click();
@@ -201,11 +204,10 @@ module.exports = {
         } catch (error) {
           console.log('Error at Progressive DE LoginStep:', error);
           if (!loginRetryAttemptCounter) {
-            const response = { error: 'There is some error validations at loginStep' };
             req.session.data = {
               title: 'Failed to retrieved Progressive DE rate.',
               status: false,
-              response,
+              error: 'There is some error validations at loginStep',
             };
             browser.close();
             return next();
@@ -236,11 +238,10 @@ module.exports = {
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
         } catch (error) {
-          const response = { error: 'There is some error validations at newQuoteStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at newQuoteStep',
           };
           browser.close();
           return next();
@@ -264,11 +265,10 @@ module.exports = {
           await page.evaluate(() => document.querySelector('.insuredNameLink').click());
         } catch (error) {
           console.log('Error at Progressive AL Existing Quote Step:', error);
-          const response = { error: 'There is some error validations at progressive AL Existing Step' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at progressive AL Existing Step',
           };
         }
       }
@@ -377,11 +377,10 @@ module.exports = {
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
-          const response = { error: 'There is some error validations at namedInsuredStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at namedInsuredStep',
           };
           browser.close();
           return next();
@@ -481,11 +480,10 @@ module.exports = {
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
           console.log('Error at Progressive DE Vehicle Step:', err.stack);
-          const response = { error: 'There is some error validations at vehicleStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at vehicleStep',
           };
           browser.close();
           return next();
@@ -581,18 +579,16 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive DE Driver Step:', err);
-          const response = { error: 'There is some error validations at driverStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at driverStep' ,
           };
           browser.close();
           return next();
         }
       }
 
-      // For Violations Form
       async function violationStep() {
         console.log('Progressive DE Violation Step.');
 
@@ -611,18 +607,16 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive DE Violation Step :', err);
-          const response = { error: 'There is some error validations at violationStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at violationStep',
           };
           browser.close();
           return next();
         }
       }
 
-      // For Underwriting Form
       async function underwritingStep() {
         console.log('Progressive DE Underwriting Step.');
         try {
@@ -667,11 +661,10 @@ module.exports = {
           await errorStep();
         } catch (err) {
           console.log('Error at Progressive DE Underwriting Step ', err);
-          const response = { error: 'There is some error validations at underwritingStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at underwritingStep',
           };
           browser.close();
           return next();
@@ -683,11 +676,10 @@ module.exports = {
           console.log('Progressive DE Error Step.');
           await pageQuote.waitFor(4000);
           await pageQuote.waitForSelector('#V_GET_ERROR_MESSAGE', { timeout: 4000 });
-          const response = { error: 'There is some error in data' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error in data',
           };
           browser.close();
           return next();
@@ -753,11 +745,10 @@ module.exports = {
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (error) {
           console.log('Error at Progressive DE Coverages Step ', error);
-          const response = { error: 'There is some error validations at coveragesStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at coveragesStep',
           };
           browser.close();
           return next();
@@ -810,11 +801,10 @@ module.exports = {
 
         } catch (error) {
           console.log('Error at Progressive DE Process Data Step ', error);
-          const response = { error: 'There is some error validations at summaryStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            response,
+            error: 'There is some error validations at summaryStep',
           };
           browser.close();
           return next();
@@ -828,7 +818,6 @@ module.exports = {
           errorPage.on('dialog', async (dialog) => {
             // dialog.accept();
             await dialog.dismiss();
-            // await browser.close();
           });
         } catch (e) {
           console.log('e', e);
@@ -1120,6 +1109,8 @@ module.exports = {
   rateAlabama: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
+      const raterStore = req.session.raterStore;
+
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
@@ -1499,7 +1490,6 @@ module.exports = {
         try {
           errorPage.on('dialog', async (dialog) => {
             await dialog.dismiss();
-            // await browser.close();
           });
         } catch (e) {
           console.log('e', e);
@@ -1511,7 +1501,7 @@ module.exports = {
       const populatedData = await populateKeyValueData(bodyData);
       let pageQuote = '';
       await loginStep();
-      if (params.quoteType === 'existing') {
+      if (raterStore) {
         await processExistingQuote();
         while (true) {
           await page.waitFor(1000);
@@ -1551,7 +1541,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'vehicles' && params.quoteType === 'existing') {
+        if (params.stepName === 'vehicles' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Vehicles")]', 5000);
           const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
           if (redirectToVehicles) redirectToVehicles.click();
@@ -1563,7 +1553,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'drivers' && params.quoteType === 'existing') {
+        if (params.stepName === 'drivers' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
           const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
           if (redirectToDrivers) redirectToDrivers.click();
@@ -1575,7 +1565,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'violations' && params.quoteType === 'existing') {
+        if (params.stepName === 'violations' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
           const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
           if (redirectToViolations) redirectToViolations.click();
@@ -1587,7 +1577,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'underWriting' && params.quoteType === 'existing') {
+        if (params.stepName === 'underWriting' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
           const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
           if (redirectToUnderWriting) redirectToUnderWriting.click();
@@ -1599,7 +1589,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'coverage' && params.quoteType === 'existing') {
+        if (params.stepName === 'coverage' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
           const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
           if (redirectToCoverage) redirectToCoverage.click();
@@ -1612,7 +1602,7 @@ module.exports = {
           browser.close();
           return next();
         }
-        if (params.stepName === 'summary' && params.quoteType === 'existing') {
+        if (params.stepName === 'summary' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Bill Plans")]', 5000);
           const [redirectToBillPlans] = await pageQuote.$x('//a[contains(text(), "Bill Plans")]');
           if (redirectToBillPlans) redirectToBillPlans.click();
@@ -1633,11 +1623,10 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive AL Login Step:', err);
           if (!loginReAttemptCounter) {
-            const response = { error: 'There is some error validations at loginStep' };
             req.session.data = {
               title: 'Failed to retrieved Progressive AL rate.',
               status: false,
-              response,
+              error: 'There is some error validations at loginStep',
             };
             browser.close();
             return next();
@@ -1660,11 +1649,10 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
         } catch (err) {
           console.log('Error at Progressive AL New Quote Step:', err);
-          const response = { error: 'There is some error validations at newQuoteStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at newQuoteStep',
           };
           browser.close();
           return next();
@@ -1689,16 +1677,14 @@ module.exports = {
           await page.evaluate(() => document.querySelector('.insuredNameLink').click());
         } catch (error) {
           console.log('Error at Progressive AL Existing Quote Step:', error);
-          const response = { error: 'There is some error validations at progressive AL Existing Step' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at progressive AL Existing Step',
           };
         }
       }
 
-      // Named Insured Form
       async function namedInsuredStep() {
         console.log('Progressive AL Named Insured Step.');
         try {
@@ -1730,18 +1716,16 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive AL Named Insured Step:', err);
-          const response = { error: 'There is some error validations at namedInsuredStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at namedInsuredStep',
           };
           browser.close();
           return next();
         }
       }
 
-      // Vehicles Form
       async function vehicleStep() {
         console.log('Progressive AL Vehicle Step.');
         try {
@@ -1820,11 +1804,10 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive AL Vehicle Step:', err);
-          const response = { error: 'There is some error validations at vehicleStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at vehicleStep',
           };
           browser.close();
           return next();
@@ -1909,18 +1892,16 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive AL Driver Step:', err);
-          const response = { error: 'There is some error validations at driverStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at driverStep',
           };
           browser.close();
           return next();
         }
       }
 
-      // Violations Form
       async function violationStep() {
         console.log('Progressive AL Violation Step.');
 
@@ -1941,18 +1922,16 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
         } catch (err) {
           console.log('Error at Progressive AL Violation Step', err);
-          const response = { error: 'There is some error validations at violationStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at violationStep',
           };
           browser.close();
           return next();
         }
       }
 
-      // Underwriting Form
       async function underwritingStep() {
         console.log('Progressive AL Underwriting Step');
 
@@ -1987,11 +1966,10 @@ module.exports = {
           await errorStep();
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
-          const response = { error: 'There is some error validations at underwritingStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at underwritingStep',
           };
           browser.close();
           return next();
@@ -2002,11 +1980,10 @@ module.exports = {
         try {
           console.log('Progressive AL Error Step.');
           await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 });
-          const response = { error: 'There is some error in data' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error in data',
           };
           browser.close();
           return next();
@@ -2073,11 +2050,10 @@ module.exports = {
 
         } catch (error) {
           console.log('Error at Progressive AL Coverages Step:', error);
-          const response = { error: 'There is some error validations at coveragesStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at coveragesStep',
           };
           browser.close();
           return next();
@@ -2126,11 +2102,10 @@ module.exports = {
           return next();
         } catch (error) {
           console.log('Error at Progressive AL Process Data Step:', error);
-          const response = { error: 'There is some error validations at summaryStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at summaryStep',
           };
           browser.close();
           return next();
