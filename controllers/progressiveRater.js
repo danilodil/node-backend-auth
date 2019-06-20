@@ -38,11 +38,11 @@ module.exports = {
           {
             // Vehicle Type will always be 1981 or newer
             vehicleVin: '1FTSF30L61EC23425',
-            year: '2015',
-            make: 'FORD',
-            model: 'F350',
+            vehicleModelYear: '2015',
+            vehicleManufacturer: 'FORD',
+            vehicleModel: 'F350',
             vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
-            zipCode: '19934',
+            applicantPostalCd: '19934',
             lengthOfOwnership: 'At least 1 year but less than 3 years',
             primaryUse: 'Commute',
           },
@@ -296,11 +296,6 @@ module.exports = {
               value: bodyData.firstName || staticDetailsObj.firstName,
             },
             {
-              title: 'Middle Initial:',
-              element: 'DRV.0.drvr_mid_nam',
-              value: bodyData.middleName || staticDetailsObj.middleName,
-            },
-            {
               title: 'Last Name',
               element: 'DRV.0.drvr_lst_nam',
               value: bodyData.lastName || staticDetailsObj.lastName,
@@ -431,39 +426,44 @@ module.exports = {
 
             ];
             dismissDialog(pageQuote);
+            await pageQuote.type(populatedData[`vehicleVin${j}`].element, populatedData[`vehicleVin${j}`].value);
+            await pageQuote.click(populatedData[`vehicleVin${j}`].buttonId);
+            await pageQuote.waitFor(2000);
             await pageQuote.evaluate((vehicleElement) => {
               vehicleElement.forEach((oneElement) => {
                 document.getElementById(oneElement.element).value = oneElement.value;
               });
             }, vehicle);
+            if (!bodyData.vehicles[j].vehicleVin) {
+              const yesrDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_yr']>option`);
+              const yearSelected = await pageQuote.evaluate(getValToSelect, yesrDisplay, bodyData.vehicles[j].year);
+              await pageQuote.select(`select[id='VEH.${j}.veh_mdl_yr']`, yearSelected);
+              await pageQuote.waitFor(500);
 
-            const yesrDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_yr']>option`);
-            const yearSelected = await pageQuote.evaluate(getValToSelect, yesrDisplay, bodyData.vehicles[j].year);
-            await pageQuote.select(`select[id='VEH.${j}.veh_mdl_yr']`, yearSelected);
-            await pageQuote.waitFor(500);
+              const makeDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_make']>option`);
+              let makeSelected = await pageQuote.evaluate(getValToSelect, makeDisplay, bodyData.vehicles[j].make);
+              if (!makeSelected) {
+                makeSelected = makeDisplay[0].value;
+              }
+              await pageQuote.select(`select[id='VEH.${j}.veh_make']`, makeSelected);
+              await pageQuote.waitFor(500);
 
-            const makeDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_make']>option`);
-            let makeSelected = await pageQuote.evaluate(getValToSelect, makeDisplay, bodyData.vehicles[j].make);
-            if (!makeSelected) {
-              makeSelected = makeDisplay[0].value;
+              const modelDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_nam']>option`);
+              let modelSelected = await pageQuote.evaluate(getValToSelect, modelDisplay, bodyData.vehicles[j].model);
+              if (!modelSelected) {
+                modelSelected = modelDisplay[0].value;
+              }
+              await pageQuote.select(`select[id='VEH.${j}.veh_mdl_nam']`, modelSelected);
+              await pageQuote.waitFor(500);
+
+              const bodyDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
+              let bodySelected = await pageQuote.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].vehicleBodyStyle);
+              if (!bodySelected) {
+                bodySelected = bodyDisplay[0].value;
+              }
+              await pageQuote.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
             }
-            await pageQuote.select(`select[id='VEH.${j}.veh_make']`, makeSelected);
-            await pageQuote.waitFor(500);
-
-            const modelDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_mdl_nam']>option`);
-            let modelSelected = await pageQuote.evaluate(getValToSelect, modelDisplay, bodyData.vehicles[j].model);
-            if (!modelSelected) {
-              modelSelected = modelDisplay[0].value;
-            }
-            await pageQuote.select(`select[id='VEH.${j}.veh_mdl_nam']`, modelSelected);
-            await pageQuote.waitFor(500);
-
-            const bodyDisplay = await pageQuote.evaluate(getSelctVal, `select[id='VEH.${j}.veh_sym_sel']>option`);
-            let bodySelected = await pageQuote.evaluate(getValToSelect, bodyDisplay, bodyData.vehicles[j].vehicleBodyStyle);
-            if (!bodySelected) {
-              bodySelected = bodyDisplay[0].value;
-            }
-            await pageQuote.select(`select[id='VEH.${j}.veh_sym_sel']`, bodySelected);
+            await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value);
 
             const vehLenOfOwns = await pageQuote.evaluate(getSelctVal, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
             let vehLenOfOwn = await pageQuote.evaluate(getValToSelect, vehLenOfOwns, populatedData[`vehicleLengthOfOwnership${j}`].value);
@@ -479,7 +479,7 @@ module.exports = {
           await pageQuote.waitFor(2000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
         } catch (err) {
-          console.log('Error at Progressive DE Vehicle Step:', err.satck);
+          console.log('Error at Progressive DE Vehicle Step:', err.stack);
           const response = { error: 'There is some error validations at vehicleStep' };
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
@@ -698,6 +698,7 @@ module.exports = {
       async function coveragesStep() {
         try {
           console.log('Progressive DE Coverages Step.');
+          await errorStep();
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
@@ -903,10 +904,6 @@ module.exports = {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
             value: bodyData.firstName || staticDetailsObj.firstName,
           },
-          middleName: {
-            element: 'input[name="DRV.0.drvr_mid_nam"]',
-            value: bodyData.middleName || staticDetailsObj.middleName,
-          },
           lastName: {
             element: 'input[name="DRV.0.drvr_lst_nam"]',
             value: bodyData.lastName || staticDetailsObj.lastName,
@@ -929,15 +926,15 @@ module.exports = {
           },
           mailingAddress: {
             element: 'input[name="insd_str"]',
-            value: bodyData.mailingAddress || '',
+            value: bodyData.mailingAddress || staticDetailsObj.mailingAddress,
           },
           city: {
             element: 'input[name="insd_city_cd"]',
-            value: bodyData.city || '',
+            value: bodyData.city || staticDetailsObj.city,
           },
           state: {
             element: 'select[name="insd_st_cd"]',
-            value: bodyData.state || '',
+            value: bodyData.state || staticDetailsObj.state,
           },
           zipCode: {
             element: '#insd_zip_cd',
@@ -1001,6 +998,7 @@ module.exports = {
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           bodyData.vehicles.forEach((element, j) => {
             clientInputSelect[`vehicleVin${j}`] = {
+              buttonId: `#VinVerifyButton_${j}`,
               element: `input[name='VEH.${j}.veh_vin']`,
               value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
             };
@@ -1075,7 +1073,7 @@ module.exports = {
             };
             clientInputSelect[`driverOccupation${j}`] = {
               element: `select[name='DRV.${j}.drvr_occup_lvl']`,
-              value: element.occupation || staticDetailsObj.drivers[0].occupation,
+              value: staticDetailsObj.drivers[0].occupation,
             };
             clientInputSelect[`driverEducation${j}`] = {
               element: `select[name='DRV.${j}.drvr_ed_lvl']`,
@@ -1097,12 +1095,10 @@ module.exports = {
               element: `select[name='DRV.${j}.drvr_stat_dsply']`,
               value: 'R',
             };
-
             clientInputSelect[`driverRelationship${j}`] = {
               element: `select[name='DRV.${j}.drvr_rel_desc_cd']`,
-              value: element.relationship || staticDetailsObj.drivers[0].relationship,
+              value: staticDetailsObj.drivers[0].relationship,
             };
-
             clientInputSelect[`priorIncident${j}`] = {
               element: `select[name='DRV.${j}.VIO.0.drvr_viol_cd`,
               value: bodyData.priorIncident || staticDetailsObj.priorIncident,
@@ -1173,8 +1169,8 @@ module.exports = {
             education: 'College Degree',
           },
         ],
-        priorIncident: '',
-        priorIncidentDate: '',
+        priorIncident: 'AAD - At Fault Accident',
+        priorIncidentDate: '12/16/2012',
         policyEffectiveDate: '04/30/2019',
         priorPolicyTerminationDate: '03/15/2019',
         yearsWithPriorInsurance: '5 years or more',
@@ -1208,10 +1204,6 @@ module.exports = {
           firstName: {
             element: 'input[name="DRV.0.drvr_frst_nam"]',
             value: bodyData.firstName || staticDetailsObj.firstName,
-          },
-          middleName: {
-            element: 'input[name="DRV.0.drvr_mid_nam"]',
-            value: bodyData.middleName || staticDetailsObj.middleName,
           },
           lastName: {
             element: 'input[name="DRV.0.drvr_lst_nam"]',
@@ -1312,7 +1304,8 @@ module.exports = {
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           bodyData.vehicles.forEach((element, j) => {
             clientInputSelect[`vehicleVin${j}`] = {
-              element: `select[name='VEH.${j}.veh_vin']`,
+              buttonId: `#VinVerifyButton_${j}`,
+              element: `input[name='VEH.${j}.veh_vin']`,
               value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
             };
             clientInputSelect[`vehicleYear${j}`] = {
@@ -1712,7 +1705,6 @@ module.exports = {
 
           await pageQuote.evaluate((policyEffectiveDate) => { (document.getElementById(policyEffectiveDate.elementId)).value = policyEffectiveDate.value; }, populatedData.policyEffectiveDate);
           await pageQuote.evaluate((firstName) => { (document.querySelector(firstName.element)).value = firstName.value; }, populatedData.firstName);
-          await pageQuote.evaluate((middleName) => { (document.querySelector(middleName.element)).value = middleName.value; }, populatedData.middleName);
           await pageQuote.evaluate((lastName) => { (document.querySelector(lastName.element)).value = lastName.value; }, populatedData.lastName);
 
           await pageQuote.evaluate(dateOfBirth => (document.querySelector(dateOfBirth.element)).value = dateOfBirth.value, populatedData.dateOfBirth);
@@ -1763,40 +1755,45 @@ module.exports = {
           }
 
           for (const j in bodyData.vehicles) {
-            await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
-            const modelYears = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleYear${j}`].element}>option`);
-            let modelYear = await pageQuote.evaluate(getValToSelect, modelYears, populatedData[`vehicleYear${j}`].value);
-            if (!modelYear) {
-              modelYear = modelYears[0].value;
+
+            await pageQuote.type(populatedData[`vehicleVin${j}`].element, populatedData[`vehicleVin${j}`].value);
+            await pageQuote.click(populatedData[`vehicleVin${j}`].buttonId);
+            await pageQuote.waitFor(2000);
+            if (!bodyData.vehicles[j].vehicleVin) {
+              await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
+              const modelYears = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleYear${j}`].element}>option`);
+              let modelYear = await pageQuote.evaluate(getValToSelect, modelYears, populatedData[`vehicleYear${j}`].value);
+              if (!modelYear) {
+                modelYear = modelYears[0].value;
+              }
+              await pageQuote.select(populatedData[`vehicleYear${j}`].element, modelYear);
+
+              dismissDialog(pageQuote);
+
+              await pageQuote.waitFor(1200);
+              const vehiclesMake = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleMake${j}`].element}>option`);
+              let vehicleMake = await pageQuote.evaluate(getValToSelect, vehiclesMake, populatedData[`vehicleMake${j}`].value);
+              if (!vehicleMake) {
+                vehicleMake = vehiclesMake[0].value;
+              }
+              await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicleMake);
+
+              await pageQuote.waitFor(1200);
+              const vehMdlNames = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleModel${j}`].element}>option`);
+              let vehMdlName = await pageQuote.evaluate(getValToSelect, vehMdlNames, populatedData[`vehicleModel${j}`].value);
+              if (!vehMdlName) {
+                vehMdlName = vehMdlNames[0].value;
+              }
+              await pageQuote.select(populatedData[`vehicleModel${j}`].element, vehMdlName);
+
+              await pageQuote.waitFor(1200);
+              const vehStyles = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleBody${j}`].element}>option`);
+              let vehStyle = await pageQuote.evaluate(getValToSelect, vehStyles, populatedData[`vehicleBody${j}`].value);
+              if (!vehStyle) {
+                vehStyle = vehStyles[0].value;
+              }
+              await pageQuote.select(populatedData[`vehicleBody${j}`].element, vehStyle);
             }
-            await pageQuote.select(populatedData[`vehicleYear${j}`].element, modelYear);
-
-            dismissDialog(pageQuote);
-
-            await pageQuote.waitFor(1200);
-            const vehiclesMake = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleMake${j}`].element}>option`);
-            let vehicleMake = await pageQuote.evaluate(getValToSelect, vehiclesMake, populatedData[`vehicleMake${j}`].value);
-            if (!vehicleMake) {
-              vehicleMake = vehiclesMake[0].value;
-            }
-            await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicleMake);
-
-            await pageQuote.waitFor(1200);
-            const vehMdlNames = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleModel${j}`].element}>option`);
-            let vehMdlName = await pageQuote.evaluate(getValToSelect, vehMdlNames, populatedData[`vehicleModel${j}`].value);
-            if (!vehMdlName) {
-              vehMdlName = vehMdlNames[0].value;
-            }
-            await pageQuote.select(populatedData[`vehicleModel${j}`].element, vehMdlName);
-
-            await pageQuote.waitFor(1200);
-            const vehStyles = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleBody${j}`].element}>option`);
-            let vehStyle = await pageQuote.evaluate(getValToSelect, vehStyles, populatedData[`vehicleBody${j}`].value);
-            if (!vehStyle) {
-              vehStyle = vehStyles[0].value;
-            }
-            await pageQuote.select(populatedData[`vehicleBody${j}`].element, vehStyle);
-
             await pageQuote.type(populatedData[`vehicleZipCode${j}`].element, populatedData[`vehicleZipCode${j}`].value);
 
             const vehLenOfOwns = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleLengthOfOwnership${j}`].element}>option`);
@@ -1986,6 +1983,7 @@ module.exports = {
           await pageQuote.waitFor(500);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await errorStep();
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
           const response = { error: 'There is some error validations at underwritingStep' };
@@ -1997,7 +1995,6 @@ module.exports = {
           browser.close();
           return next();
         }
-        await errorStep();
       }
 
       async function errorStep() {
@@ -2020,7 +2017,8 @@ module.exports = {
       async function coveragesStep() {
         try {
           console.log('Progressive AL Coverages Step.');
-          await pageQuote.waitFor(2000);
+          await pageQuote.waitFor(4000);
+          await errorStep();
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
 
