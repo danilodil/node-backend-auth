@@ -13,7 +13,7 @@ module.exports = {
       console.log('Inside cseRating');
 
       const { username, password } = req.body.decoded_vendor;
-
+      const raterStore = req.session.raterStore;
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
@@ -83,7 +83,8 @@ module.exports = {
       const populatedData = await populateKeyValueData(bodyData);
 
       await loginStep();
-      if (params.quoteId) {
+
+      if (raterStore && raterStore.quoteId) {
         await processExistingQuote();
       } else {
         await newQuoteStep();
@@ -106,7 +107,7 @@ module.exports = {
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'vehicles' && params.quoteId) {
+      } else if (params.stepName === 'vehicles' && raterStore) {
         await page.waitForSelector('#Wizard_Vehicles');
         await page.click('#Wizard_Vehicles');
         await page.waitFor(200);
@@ -114,11 +115,11 @@ module.exports = {
         req.session.data = {
           title: 'Successfully finished CSE CA Vehicle Step',
           status: true,
-          quoteId: params.quoteId,
+          quoteId: raterStore.quoteId,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'policy' && params.quoteId) {
+      } else if (params.stepName === 'policy' && raterStore) {
         await page.waitForSelector('#Wizard_AutoGeneral');
         await page.click('#Wizard_AutoGeneral');
         await page.waitFor(200);
@@ -126,11 +127,11 @@ module.exports = {
         req.session.data = {
           title: 'Successfully finished CSE CA Policy Step',
           status: true,
-          quoteId: params.quoteId,
+          quoteId: raterStore.quoteId,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'drivers' && params.quoteId) {
+      } else if (params.stepName === 'drivers' && raterStore) {
         await page.waitForSelector('#Wizard_Drivers');
         await page.click('#Wizard_Drivers');
         await page.waitFor(100);
@@ -138,11 +139,11 @@ module.exports = {
         req.session.data = {
           title: 'Successfully finished CSE CA Drivers Step',
           status: true,
-          quoteId: params.quoteId,
+          quoteId: raterStore.quoteId,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'summary' && params.quoteId) {
+      } else if (params.stepName === 'summary' && raterStore) {
         await page.waitForSelector('#Wizard_LossHistory');
         await page.click('#Wizard_LossHistory');
         await page.waitFor(100);
@@ -560,11 +561,10 @@ module.exports = {
         } catch (error) {
           console.log('Error at CSE CA Login Step:', error);
           if (!loginReAttemptCounter) {
-            const response = { error: 'There is some error validations at loginStep' };
             req.session.data = {
               title: 'Failed to retrieved CSE CA rate.',
               status: false,
-              response,
+              error: 'There is some error validations at loginStep',
             };
             browser.close();
             return next();
@@ -579,15 +579,14 @@ module.exports = {
         console.log('CSE Rater Existing Quote Id Step');
         try {
           await page.waitForSelector('#ToolbarSearchText');
-          await page.$eval('input[name=ToolbarSearchText]', (el, value) => el.value = value, params.quoteId);
+          await page.$eval('input[name=ToolbarSearchText]', (el, value) => el.value = value, raterStore.quoteId);
           await page.click('#ToolbarSearch');
         } catch (error) {
           console.log('Error at CSE Existing Quote Step. :', error);
-          const response = { error: 'There is some error validations at Existing Quote Step' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at Existing Quote Step',
           };
           browser.close();
           return next();
@@ -623,11 +622,10 @@ module.exports = {
           await page.click('#ProductSelectionList > table > tbody > tr > td > a');
         } catch (e) {
           console.log('Error at CSE CA New Quote Step. :', e);
-          const response = { error: 'There is some error validations at newQuoteStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at newQuoteStep',
           };
           browser.close();
           return next();
@@ -692,11 +690,10 @@ module.exports = {
           await page.click('#NextPage');
         } catch (e) {
           console.log('Error at CSE CA underWriting Step. :', e);
-          const response = { error: 'There is some error validations at underWritingStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at underWritingStep',
           };
           browser.close();
           return next();
@@ -753,11 +750,10 @@ module.exports = {
           }
         } catch (e) {
           console.log('Error at CSE CA Vehicle Step :', e);
-          const response = { error: 'There is some error validations at vehicleStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at vehicleStep',
           };
           browser.close();
           return next();
@@ -779,11 +775,10 @@ module.exports = {
           await page.waitFor(1000);
         } catch (e) {
           console.log('Error at CSE CA policyStep :', e);
-          const response = { error: 'There is some error validations at policyStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at policyStep',
           };
           browser.close();
           return next();
@@ -836,11 +831,10 @@ module.exports = {
           }
         } catch (e) {
           console.log('Error at CSE CA Driver Step :', e);
-          const response = { error: 'There is some error validations at driverStep' };
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            response,
+            error: 'There is some error validations at driverStep',
           };
           browser.close();
           return next();
@@ -863,11 +857,11 @@ module.exports = {
         await page.waitFor(3000);
         const premiumDetails = await page.evaluate(() => {
           const details = {
-            quoteId: document.getElementById('QuoteAppSummary_QuoteAppNumber').innerText,
             totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
             TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
             totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
             transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
+            quoteId: document.getElementById('QuoteAppSummary_QuoteAppNumber').innerText,
           };
           return details;
         });
@@ -875,10 +869,10 @@ module.exports = {
         req.session.data = {
           title: 'Successfully retrieved CSE CA rate.',
           status: true,
-          response: premiumDetails,
           totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
           months: premiumDetails.plan ? premiumDetails.plan : null,
           downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+          quoteId: premiumDetails.quoteId,
         };
         browser.close();
         return next();
