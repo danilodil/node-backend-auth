@@ -1,13 +1,14 @@
 const express = require('express');
 
 const cseRaterController = require('../controllers/cseRater');
-const rater = require('../controllers/rater');
+const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
 router.put('/cse/ca', [
+  raterController.getOneByName,
   cseRaterController.cseRating,
-  rater.saveRating,
+  raterController.saveRating,
 ]);
 
 module.exports = router;
