@@ -72,7 +72,6 @@ module.exports = {
 
       const populatedData = await populateKeyValueData();
 
-      await startPageStep();
       await loginStep();
       await newQuoteStep();
       await policyInformationStep();
@@ -85,33 +84,10 @@ module.exports = {
       await coveragesStep();
       await summaryStep();
 
-      async function startPageStep() {
-        try {
-          console.log('Safeco Start Page Step');
-          await page.waitFor(2000);
-          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
-          await page.waitFor(3000);
-          await page.waitForSelector('#div2', { timeout: 120000 });
-          await page.evaluate(() => {
-            const insuranceType = document.querySelector('#div2');
-            insuranceType.click();
-          });
-          await page.click('input[class="DPeCButton"]');
-        } catch (error) {
-          console.log('Error at Safeco AL startPage Step:', error);
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at startPage step',
-          };
-          browser.close();
-          return next();
-        }
-      }
-
       async function loginStep() {
         try {
           console.log('Safeco AL Login Step.');
+          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
           await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
           await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);

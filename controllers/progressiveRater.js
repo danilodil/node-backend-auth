@@ -911,7 +911,7 @@ module.exports = {
           },
           phone: {
             element: 'input[name="INSDPHONE.0.insd_phn_nbr"]',
-            value: bodyData.phone.replace('-', '') || staticDetailsObj.phone,
+            value: bodyData.phone && bodyData.phone.replace('-', '') || staticDetailsObj.phone,
           },
           mailingAddress: {
             element: 'input[name="insd_str"]',
@@ -1212,7 +1212,7 @@ module.exports = {
           phone: {
             elementId: 'INSDPHONE.0.insd_phn_nbr',
             element: 'input[name="INSDPHONE.0.insd_phn_nbr"]',
-            value: bodyData.phone.replace('-', '') || staticDetailsObj.phone,
+            value: bodyData.phone && bodyData.phone.replace('-', '') || staticDetailsObj.phone,
           },
           mailingAddress: {
             element: 'input[name="insd_str"]',

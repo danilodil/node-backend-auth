@@ -53,19 +53,21 @@ module.exports = {
     }
 
     /* update rater result */
-    if (raterData && raterData.totalPremium && req.session.data.status) {
+    if (raterData && req.session.data.totalPremium && req.session.data.status) {
+
+      const updateObj = {};
+
       const currentPremium = parseFloat(req.session.data.totalPremium);
       const previousPremium = parseFloat(raterData.totalPremium);
-      if (currentPremium < previousPremium) {
-        const updateObj = {
-          totalPremium: req.session.data.totalPremium,
-          months: req.session.data.months,
-          downPayment: req.session.data.downPayment,
-          succeeded: true,
-          error: null,
-        };
-        await raterData.update(updateObj);
+
+      if (currentPremium < previousPremium || raterData.totalPremium === null) {
+        updateObj.totalPremium = req.session.data.totalPremium;
+        updateObj.months = req.session.data.months;
+        updateObj.downPayment = req.session.data.downPayment;
+        updateObj.succeeded = true;
+        updateObj.error = null;
       }
+      await raterData.update(updateObj);
     }
    
     return next();
