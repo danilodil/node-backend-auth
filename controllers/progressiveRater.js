@@ -172,6 +172,7 @@ module.exports = {
           await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
           const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
           if (redirectToCoverage) redirectToCoverage.click();
+          await errorStep();
           await coveragesStep();
           req.session.data = {
             title: 'Successfully finished Progressive DE Coverage Step',
@@ -698,7 +699,6 @@ module.exports = {
       async function coveragesStep() {
         try {
           console.log('Progressive DE Coverages Step.');
-          await errorStep();
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
@@ -1603,6 +1603,7 @@ module.exports = {
           await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
           const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
           if (redirectToCoverage) redirectToCoverage.click();
+          await errorStep();
           await coveragesStep();
           req.session.data = {
             title: 'Successfully finished Progressive AL Coverage Step',
@@ -2018,7 +2019,6 @@ module.exports = {
         try {
           console.log('Progressive AL Coverages Step.');
           await pageQuote.waitFor(4000);
-          await errorStep();
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
 
