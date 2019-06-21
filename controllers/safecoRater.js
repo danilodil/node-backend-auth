@@ -555,6 +555,7 @@ module.exports = {
           await page.waitForSelector('#PolicyAutoDataResidenceType');
           await page.select(populatedData.policyDataResidenceType.element, populatedData.policyDataResidenceType.value);
           await page.evaluate(() => document.querySelector('#Continue').click());
+          await page.waitFor(1000);
           stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at Safeco AL Underwriting Step:', err);
@@ -574,7 +575,6 @@ module.exports = {
         console.log('Safeco AL Coverages Step.');
         try {
           await page.waitFor(1000);
-
           await page.waitForSelector('#PolicyAutoDataPackageSelection');
           await page.select(populatedData.policyDataPackageSelection.element, populatedData.policyDataPackageSelection.value);
 
