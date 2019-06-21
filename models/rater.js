@@ -31,6 +31,9 @@ const Rater = sequelize.define('Rater', {
   succeeded: {
     type: DataTypes.BOOLEAN,
   },
+  stepResult: {
+    type: DataTypes.JSON,
+  },
 });
 
 module.exports = Rater;

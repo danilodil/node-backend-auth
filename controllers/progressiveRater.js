@@ -791,7 +791,6 @@ module.exports = {
           req.session.data = {
             title: 'Successfully retrieved progressive DE rate.',
             status: true,
-            response: premiumDetails,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
@@ -2093,7 +2092,6 @@ module.exports = {
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
-            response: premiumDetails,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,

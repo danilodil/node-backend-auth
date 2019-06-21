@@ -10,9 +10,28 @@ const ENVIRONMENT = require('../constants/environment');
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
+      const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
-    
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        existingQuote: false,
+        newQuote: false,
+        namedInsured: false,
+        drivers: false,
+        vehicles: false,
+        underWriting: false,
+        summary: false,
+      };
+      let quoteId = null;
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
+
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
@@ -80,14 +99,12 @@ module.exports = {
         ],
       };
 
-      const params = req.body;
-      const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.drivers.splice(10, bodyData.drivers.length);
       const populatedData = await populateKeyValueData(bodyData);
+
       await loginStep();
 
       if (raterStore && raterStore.quoteId) {
-        await processExistingQuote();
+        await existingQuoteStep();
       } else {
         await newQuoteStep();
       }
@@ -100,11 +117,12 @@ module.exports = {
       } else if (params.stepName === 'namedInsured') {
         await namedInsuredStep();
         await page.waitFor(1000);
-        const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+        quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
         req.session.data = {
           title: 'Successfully finished National AL Named Insured Step',
           status: true,
           quoteId,
+          stepResult,
         };
         browser.close();
         return next();
@@ -114,6 +132,7 @@ module.exports = {
           title: 'Successfully finished National AL Drivers Step',
           status: true,
           quoteId: raterStore.quoteId,
+          stepResult,
         };
         browser.close();
         return next();
@@ -123,6 +142,7 @@ module.exports = {
           title: 'Successfully finished National AL vehicle Step',
           status: true,
           quoteId: raterStore.quoteId,
+          stepResult,
         };
         browser.close();
         return next();
@@ -139,35 +159,40 @@ module.exports = {
           await page.type('#txtPassword', password);
           await page.click('#btnLogin');
           await page.waitForNavigation({ timeout: 0 });
+          stepResult.login = true;
         } catch (error) {
           console.log('Error at National AL Log In  Step:', error);
+          stepResult.login = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some error validations at loginStep',
+            stepResult,
           };
           browser.close();
           return next();
         }
       }
 
-      async function processExistingQuote() {
+      async function existingQuoteStep() {
         try {
           console.log('National AL Existing Quote Id Step.');
           const quoteId = raterStore.quoteId;
-          console.log('quoteId', quoteId);
           // eslint-disable-next-line no-shadow
           await page.evaluate((quoteId) => {
             document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
           }, quoteId);
           await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
           await page.waitFor(2000);
+          stepResult.existingQuote = true;
         } catch (error) {
           console.log('Error at National AL Existing Quote Id Step:');
+          stepResult.existingQuote = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some error on existing Quote step',
+            stepResult,
           };
           browser.close();
           return next();
@@ -183,12 +208,15 @@ module.exports = {
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.waitFor(1000);
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
+          stepResult.newQuote = true;
         } catch (error) {
           console.log('Error at National AL New Quote  Step:');
+          stepResult.newQuote = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some error validations at newQuoteStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -229,14 +257,17 @@ module.exports = {
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await page.waitFor(5000);
-          const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
-          return quoteId;
+          quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+          stepResult.namedInsured = true;
         } catch (err) {
           console.log('Error at National AL Named Insured Step:');
+          stepResult.namedInsured = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some error validations at namedInsuredStep',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -298,12 +329,16 @@ module.exports = {
           } catch (e) {
             console.log('National AL Move to vehicle');
           }
+          stepResult.drivers = true;
         } catch (err) {
           console.log('Error at National AL Driver Step.');
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error at Drivers step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -353,12 +388,16 @@ module.exports = {
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await vehicleHistoryStep();
+          stepResult.vehicles = true;
         } catch (err) {
           console.log('Error at National AL Vehicles Steps.', err);
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error at vehicles',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -378,6 +417,8 @@ module.exports = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error at vehicleHistory step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -406,12 +447,16 @@ module.exports = {
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coveragesStep();
+          stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at National AL Underwriting :', err.stack);
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error underWriting step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -431,6 +476,8 @@ module.exports = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error coverages step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -443,7 +490,7 @@ module.exports = {
           await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
           const tBody = await page.$$eval('table #ctl00_MainContent_ctl00_tblRow td', tds => tds.map(td => td.innerText));
-          const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+          quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
           const downPayments = {};
           tHead.forEach((key, i) => {
             if (i !== 0) downPayments[key] = tBody[i];
@@ -455,6 +502,7 @@ module.exports = {
             payments: downPayments.PAYMENTS,
             totalPremium: downPayments.TOTAL,
           };
+          stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved national general AL rate.',
             status: true,
@@ -462,15 +510,19 @@ module.exports = {
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPayment ? premiumDetails.downPayment.replace(/,/g, '') : null,
             quoteId: quoteId,
+            stepResult,
           };
           browser.close();
           return next();
         } catch (err) {
           console.log('Error at National AL summaryStep:', err);
+          stepResult.summary = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
             error: 'There is some data error summaryStep step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();

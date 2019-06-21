@@ -36,7 +36,6 @@ module.exports = {
     const raterData = await Rater.findOne(existRater);
     /* create new rater result */
     const isSucceeded = req.session.data.status && req.session.data.totalPremium ? true : false;
-    console.log('isSucceeded', isSucceeded);
     if (!raterData) {
       const newRater = {
         companyId,
@@ -48,15 +47,18 @@ module.exports = {
         downPayment: req.session.data.downPayment || null,
         error: req.session.data.error || null,
         quoteId: req.session.data.quoteId || null,
+        stepResult : req.session.data.stepResult || null,
       };
+      console.log('Rater saved:', newRater);
       await Rater.create(newRater);
     }
 
     /* update rater result */
+    const updateObj = {
+      stepResult: req.session.data.stepResult || null,
+      quoteId: req.session.data.quoteId || null,
+    };
     if (raterData && req.session.data.totalPremium && req.session.data.status) {
-
-      const updateObj = {};
-
       const currentPremium = parseFloat(req.session.data.totalPremium);
       const previousPremium = parseFloat(raterData.totalPremium);
 
@@ -67,6 +69,7 @@ module.exports = {
         updateObj.succeeded = true;
         updateObj.error = null;
       }
+      console.log('Rater updated:', updateObj);
       await raterData.update(updateObj);
     }
    
@@ -97,7 +100,7 @@ module.exports = {
           clientId,
           succeeded: true,
         },
-        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
       };
 
       const raterData = await Rater.findAll(newRater);
@@ -153,7 +156,7 @@ module.exports = {
           clientId,
           vendorName: params.vendorName,
         },
-        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
       };
 
       const raterData = await Rater.findOne(newRater);

@@ -578,7 +578,6 @@ module.exports = {
           req.session.data = {
             title: 'Successfully retrieved safeco AL rate.',
             status: true,
-            response: premiumDetails,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
