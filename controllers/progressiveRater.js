@@ -10,8 +10,29 @@ const ENVIRONMENT = require('./../constants/environment');
 module.exports = {
   rateDelaware: async (req, res, next) => {
     try {
+      const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
+
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(9, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        existingQuote: false,
+        newQuote: false,
+        namedInsured: false,
+        vehicles: false,
+        drivers: false,
+        violations: false,
+        underWriting: false,
+        coverage: false,
+        summary: false,
+      };
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
 
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -73,18 +94,13 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
-      const params = req.body;
-      const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.drivers.splice(9, bodyData.drivers.length); // Its add max 12 drivers
 
-      
       const populatedData = await populateKeyValueData(bodyData);
-     
       let pageQuote = '';
       let loginRetryAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
       await loginStep();
       if (raterStore) {
-        await processExistingQuote();
+        await existingQuote();
         while (true) {
           await page.waitFor(1000);
           pageQuote = await browser.pages();
@@ -119,6 +135,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE Named Insured Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -131,6 +148,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE Vehicle Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -143,6 +161,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE Driver Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -155,6 +174,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE Violations Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -167,6 +187,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE UnderWriting Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -180,6 +201,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive DE Coverage Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -201,13 +223,16 @@ module.exports = {
           await page.type('#password1', password);
           await page.click('#image1');
           await page.waitFor(1000);
+          stepResult.login = true;
         } catch (error) {
           console.log('Error at Progressive DE LoginStep:', error);
           if (!loginRetryAttemptCounter) {
+            stepResult.login = false;
             req.session.data = {
               title: 'Failed to retrieved Progressive DE rate.',
               status: false,
               error: 'There is some error validations at loginStep',
+              stepResult,
             };
             browser.close();
             return next();
@@ -237,18 +262,21 @@ module.exports = {
           await page.select('#Prds', 'AU');
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          stepResult.newQuote = true;
         } catch (error) {
+          stepResult.newQuote = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at newQuoteStep',
+            stepResult,
           };
           browser.close();
           return next();
         }
       }
 
-      async function processExistingQuote() {
+      async function existingQuote() {
         console.log('Progressive AL Existing Quote Step.');
         try {
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
@@ -263,12 +291,15 @@ module.exports = {
           await page.waitFor(200);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
           await page.evaluate(() => document.querySelector('.insuredNameLink').click());
+          stepResult.existingQuote = true;
         } catch (error) {
           console.log('Error at Progressive AL Existing Quote Step:', error);
+          stepResult.existingQuote = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at progressive AL Existing Step',
+            stepResult,
           };
         }
       }
@@ -376,11 +407,14 @@ module.exports = {
           await pageQuote.waitFor(500);
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          stepResult.namedInsured = true;
         } catch (err) {
+          stepResult.namedInsured = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at namedInsuredStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -478,12 +512,15 @@ module.exports = {
           }
           await pageQuote.waitFor(2000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          stepResult.vehicles = true;
         } catch (err) {
           console.log('Error at Progressive DE Vehicle Step:', err.stack);
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at vehicleStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -577,12 +614,15 @@ module.exports = {
             await pageQuote.select(populatedData[`driverAdvTraining${j}`].element, populatedData[`driverAdvTraining${j}`].value);
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.drivers = true;
         } catch (err) {
           console.log('Error at Progressive DE Driver Step:', err);
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
-            error: 'There is some error validations at driverStep' ,
+            error: 'There is some error validations at driverStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -605,12 +645,15 @@ module.exports = {
             }
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.violations = true;
         } catch (err) {
           console.log('Error at Progressive DE Violation Step :', err);
+          stepResult.violations = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at violationStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -659,12 +702,15 @@ module.exports = {
           await pageQuote.waitFor(1500);
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await errorStep();
+          stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at Progressive DE Underwriting Step ', err);
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at underwritingStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -680,6 +726,7 @@ module.exports = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error in data',
+            stepResult,
           };
           browser.close();
           return next();
@@ -743,12 +790,15 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          stepResult.coverage = true;
         } catch (error) {
           console.log('Error at Progressive DE Coverages Step ', error);
+          stepResult.coverage = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at coveragesStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -787,23 +837,26 @@ module.exports = {
 
           await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
           await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
-
+          stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved progressive DE rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            stepResult,
           };
           browser.close();
           return next();
 
         } catch (error) {
           console.log('Error at Progressive DE Process Data Step ', error);
+          stepResult.summary = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive DE rate.',
             status: false,
             error: 'There is some error validations at summaryStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1107,8 +1160,29 @@ module.exports = {
   },
   rateAlabama: async (req, res, next) => {
     try {
+      const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
+
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(9, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        existingQuote: false,
+        newQuote: false,
+        namedInsured: false,
+        vehicles: false,
+        drivers: false,
+        violations: false,
+        underWriting: false,
+        coverage: false,
+        summary: false,
+      };
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
 
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -1169,9 +1243,6 @@ module.exports = {
         rentersLimits: 'Greater Than 300,000',
         haveAnotherProgressivePolicy: 'No',
       };
-      const params = req.body;
-      const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.drivers.splice(9, bodyData.drivers.length);
 
       function populateKeyValueData() {
         const clientInputSelect = {
@@ -1501,7 +1572,7 @@ module.exports = {
       let pageQuote = '';
       await loginStep();
       if (raterStore) {
-        await processExistingQuote();
+        await existingQuote();
         while (true) {
           await page.waitFor(1000);
           pageQuote = await browser.pages();
@@ -1536,6 +1607,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL Named Insured Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1548,6 +1620,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL Vehicle Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1560,6 +1633,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL Driver Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1572,6 +1646,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL Violations Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1584,6 +1659,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL UnderWriting Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1597,6 +1673,7 @@ module.exports = {
           req.session.data = {
             title: 'Successfully finished Progressive AL Coverage Step',
             status: true,
+            stepResult,
           };
           browser.close();
           return next();
@@ -1619,13 +1696,16 @@ module.exports = {
 
           await page.click('#image1');
           await page.waitFor(3000);
+          stepResult.login = true;
         } catch (err) {
           console.log('Error at Progressive AL Login Step:', err);
           if (!loginReAttemptCounter) {
+            stepResult.login = false;
             req.session.data = {
               title: 'Failed to retrieved Progressive AL rate.',
               status: false,
               error: 'There is some error validations at loginStep',
+              stepResult,
             };
             browser.close();
             return next();
@@ -1646,19 +1726,22 @@ module.exports = {
           await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          stepResult.newQuote = true;
         } catch (err) {
           console.log('Error at Progressive AL New Quote Step:', err);
+          stepResult.newQuote = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at newQuoteStep',
+            stepResult,
           };
           browser.close();
           return next();
         }
       }
 
-      async function processExistingQuote() {
+      async function existingQuote() {
         console.log('Progressive AL Existing Quote Step.');
         try {
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
@@ -1674,12 +1757,15 @@ module.exports = {
           await page.waitFor(200);
           await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
           await page.evaluate(() => document.querySelector('.insuredNameLink').click());
+          stepResult.existingQuote = true;
         } catch (error) {
           console.log('Error at Progressive AL Existing Quote Step:', error);
+          stepResult.existingQuote = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at progressive AL Existing Step',
+            stepResult,
           };
         }
       }
@@ -1713,12 +1799,15 @@ module.exports = {
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.namedInsured = true;
         } catch (err) {
           console.log('Error at Progressive AL Named Insured Step:', err);
+          stepResult.namedInsured = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at namedInsuredStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1801,12 +1890,15 @@ module.exports = {
             }
           }
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.vehicles = true;
         } catch (err) {
           console.log('Error at Progressive AL Vehicle Step:', err);
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at vehicleStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1889,12 +1981,15 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.drivers = true;
         } catch (err) {
           console.log('Error at Progressive AL Driver Step:', err);
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at driverStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1919,12 +2014,15 @@ module.exports = {
           }
 
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          stepResult.violations = true;
         } catch (err) {
           console.log('Error at Progressive AL Violation Step', err);
+          stepResult.violations = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at violationStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1963,12 +2061,15 @@ module.exports = {
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await errorStep();
+          stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at underwritingStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -1983,6 +2084,7 @@ module.exports = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error in data',
+            stepResult,
           };
           browser.close();
           return next();
@@ -2046,13 +2148,16 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          stepResult.coverage = true;
 
         } catch (error) {
           console.log('Error at Progressive AL Coverages Step:', error);
+          stepResult.coverage = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at coveragesStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -2088,22 +2193,25 @@ module.exports = {
 
           await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
           await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
-
+          stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            stepResult,
           };
           browser.close();
           return next();
         } catch (error) {
           console.log('Error at Progressive AL Process Data Step:', error);
+          stepResult.summary = false;
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
             error: 'There is some error validations at summaryStep',
+            stepResult,
           };
           browser.close();
           return next();
