@@ -100,11 +100,11 @@ module.exports = {
 
       await loginStep();
 
-      // if (raterStore && raterStore.quoteId) {
-      //   await existingQuote();
-      // } else {
+      if (raterStore && raterStore.quoteId) {
+        await existingQuote();
+      } else {
         await newQuoteStep();
-      // }
+      }
 
       if (!params.stepName) {
         await underWritingStep();
