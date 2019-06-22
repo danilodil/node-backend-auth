@@ -1,13 +1,14 @@
 const express = require('express');
+const asyncHandler = require('express-async-handler');
 
-const cseRaterController = require('../controllers/cseRater');
+const nationalRaterController = require('../controllers/nationalRater');
 const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/cse/ca', [
+router.put('/national/al', [
   raterController.getOneByName,
-  cseRaterController.cseRating,
+  nationalRaterController.nationalGeneralAl,
   raterController.saveRating,
 ]);
 

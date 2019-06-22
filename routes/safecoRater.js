@@ -1,12 +1,13 @@
 const express = require('express');
 
-const nationalAlRaterController = require('../controllers/nationalAlRater');
+const safecoRaterController = require('../controllers/safecoRater');
 const rater = require('../controllers/rater');
+
 
 const router = express.Router();
 
-router.put('/national/al', [
-  nationalAlRaterController.nationalGeneralAl,
+router.put('/safeco/al', [
+  safecoRaterController.safecoAl,
   rater.saveRating,
 ]);
 

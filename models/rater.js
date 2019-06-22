@@ -10,6 +10,9 @@ const Rater = sequelize.define('Rater', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  quoteId : {
+    type: DataTypes.STRING,
+  },
   vendorName: {
     type: DataTypes.STRING,
   },
@@ -22,14 +25,14 @@ const Rater = sequelize.define('Rater', {
   downPayment: {
     type: DataTypes.STRING,
   },
-  result: {
-    type: DataTypes.STRING,
-  },
   error: {
     type: DataTypes.STRING,
   },
   succeeded: {
     type: DataTypes.BOOLEAN,
+  },
+  stepResult: {
+    type: DataTypes.JSON,
   },
 });
 

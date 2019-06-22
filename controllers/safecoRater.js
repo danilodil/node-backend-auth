@@ -5,7 +5,7 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
+const ENVIRONMENT = require('../constants/environment');
 
 
 module.exports = {
@@ -16,22 +16,28 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
-        browserParams = { headless: false };
-      }
+      // if (ENVIRONMENT.ENV === 'local') {
+      //   browserParams = { headless: false };
+      // }
       const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
 
-      page.on('dialog', async (dialog) => {
-        try {
-          await dialog.dismiss();
-        } catch (e) {
-          console.log('dialog close');
-        }
-      });
-
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        newQuote: false,
+        policyInfo: false,
+        garagedInfo: false,
+        houseHold: false,
+        vehicles: false,
+        drivers: false,
+        telemetics: false,
+        underWriting: false,
+        coverage: false,
+        summary: false,
+      };
 
       const staticDataObj = {
         city: 'Moody',
@@ -72,10 +78,9 @@ module.exports = {
 
       const populatedData = await populateKeyValueData();
 
-      await startPageStep();
       await loginStep();
       await newQuoteStep();
-      await policyInformationStep();
+      await policyInfoStep();
       await GaragedInfoStep();
       await houseHoldStep();
       await DriversStep();
@@ -85,46 +90,24 @@ module.exports = {
       await coveragesStep();
       await summaryStep();
 
-      async function startPageStep() {
-        try {
-          console.log('Safeco Start Page Step');
-          await page.waitFor(2000);
-          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
-          await page.waitFor(3000);
-          await page.waitForSelector('#div2', { timeout: 120000 });
-          await page.evaluate(() => {
-            const insuranceType = document.querySelector('#div2');
-            insuranceType.click();
-          });
-          await page.click('input[class="DPeCButton"]');
-        } catch (error) {
-          console.log('Error at Safeco AL startPage Step:', error);
-          const response = { error: 'There is some error validations at startPage step' };
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            response,
-          };
-          browser.close();
-          return next();
-        }
-      }
-
       async function loginStep() {
         try {
           console.log('Safeco AL Login Step.');
+          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
           await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
           await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
           await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
           await page.waitForNavigation({ waitUntil: 'load' });
+          stepResult.login = true;
         } catch (error) {
           console.log('Error at Safeco AL Login Step:', error);
-          const response = { error: 'There is some error validations at loginStep' };
+          stepResult.login = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at loginStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -153,20 +136,22 @@ module.exports = {
             const insuranceType = document.querySelector('#NextButton');
             insuranceType.click();
           });
+          stepResult.newQuote = true;
         } catch (err) {
           console.log('Error at Safeco AL New Quote Step:', err);
-          const response = { error: 'There is some error validations at newQuoteStep' };
+          stepResult.newQuote = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at newQuoteStep',
+            stepResult,
           };
           browser.close();
           return next();
         }
       }
 
-      async function policyInformationStep() {
+      async function policyInfoStep() {
         console.log('Safeco AL Policy Information Step.');
 
         try {
@@ -249,13 +234,15 @@ module.exports = {
           } catch (e) {
             console.log('catch error');
           }
+          stepResult.policyInfo = true;
         } catch (err) {
           console.log('Error at Safeco AL Policy Information Step:', err);
-          const response = { error: 'There is some error validations at policyInformationStep' };
+          stepResult.policyInfo = false;
+          let error = 'There is some error validations at policyInformationStep';
           try {
             const errorMessage = await page.evaluate(() => document.querySelector('#PolicyKickoutReasonSpan').innerText);
             if (errorMessage) {
-              response.error = 'Unable to process due to site down.';
+              error = 'Unable to process due to site down.';
             }
           } catch (e) {
             console.log('Safeco AL Unable to process due to site down.');
@@ -263,7 +250,8 @@ module.exports = {
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: error,
+            stepResult,
           };
           browser.close();
           return next();
@@ -288,13 +276,15 @@ module.exports = {
 
           await page.waitFor(1500);
           await page.evaluate(() => document.querySelector('#Continue').click());
+          stepResult.garagedInfo = true;
         } catch (err) {
           console.log('Error at Safeco AL Garaged Info:', err);
-          const response = { error: 'There is some error validations at GaragedInfoStep' };
+          stepResult.garagedInfo = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at GaragedInfoStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -336,13 +326,15 @@ module.exports = {
               console.log('Safeco AL next button not found');
             }
           }
+          stepResult.houseHold = true;
         } catch (e) {
           console.log('Error at Safeco AL House Hold:', err);
-          const response = { error: 'There is some error validations at houseHoldStep' };
+          stepResult.houseHold = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at houseHoldStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -455,20 +447,18 @@ module.exports = {
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
             }
-            // await page.waitFor(2000);
-            // await page.evaluate(() => document.querySelector('#Continue').click());
-            // await page.waitFor(5000);
-            // await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
             console.log('Safeco AL Move to vehicles');
           }
+          stepResult.drivers = true;
         } catch (err) {
           console.log('Error at Safeco AL Driver Step:', err.stack);
-          const response = { error: 'There is some error validations at driverStep' };
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at driverStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -515,13 +505,15 @@ module.exports = {
           }
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#Continue').click());
+          stepResult.vehicles = true;
         } catch (err) {
           console.log('Error at Safeco AL Vehicles Step:', err.stack);
-          const response = { error: 'There is some error validations at vehiclesStep' };
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at vehiclesStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -539,13 +531,15 @@ module.exports = {
           }
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#Continue').click());
+          stepResult.telemetics = true;
         } catch (err) {
           console.log('err telemetics:', err);
-          const response = { error: 'There is some error validations at telemeticsStep' };
+          stepResult.telemetics = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at telemeticsStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -561,13 +555,16 @@ module.exports = {
           await page.waitForSelector('#PolicyAutoDataResidenceType');
           await page.select(populatedData.policyDataResidenceType.element, populatedData.policyDataResidenceType.value);
           await page.evaluate(() => document.querySelector('#Continue').click());
+          await page.waitFor(1000);
+          stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at Safeco AL Underwriting Step:', err);
-          const response = { error: 'There is some error validations at underwritingStep' };
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at underwritingStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -578,7 +575,6 @@ module.exports = {
         console.log('Safeco AL Coverages Step.');
         try {
           await page.waitFor(1000);
-
           await page.waitForSelector('#PolicyAutoDataPackageSelection');
           await page.select(populatedData.policyDataPackageSelection.element, populatedData.policyDataPackageSelection.value);
 
@@ -587,13 +583,15 @@ module.exports = {
             await page.select(populatedData[`policyVehiclesCoverage${j}`].element, populatedData[`policyVehiclesCoverage${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#Continue').click());
+          stepResult.coverage = true;
         } catch (err) {
           console.log('Error at Safeco AL Coverages Step:', err);
-          const response = { error: 'There is some error validations at coveragesStep' };
+          stepResult.coverage = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at coveragesStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -612,24 +610,25 @@ module.exports = {
             downPaymentsObj.totalPremium = document.querySelector('#PolicyPremiumTotalSpan').innerText.replace(/\$/g, '');
             return downPaymentsObj;
           });
-
+          stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved safeco AL rate.',
             status: true,
-            response: premiumDetails,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            stepResult,
           };
           browser.close();
           return next();
         } catch (err) {
           console.log('Error at Safeco AL Summary Step:', err);
-          const response = { error: 'There is some error validations at summaryStep' };
+          stepResult.summary = false;
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at summaryStep',
+            stepResult,
           };
           browser.close();
           return next();
@@ -833,6 +832,15 @@ module.exports = {
         }
         return clientInputSelect;
       }
+
+      page.on('dialog', async (dialog) => {
+        try {
+          await dialog.dismiss();
+        } catch (e) {
+          console.log('dialog close');
+        }
+      });
+
     } catch (error) {
       console.log('Error  at Safeco AL :', error);
       return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));

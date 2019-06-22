@@ -5,12 +5,32 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { nationalGeneralAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
+const ENVIRONMENT = require('../constants/environment');
 
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
     try {
+      const params = req.body;
       const { username, password } = req.body.decoded_vendor;
+      const raterStore = req.session.raterStore;
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        existingQuote: false,
+        newQuote: false,
+        namedInsured: false,
+        drivers: false,
+        vehicles: false,
+        underWriting: false,
+        summary: false,
+      };
+      let quoteId = null;
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
 
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -28,9 +48,9 @@ module.exports = {
         inputBy: '20000739',
         plan: 'G5',
         firstName: 'Test',
-        middleName: 'TEST',
+        // middleName: 'TEST',
         lastName: 'User',
-        suffixName: 'IV',
+        // suffixName: 'IV',
         emailOption: 'EmailProvided',
         email: 'test@mail.com',
         birthDate: '12/16/1993',
@@ -43,9 +63,12 @@ module.exports = {
         state: 'Alabama',
         zipCode: '36340',
         hasMovedInLast60Days: 'False',
-        security1: '122',
-        security2: '22',
-        security3: '2222',
+        residentStatus: 'HCO',
+        priorInsuranceCo: '0',
+        priorExpirationDate: '07/30/2019',
+        // security1: '122',
+        // security2: '22',
+        // security3: '2222',
         drivers: [
           {
             firstName: 'Test',
@@ -55,10 +78,11 @@ module.exports = {
             maritalStatus: 'Single',
             relationShip: 'Named Insured',
             driverStatus: 'Rated Driver',
-            yearOfExperiance: '8',
-            driverLicenseStatus: 'Permit',
+            yearsOfExperience: '8',
+            driverLicenseStatus: 'Valid',
+            driversLicenseNumber: '12345',
             smartDrive: 'True',
-            licenseState: 'IN',
+            driversLicenseStateCd: 'AL',
           },
         ],
         vehicles: [
@@ -73,59 +97,60 @@ module.exports = {
             antiTheft: 'Recovery Device',
             garagingState: 'AL',
             garagingzipCode: '36016',
-            ownershipStatus: 'Owned',
+            ownOrLeaseVehicle: 'Owned',
             vehicleType: 'Private Passenger Auto',
           },
         ],
       };
 
-      const params = req.body;
-      const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.drivers.splice(10, bodyData.drivers.length);
       const populatedData = await populateKeyValueData(bodyData);
+
       await loginStep();
-      console.log('PARAMS: ###', params.quoteId, params.stepName);
-      if (params.quoteId) {
-        await processExistingQuote();
+
+      if (raterStore && raterStore.quoteId) {
+        await existingQuoteStep();
       } else {
         await newQuoteStep();
       }
 
       if (!params.stepName) {
         await namedInsuredStep();
-        await DriversStep();
+        await driversStep();
         await vehiclesStep();
         await underWritingStep();
       } else if (params.stepName === 'namedInsured') {
         await namedInsuredStep();
         await page.waitFor(1000);
-        const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+        quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
         req.session.data = {
           title: 'Successfully finished National AL Named Insured Step',
           status: true,
           quoteId,
+          stepResult,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'drivers' && params.quoteId) {
-        await DriversStep();
+      } else if (params.stepName === 'drivers' && raterStore) {
+        await driversStep();
         req.session.data = {
           title: 'Successfully finished National AL Drivers Step',
           status: true,
-          quoteId: params.quoteId,
+          quoteId: raterStore.quoteId,
+          stepResult,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'vehicles' && params.quoteId) {
+      } else if (params.stepName === 'vehicles' && raterStore) {
         await vehiclesStep();
         req.session.data = {
           title: 'Successfully finished National AL vehicle Step',
           status: true,
-          quoteId: params.quoteId,
+          quoteId: raterStore.quoteId,
+          stepResult,
         };
         browser.close();
         return next();
-      } else if (params.stepName === 'summary' && params.quoteId) {
+      } else if (params.stepName === 'summary' && raterStore) {
         await underWritingStep();
       }
 
@@ -138,39 +163,57 @@ module.exports = {
           await page.type('#txtPassword', password);
           await page.click('#btnLogin');
           await page.waitForNavigation({ timeout: 0 });
+          stepResult.login = true;
         } catch (error) {
           console.log('Error at National AL Log In  Step:', error);
-          const response = { error: 'There is some error validations at loginStep' };
+          stepResult.login = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at loginStep',
+            stepResult,
           };
           browser.close();
           return next();
         }
       }
 
-      async function processExistingQuote() {
+      async function existingQuoteStep() {
         try {
           console.log('National AL Existing Quote Id Step.');
-          const quoteId = params.quoteId;
+          const quoteId = raterStore.quoteId;
           // eslint-disable-next-line no-shadow
           await page.evaluate((quoteId) => {
             document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
           }, quoteId);
           await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
-          await page.waitFor(1000);
+          await page.waitFor(2000);
+          stepResult.existingQuote = true;
         } catch (error) {
           console.log('Error at National AL Existing Quote Id Step:');
-          const response = { error: 'There is some error validations' };
+          stepResult.existingQuote = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some error on existing Quote step',
+            stepResult,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.reload();
+            const quoteId = raterStore.quoteId;
+            // eslint-disable-next-line no-shadow
+            await page.evaluate((quoteId) => {
+              document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
+            }, quoteId);
+            await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
+            await page.waitFor(2000);
+            stepResult.existingQuote = true;
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
@@ -183,20 +226,33 @@ module.exports = {
           await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
           await page.waitFor(1000);
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
+          stepResult.newQuote = true;
         } catch (error) {
           console.log('Error at National AL New Quote  Step:');
-          const response = { error: 'There is some error validations at newQuoteStep' };
+          stepResult.newQuote = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at newQuoteStep',
+            stepResult,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector(populatedData.newQuoteState.element);
+            await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
+            await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
+            await page.waitFor(1000);
+            await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
+            stepResult.newQuote = true;
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
-      // For Named Insured Form
       async function namedInsuredStep() {
         console.log('National AL Named Insured Step.');
         try {
@@ -231,22 +287,33 @@ module.exports = {
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await page.waitFor(5000);
-          const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
-          return quoteId;
+          quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+          stepResult.namedInsured = true;
         } catch (err) {
           console.log('Error at National AL Named Insured Step:');
-          const response = { error: 'There is some error validations at namedInsuredStep' };
+          stepResult.namedInsured = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some error validations at namedInsuredStep',
+            stepResult,
+            quoteId,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+            await page.waitFor(5000);
+            quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+            stepResult.namedInsured = true;
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
-      async function DriversStep() {
+      async function driversStep() {
         console.log('National AL Drivers Step.');
         try {
           await page.waitFor(1000);
@@ -287,12 +354,15 @@ module.exports = {
             }
             await page.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
 
-            await page.evaluate((yearsOfExperiance) => {
-              document.querySelector(yearsOfExperiance.element).value = yearsOfExperiance.value;
-            }, populatedData[`yearsOfExperiance${j}`]);
+            await page.evaluate((yearsOfExperience) => {
+              document.querySelector(yearsOfExperience.element).value = yearsOfExperience.value;
+            }, populatedData[`yearsOfExperience${j}`]);
+            await page.evaluate((driversLicenseNumber) => {
+              document.querySelector(driversLicenseNumber.element).value = driversLicenseNumber.value;
+            }, populatedData[`driversLicenseNumber${j}`]);
             await page.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
             await page.select(populatedData[`smartDrive${j}`].element, populatedData[`smartDrive${j}`].value);
-            await page.select(populatedData[`licenseState${j}`].element, populatedData[`licenseState${j}`].value);
+            await page.select(populatedData[`driversLicenseStateCd${j}`].element, populatedData[`driversLicenseStateCd${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           try {
@@ -301,16 +371,32 @@ module.exports = {
           } catch (e) {
             console.log('National AL Move to vehicle');
           }
+          stepResult.drivers = true;
         } catch (err) {
           console.log('Error at National AL Driver Step.');
-          const response = { error: 'There is some data error at Drivers step' };
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error at Drivers step',
+            stepResult,
+            quoteId,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+            try {
+              await page.waitFor(3000);
+              await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+            } catch (e) {
+              console.log('National AL Move to vehicle');
+            }
+            stepResult.drivers = true;
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
@@ -353,20 +439,31 @@ module.exports = {
             await page.evaluate((garagingzipCode) => {
               document.getElementById(garagingzipCode.elementId).value = garagingzipCode.value;
             }, populatedData[`garagingzipCode${j}`]);
-            await page.type(populatedData[`ownershipStatus${j}`].elementId, populatedData[`ownershipStatus${j}`].value);
+            await page.type(populatedData[`ownOrLeaseVehicle${j}`].elementId, populatedData[`ownOrLeaseVehicle${j}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+          stepResult.vehicles = true;
           await vehicleHistoryStep();
         } catch (err) {
           console.log('Error at National AL Vehicles Steps.', err);
-          const response = { error: 'There is some data error at vehicles' };
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error at vehicles',
+            stepResult,
+            quoteId,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+            stepResult.vehicles = true;
+            await vehicleHistoryStep();
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
@@ -379,15 +476,29 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
         } catch (err) {
           console.log('Error at National AL vehicleHistory Step :', err);
-          const response = { error: 'There is some data error at vehicleHistory step' };
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error at vehicleHistory step',
+            stepResult,
+            quoteId,
           };
-          browser.close();
-          return next();
+          let retried = false;
+          if (!retried) {
+            retried = true;
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+          } else {
+            browser.close();
+            return next();
+          }
         }
+      }
+
+      // get all select options texts and values
+      async function getSelects() {
+        const selects = await page.evaluate(() => document.getElementsByTagName('select'));
+        console.log(selects);
+        return null;
       }
 
       async function underWritingStep() {
@@ -395,6 +506,7 @@ module.exports = {
         try {
           await page.waitFor(1200);
           await page.goto(nationalGeneralAlRater.UNDERWRITING_URL, { waitUntil: 'load' });
+          await getSelects();
           await page.waitForSelector(populatedData.priorInsuranceCo.element);
           await page.select(populatedData.priorInsuranceCo.element, populatedData.priorInsuranceCo.value);
           await page.waitFor(1200);
@@ -402,7 +514,7 @@ module.exports = {
           await page.waitFor(1200);
           await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
           await page.waitFor(600);
-          await page.select(populatedData.recidentStatus.element, populatedData.recidentStatus.value);
+          await page.select(populatedData.residentStatus.element, populatedData.residentStatus.value);
           await page.waitFor(600);
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
           await page.waitFor(1000);
@@ -412,16 +524,28 @@ module.exports = {
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coveragesStep();
+          stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at National AL Underwriting :', err.stack);
-          const response = { error: 'There is some data error underWriting step' };
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error underWriting step',
+            stepResult,
+            quoteId,
           };
-          browser.close();
-          return next();
+          let reloaded = false;
+          if (!reloaded) {
+            reloaded = true;
+            await page.reload();
+            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+            stepResult.underWriting = true;
+            await coveragesStep();
+          } else {
+            browser.close();
+            return next();
+          }
         }
       }
 
@@ -431,56 +555,60 @@ module.exports = {
           await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(600);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          await billPlansStep();
+          await summaryStep();
         } catch (err) {
           console.log('Error at National AL coverages Step.', err);
-          const response = { error: 'There is some data error coverages step' };
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error coverages step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
         }
       }
 
-      async function billPlansStep() {
-        console.log('National AL BillPlans Step.');
+      async function summaryStep() {
+        console.log('National AL summaryStep Step.');
         try {
           await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
           const tBody = await page.$$eval('table #ctl00_MainContent_ctl00_tblRow td', tds => tds.map(td => td.innerText));
-          const quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+          quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
           const downPayments = {};
           tHead.forEach((key, i) => {
             if (i !== 0) downPayments[key] = tBody[i];
           });
 
           const premiumDetails = {
-            quoteId: bodyData.quoteId ? bodyData.quoteId : quoteId,
             description: downPayments.DESCRIPTION,
             downPayment: downPayments['DOWN PAYMENT'],
             payments: downPayments.PAYMENTS,
             totalPremium: downPayments.TOTAL,
           };
+          stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved national general AL rate.',
             status: true,
-            response: premiumDetails,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPayment ? premiumDetails.downPayment.replace(/,/g, '') : null,
+            quoteId: quoteId,
+            stepResult,
           };
           browser.close();
           return next();
         } catch (err) {
-          console.log('Error at National AL Bill plans:', err);
-          const response = { error: 'There is some data error billPlans step' };
+          console.log('Error at National AL summaryStep:', err);
+          stepResult.summary = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
             status: false,
-            response,
+            error: 'There is some data error summaryStep step',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
@@ -523,7 +651,7 @@ module.exports = {
           },
           middleName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsMiddleName\']',
-            value: bodyData.middleName || staticDataObj.middleName,
+            value: bodyData.middleName || '',
           },
           lastName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsLastName\']',
@@ -531,19 +659,19 @@ module.exports = {
           },
           suffixName: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ddlInsSuffix\']',
-            value: bodyData.suffixName || staticDataObj.suffixName,
+            value: bodyData.suffixName || 'None',
           },
           phone1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
-            value: bodyData.phone1 || staticDataObj.phone1,
+            value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
           },
           phone2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
-            value: bodyData.phone2 || staticDataObj.phone2,
+            value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
           },
           phone3: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
-            value: bodyData.phone3 || staticDataObj.phone3,
+            value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
           },
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
@@ -563,15 +691,15 @@ module.exports = {
           },
           security1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum1\']',
-            value: bodyData.security1 || staticDataObj.security1,
+            value: bodyData.security1 || '',
           },
           security2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum2\']',
-            value: bodyData.security2 || staticDataObj.security2,
+            value: bodyData.security2 || '',
           },
           security3: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum3\']',
-            value: bodyData.security3 || staticDataObj.security3,
+            value: bodyData.security3 || '',
           },
           mailingAddress: {
             element: '#ctl00_MainContent_InsuredNamed1_txtInsAdr',
@@ -595,19 +723,19 @@ module.exports = {
           },
           priorInsuranceCo: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlCurrentCarrier"]',
-            value: '0' || '',
+            value: bodyData.priorInsuranceCo || staticDataObj.priorInsuranceCo,
           },
           priorBICoverage: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlBICoverage"]',
-            value: '10/20' || '',
+            value: '25/50' || '',
           },
           priorExpirationDate: {
             element: 'input[name="ctl00$MainContent$PriorPolicy$txtExpDateOld"]',
-            value: '4/30/2019' || '',
+            value: bodyData.priorExpirationDate || staticDataObj.priorExpirationDate,
           },
-          recidentStatus: {
+          residentStatus: {
             element: 'select[name="ctl00$MainContent$ctl00$ddlAnswer"]',
-            value: 'HCO' || '',
+            value: bodyData.residentStatus || staticDataObj.residentStatus,
           },
           prohibitedRisk: {
             element: 'select[name="ctl00$MainContent$ProhibitedRisk6$ddlProhibitedRisk"]',
@@ -653,21 +781,25 @@ module.exports = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlDriverStatus']`,
               value: 'Rated Driver' || '',
             };
-            clientInputSelect[`yearsOfExperiance${i}`] = {
+            clientInputSelect[`yearsOfExperience${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_txtYrsExperience`,
-              value: bodyData.drivers[j].yearOfExperiance || staticDataObj.drivers[0].yearOfExperiance,
+              value: bodyData.drivers[j].yearsOfExperience || staticDataObj.drivers[0].yearsOfExperience,
             };
             clientInputSelect[`driverLicenseStatus${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlDLStatus`,
-              value: 'Permit' || '',
+              value: 'Valid' || '',
+            };
+            clientInputSelect[`driversLicenseNumber${i}`] = {
+              element: `ctl00$MainContent$Driver${i}$txtDLNumber`,
+              value: bodyData.drivers[j].driversLicenseNumber || '',
             };
             clientInputSelect[`smartDrive${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlSmartDrive']`,
               value: 'False' || '',
             };
-            clientInputSelect[`licenseState${i}`] = {
+            clientInputSelect[`driversLicenseStateCd${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlLicenseState']`,
-              value: bodyData.drivers[j].licenseState || staticDataObj.drivers[0].licenseState,
+              value: bodyData.drivers[j].driversLicenseStateCd || staticDataObj.drivers[0].driversLicenseStateCd,
             };
           }
         }
@@ -702,7 +834,7 @@ module.exports = {
             };
             clientInputSelect[`primaryUse${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlPrimaryUse']`,
-              value: 'Pleasure/Commute',
+              value: bodyData.vehicles[j].primaryUse || 'Pleasure/Commute',
             };
             clientInputSelect[`antiTheft${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlAntiTheft']`,
@@ -715,12 +847,12 @@ module.exports = {
             clientInputSelect[`garagingzipCode${j}`] = {
               elementId: `ctl00_MainContent_AutoControl${i}_txtZip`,
               element: `input[name='ctl00$MainContent$AutoControl${i}$txtZip']`,
-              value: '36016' || '',
+              value: bodyData.vehicles[j].garagingzipCode || staticDataObj.vehicles[0].garagingzipCode,
             };
-            clientInputSelect[`ownershipStatus${j}`] = {
+            clientInputSelect[`ownOrLeaseVehicle${j}`] = {
               elementId: `select#ctl00_MainContent_AutoControl${i}_ddlOwnershipStatus`,
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlOwnershipStatus']`,
-              value: bodyData.vehicles[j].ownershipStatus || staticDataObj.vehicles[0].ownershipStatus,
+              value: bodyData.vehicles[j].ownOrLeaseVehicle || staticDataObj.vehicles[0].ownOrLeaseVehicle,
             };
           }
         }
