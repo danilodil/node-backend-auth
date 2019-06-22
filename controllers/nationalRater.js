@@ -48,16 +48,14 @@ module.exports = {
         inputBy: '20000739',
         plan: 'G5',
         firstName: 'Test',
-        // middleName: 'TEST',
         lastName: 'User',
-        // suffixName: 'IV',
         emailOption: 'EmailProvided',
         email: 'test@mail.com',
         birthDate: '12/16/1993',
         mailingAddress: '1608 W Magnolia Ave',
         phone1: '455',
-        phone2: '555',
-        phone3: '5555',
+        // phone2: '555',
+        // phone3: '5555',
         phoneType: '3',
         city: 'Geneva',
         state: 'Alabama',
@@ -270,15 +268,15 @@ module.exports = {
           await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
           await page.select(populatedData.suffixName.element, populatedData.suffixName.value);
           await page.evaluate((phone1) => { document.querySelector(phone1.element).value = phone1.value; }, populatedData.phone1);
-          await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
-          await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
+          //await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
+          //await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
           await page.select(populatedData.phoneType.element, populatedData.phoneType.value);
           await page.select(populatedData.emailOption.element, populatedData.emailOption.value);
           await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
           await page.evaluate((dateOfBirth) => { document.querySelector(dateOfBirth.element).value = dateOfBirth.value; }, populatedData.dateOfBirth);
-          await page.evaluate((security1) => { document.querySelector(security1.element).value = security1.value; }, populatedData.security1);
-          await page.evaluate((security2) => { document.querySelector(security2.element).value = security2.value; }, populatedData.security2);
-          await page.evaluate((security3) => { document.querySelector(security3.element).value = security3.value; }, populatedData.security3);
+          //await page.evaluate((security1) => { document.querySelector(security1.element).value = security1.value; }, populatedData.security1);
+          //await page.evaluate((security2) => { document.querySelector(security2.element).value = security2.value; }, populatedData.security2);
+          //await page.evaluate((security3) => { document.querySelector(security3.element).value = security3.value; }, populatedData.security3);
           await page.evaluate((mailingAddress) => { document.querySelector(mailingAddress.element).value = mailingAddress.value; }, populatedData.mailingAddress);
           await page.evaluate((city) => { document.querySelector(city.element).value = city.value; }, populatedData.city);
           await page.select(populatedData.state.element, populatedData.state.value);
@@ -443,7 +441,10 @@ module.exports = {
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           stepResult.vehicles = true;
-          await vehicleHistoryStep();
+          await page.waitFor(1000);
+          await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
+          await page.waitFor(1000);
+          await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
         } catch (err) {
           console.log('Error at National AL Vehicles Steps.', err);
           stepResult.vehicles = false;
@@ -467,53 +468,18 @@ module.exports = {
         }
       }
 
-      async function vehicleHistoryStep() {
-        console.log('National AL VehicleHistory Step.');
-        try {
-          await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
-          await page.waitFor(1000);
-
-          await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-        } catch (err) {
-          console.log('Error at National AL vehicleHistory Step :', err);
-          req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
-            status: false,
-            error: 'There is some data error at vehicleHistory step',
-            stepResult,
-            quoteId,
-          };
-          let retried = false;
-          if (!retried) {
-            retried = true;
-            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-          } else {
-            browser.close();
-            return next();
-          }
-        }
-      }
-
-      // get all select options texts and values
-      async function getSelects() {
-        const selects = await page.evaluate(() => document.getElementsByTagName('select'));
-        console.log(selects);
-        return null;
-      }
-
       async function underWritingStep() {
         console.log('National AL Underwriting Step.');
         try {
           await page.waitFor(1200);
           await page.goto(nationalGeneralAlRater.UNDERWRITING_URL, { waitUntil: 'load' });
-          await getSelects();
           await page.waitForSelector(populatedData.priorInsuranceCo.element);
           await page.select(populatedData.priorInsuranceCo.element, populatedData.priorInsuranceCo.value);
-          await page.waitFor(1200);
-          await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
-          await page.waitFor(1200);
-          await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
-          await page.waitFor(600);
+          await page.waitFor(2000);
+          // await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
+          // await page.waitFor(1200);
+          // await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
+          // await page.waitFor(600);
           await page.select(populatedData.residentStatus.element, populatedData.residentStatus.value);
           await page.waitFor(600);
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
@@ -544,7 +510,7 @@ module.exports = {
             await coveragesStep();
           } else {
             browser.close();
-            return next();
+           return next();
           }
         }
       }
@@ -665,14 +631,14 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
             value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
           },
-          phone2: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
-            value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
-          },
-          phone3: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
-            value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
-          },
+          // phone2: {
+          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
+          //   value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
+          // },
+          // phone3: {
+          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
+          //   value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
+          // },
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
             value: '3' || '',
@@ -689,18 +655,18 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsDOB\']',
             value: bodyData.birthDate || staticDataObj.birthDate,
           },
-          security1: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum1\']',
-            value: bodyData.security1 || '',
-          },
-          security2: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum2\']',
-            value: bodyData.security2 || '',
-          },
-          security3: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum3\']',
-            value: bodyData.security3 || '',
-          },
+          // security1: {
+          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum1\']',
+          //   value: bodyData.security1 || '',
+          // },
+          // security2: {
+          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum2\']',
+          //   value: bodyData.security2 || '',
+          // },
+          // security3: {
+          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum3\']',
+          //   value: bodyData.security3 || '',
+          // },
           mailingAddress: {
             element: '#ctl00_MainContent_InsuredNamed1_txtInsAdr',
             value: bodyData.mailingAddress || staticDataObj.mailingAddress,

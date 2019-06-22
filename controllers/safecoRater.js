@@ -16,9 +16,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
 
