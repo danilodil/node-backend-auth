@@ -128,7 +128,7 @@ module.exports = {
           lastName: 'User',
           birthDate: '12/16/1993',
           email: 'test@gmail.com',
-          phone: '0000000000'
+          phone: '0000000000',
           addressStreetName: 'Market St',
           addressStreetNumber: '969',
           city: 'San Diego',

@@ -43,58 +43,6 @@ module.exports = {
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
-      const staticDetailsObj = {
-        firstName: 'Test',
-        lastName: 'User',
-        birthDate: '12/16/1993',
-        suffixName: 'I',
-        email: 'test@mail.com',
-        phone: '302-222-5555',
-        mailingAddress: '216 Humphreys Dr',
-        city: 'Dover',
-        state: 'DE',
-        zipCode: '19934',
-        lengthAtAddress: '1 year or more',
-        priorInsurance: 'Yes',
-        priorInsuranceCarrier: 'USAA',
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleModelYear: '2015',
-            vehicleManufacturer: 'FORD',
-            vehicleModel: 'F350',
-            vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
-            applicantPostalCd: '19934',
-            lengthOfOwnership: 'At least 1 year but less than 3 years',
-            primaryUse: 'Commute',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            applicantBirthDt: '12/16/1993',
-            applicantGenderCd: 'Male',
-            applicantMaritalStatusCd: 'Married',
-            driverLicensedDt: '3 years or more',
-            employment: 'Student (full-time)',
-            occupation: 'Appraiser - Real Estate',
-            education: 'College Degree',
-            relationship: 'Other',
-          },
-        ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
-        policyEffectiveDate: '04/26/2019',
-        priorPolicyTerminationDate: '05/30/2019',
-        yearsWithPriorInsurance: '5 years or more',
-        ownOrRentPrimaryResidence: 'Rent',
-        numberOfResidentsInHome: '3',
-        rentersLimits: 'Greater Than 300,000',
-        haveAnotherProgressivePolicy: 'No',
-      };
-
       const populatedData = await populateKeyValueData(bodyData);
       let pageQuote = '';
       let loginRetryAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
@@ -879,11 +827,9 @@ module.exports = {
       // For get all select options texts and values
       function getSelctVal(inputID) {
         optVals = [];
-
         document.querySelectorAll(inputID).forEach((opt) => {
           optVals.push({ name: opt.innerText, value: opt.value });
         });
-
         return optVals;
       }
 
@@ -928,6 +874,59 @@ module.exports = {
       }
 
       function populateKeyValueData() {
+      
+        const staticDetailsObj = {
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          suffixName: 'I',
+          email: 'test@mail.com',
+          phone: '302-222-5555',
+          mailingAddress: '216 Humphreys Dr',
+          city: 'Dover',
+          state: 'DE',
+          zipCode: '19934',
+          lengthAtAddress: '1 year or more',
+          priorInsurance: 'Yes',
+          priorInsuranceCarrier: 'USAA',
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleModelYear: '2015',
+              vehicleManufacturer: 'FORD',
+              vehicleModel: 'F350',
+              vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
+              applicantPostalCd: '19934',
+              lengthOfOwnership: 'At least 1 year but less than 3 years',
+              primaryUse: 'Commute',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              applicantBirthDt: '12/16/1993',
+              applicantGenderCd: 'Male',
+              applicantMaritalStatusCd: 'Married',
+              driverLicensedDt: '3 years or more',
+              employment: 'Student (full-time)',
+              occupation: 'Appraiser - Real Estate',
+              education: 'College Degree',
+              relationship: 'Other',
+            },
+          ],
+          priorIncident: 'AAD - At Fault Accident',
+          priorIncidentDate: '12/16/2012',
+          policyEffectiveDate: '04/26/2019',
+          priorPolicyTerminationDate: '05/30/2019',
+          yearsWithPriorInsurance: '5 years or more',
+          ownOrRentPrimaryResidence: 'Rent',
+          numberOfResidentsInHome: '3',
+          rentersLimits: 'Greater Than 300,000',
+          haveAnotherProgressivePolicy: 'No',
+        };
+
         const clientInputSelect = {
           newQuoteState: {
             element: '#QuoteStateList',
@@ -1187,64 +1186,66 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
-      const staticDetailsObj = {
-        firstName: 'Test',
-        lastName: 'User',
-        birthDate: '12/16/1993',
-        email: 'test@mail.com',
-        phone: '302-222-5555',
-        mailingAddress: '216 Humphreys Dr',
-        city: 'Adamsville',
-        state: 'Alabama',
-        zipCode: '35005',
-        lengthAtAddress: '1 year or more',
-        priorInsurance: 'A',
-        priorInsuranceCarrier: 'USAA',
-        // must always agree to closure
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleModelYear: '2015',
-            vehicleManufacturer: 'FORD',
-            vehicleModel: 'F350',
-            vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
-            applicantPostalCd: '35005',
-            lengthOfOwnership: 'At least 1 year but less than 3 years',
-            primaryUse: 'Commute',
-            occupation: 'Appraiser - Real Estate',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            applicantBirthDt: '12/16/1993',
-            applicantGenderCd: 'Male',
-            applicantMaritalStatusCd: 'Married',
-            driverLicensedDt: '3 years or more',
-            employment: 'Student (full-time)',
-            occupation: 'Other',
-            education: 'College Degree',
-          },
-        ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
-        policyEffectiveDate: '04/30/2019',
-        priorPolicyTerminationDate: '03/15/2019',
-        yearsWithPriorInsurance: '5 years or more',
-        ownOrRentPrimaryResidence: 'Rent',
-        numberOfResidentsInHome: '3',
-        rentersLimits: 'Greater Than 300,000',
-        haveAnotherProgressivePolicy: 'No',
-      };
-
+     
       function populateKeyValueData() {
+
+        const staticDetailsObj = {
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          email: 'test@mail.com',
+          phone: '302-222-5555',
+          mailingAddress: '216 Humphreys Dr',
+          city: 'Adamsville',
+          state: 'Alabama',
+          zipCode: '35005',
+          lengthAtAddress: '1 year or more',
+          priorInsurance: 'A',
+          priorInsuranceCarrier: 'USAA',
+          // must always agree to closure
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleModelYear: '2015',
+              vehicleManufacturer: 'FORD',
+              vehicleModel: 'F350',
+              vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
+              applicantPostalCd: '35005',
+              lengthOfOwnership: 'At least 1 year but less than 3 years',
+              primaryUse: 'Commute',
+              occupation: 'Appraiser - Real Estate',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              applicantBirthDt: '12/16/1993',
+              applicantGenderCd: 'Male',
+              applicantMaritalStatusCd: 'Married',
+              driverLicensedDt: '3 years or more',
+              employment: 'Student (full-time)',
+              occupation: 'Other',
+              education: 'College Degree',
+            },
+          ],
+          priorIncident: 'AAD - At Fault Accident',
+          priorIncidentDate: '12/16/2012',
+          policyEffectiveDate: '04/30/2019',
+          priorPolicyTerminationDate: '03/15/2019',
+          yearsWithPriorInsurance: '5 years or more',
+          ownOrRentPrimaryResidence: 'Rent',
+          numberOfResidentsInHome: '3',
+          rentersLimits: 'Greater Than 300,000',
+          haveAnotherProgressivePolicy: 'No',
+        };
+
         const clientInputSelect = {
           newQuoteState: {
             element: '#QuoteStateList',
@@ -1299,7 +1300,7 @@ module.exports = {
           zipCode: {
             elementId: 'insd_zip_cd',
             element: '#insd_zip_cd',
-            value: '35005',
+            value:bodyData.zipCode || '35005',
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
@@ -1555,7 +1556,6 @@ module.exports = {
         return selected;
       }
 
-      // dimiss alert dialog
       function dismissDialog(errorPage) {
         try {
           errorPage.on('dialog', async (dialog) => {
@@ -1566,8 +1566,6 @@ module.exports = {
         }
       }
 
-      // Login
-      let loginReAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
       const populatedData = await populateKeyValueData(bodyData);
       let pageQuote = '';
       await loginStep();
@@ -1686,6 +1684,7 @@ module.exports = {
         }
       }
 
+      let loginReAttemptCounter = progressiveRater.LOGIN_REATTEMPT;
       async function loginStep() {
         try {
           console.log('Progressive AL Login Step.');
@@ -1693,7 +1692,6 @@ module.exports = {
           await page.waitForSelector('#user1');
           await page.type('#user1', username);
           await page.type('#password1', password);
-
           await page.click('#image1');
           await page.waitFor(3000);
           stepResult.login = true;
