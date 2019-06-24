@@ -37,9 +37,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
@@ -225,9 +225,14 @@ module.exports = {
       }
 
       async function existingQuote() {
-        console.log('Progressive AL Existing Quote Step.');
+        console.log('Progressive AL Existing Quote Step');
         try {
+          console.log('HIT ###:');
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
+          const tHeads = await page.$$eval('table thead tr th', ths => ths.map(th => th.innerText));
+          const tBody = await page.$$eval('table tbody tr p#insuredNameCol a#insuredNameLink', tds => tds.map(td => td.innerText));
+          console.log('T HEADS ###: ', tHeads);
+          console.log('T BODY ###: ', tBody);
           await page.waitForSelector('#LastName');
           await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
           await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
