@@ -40,6 +40,7 @@ module.exports = {
       }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
+<<<<<<< HEAD
 
       const staticDataObj = {
         newQuoteState: 'AL',
@@ -102,10 +103,12 @@ module.exports = {
         ],
       };
 
+=======
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
       const populatedData = await populateKeyValueData(bodyData);
 
       await loginStep();
-
+      
       if (raterStore && raterStore.quoteId) {
         await existingQuoteStep();
       } else {
@@ -205,22 +208,8 @@ module.exports = {
             error: 'There is some error on existing Quote step',
             stepResult,
           };
-          let retried = false;
-          if (!retried) {
-            retried = true;
-            await page.reload();
-            const quoteId = raterStore.quoteId;
-            // eslint-disable-next-line no-shadow
-            await page.evaluate((quoteId) => {
-              document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
-            }, quoteId);
-            await page.click('#ctl00_MainContent_wgtMainMenuSearchQuotes_btnSearchQuote');
-            await page.waitFor(2000);
-            stepResult.existingQuote = true;
-          } else {
-            browser.close();
-            return next();
-          }
+          browser.close();
+          return next();
         }
       }
 
@@ -243,20 +232,8 @@ module.exports = {
             error: 'There is some error validations at newQuoteStep',
             stepResult,
           };
-          let retried = false;
-          if (!retried) {
-            retried = true;
-            await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
-            await page.waitForSelector(populatedData.newQuoteState.element);
-            await page.select(populatedData.newQuoteState.element, populatedData.newQuoteState.value);
-            await page.select(populatedData.newQuoteProduct.element, populatedData.newQuoteProduct.value);
-            await page.waitFor(1000);
-            await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
-            stepResult.newQuote = true;
-          } else {
             browser.close();
             return next();
-          }
         }
       }
 
@@ -273,19 +250,17 @@ module.exports = {
           await page.select(populatedData.inputBy.element, populatedData.inputBy.value);
           await page.select(populatedData.plan.element, populatedData.plan.value);
           await page.evaluate((firstName) => { document.querySelector(firstName.element).value = firstName.value; }, populatedData.firstName);
-          await page.evaluate((middleName) => { document.querySelector(middleName.element).value = middleName.value; }, populatedData.middleName);
           await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
-          await page.select(populatedData.suffixName.element, populatedData.suffixName.value);
           await page.evaluate((phone1) => { document.querySelector(phone1.element).value = phone1.value; }, populatedData.phone1);
+<<<<<<< HEAD
           await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
           await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
+=======
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           await page.select(populatedData.phoneType.element, populatedData.phoneType.value);
           await page.select(populatedData.emailOption.element, populatedData.emailOption.value);
           await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
           await page.evaluate((dateOfBirth) => { document.querySelector(dateOfBirth.element).value = dateOfBirth.value; }, populatedData.dateOfBirth);
-          //await page.evaluate((security1) => { document.querySelector(security1.element).value = security1.value; }, populatedData.security1);
-          //await page.evaluate((security2) => { document.querySelector(security2.element).value = security2.value; }, populatedData.security2);
-          //await page.evaluate((security3) => { document.querySelector(security3.element).value = security3.value; }, populatedData.security3);
           await page.evaluate((mailingAddress) => { document.querySelector(mailingAddress.element).value = mailingAddress.value; }, populatedData.mailingAddress);
           await page.evaluate((city) => { document.querySelector(city.element).value = city.value; }, populatedData.city);
           await page.select(populatedData.state.element, populatedData.state.value);
@@ -307,17 +282,8 @@ module.exports = {
             stepResult,
             quoteId,
           };
-          let retried = false;
-          if (!retried) {
-            retried = true;
-            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-            await page.waitFor(5000);
-            quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
-            stepResult.namedInsured = true;
-          } else {
-            browser.close();
-            return next();
-          }
+          //browser.close();
+          //return next();
         }
       }
 
@@ -382,9 +348,13 @@ module.exports = {
           }
           stepResult.drivers = true;
         } catch (err) {
+<<<<<<< HEAD
           console.log(err);
           console.log(err);
           console.log('Error at National AL Driver Step.');
+=======
+          console.log('Error at National AL Driver Step.', err);
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
@@ -393,6 +363,7 @@ module.exports = {
             stepResult,
             quoteId,
           };
+<<<<<<< HEAD
           let retried = false;
           if (!retried) {
             retried = true;
@@ -439,6 +410,10 @@ module.exports = {
             browser.close();
             return next();
           }
+=======
+          //browser.close();
+          //return next();
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
         }
       }
 
@@ -500,16 +475,8 @@ module.exports = {
             stepResult,
             quoteId,
           };
-          let retried = false;
-          if (!retried) {
-            retried = true;
-            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-            stepResult.vehicles = true;
-            await vehicleHistoryStep();
-          } else {
-            browser.close();
-            return next();
-          }
+            //browser.close();
+            //return next();
         }
       }
 
@@ -548,17 +515,8 @@ module.exports = {
             stepResult,
             quoteId,
           };
-          let reloaded = false;
-          if (!reloaded) {
-            reloaded = true;
-            await page.reload();
-            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-            stepResult.underWriting = true;
-            await coveragesStep();
-          } else {
-            browser.close();
-           return next();
-          }
+           //browser.close();
+           //return next();
         }
       }
 
@@ -579,8 +537,8 @@ module.exports = {
             stepResult,
             quoteId,
           };
-          browser.close();
-          return next();
+          //browser.close();
+          //return next();
         }
       }
 
@@ -639,6 +597,58 @@ module.exports = {
       }
 
       function populateKeyValueData() {
+        const staticDataObj = {
+          newQuoteState: 'AL',
+          newQuoteProduct: 'PPA',
+          producer: '610979',
+          inputBy: '20000739',
+          plan: 'G5',
+          firstName: 'Test',
+          lastName: 'User',
+          emailOption: 'EmailProvided',
+          birthDate: '12/16/1993',
+          mailingAddress: '1608 W Magnolia Ave',
+          phone1: '455',
+          phoneType: '3',
+          city: 'Geneva',
+          state: 'Alabama',
+          zipCode: '36340',
+          hasMovedInLast60Days: 'False',
+          residentStatus: 'HCO',
+          priorInsuranceCo: '0',
+          priorExpirationDate: '07/30/2019',
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              applicantBirthDt: '12/16/1993',
+              gender: 'Male',
+              maritalStatus: 'Single',
+              relationShip: 'Named Insured',
+              driverStatus: 'Rated Driver',
+              driverLicenseStatus: 'Valid',
+              driversLicenseNumber: '12345',
+              smartDrive: 'True',
+              driversLicenseStateCd: 'AL',
+            },
+          ],
+          vehicles: [
+            {
+              vehicleVin: 'KMHDH6AE1DU001708',
+              vtype: 'PPA',
+              modelYear: '2013',
+              make: 'HYUN',
+              model: 'SANTA FE G',
+              style: 'WAGON 4 DOOR 4 Cyl 4x2',
+              primaryUse: 'Business',
+              garagingState: 'AL',
+              garagingzipCode: '36016',
+              ownOrLeaseVehicle: 'Owned',
+              vehicleType: 'Private Passenger Auto',
+            },
+          ],
+        };
+        
         const clientInputSelect = {
           newQuoteState: {
             element: 'select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]',
@@ -650,36 +660,29 @@ module.exports = {
           },
           producer: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlProducers"]',
-            value: bodyData.producer || staticDataObj.producer,
+            value: staticDataObj.producer,
           },
           inputBy: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlInputBy"]',
-            value: bodyData.inputBy || staticDataObj.inputBy,
+            value: staticDataObj.inputBy,
           },
           plan: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlPlanCode"]',
-            value: bodyData.plan || staticDataObj.plan,
+            value: staticDataObj.plan,
           },
           firstName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsFirstName\']',
             value: bodyData.firstName || staticDataObj.firstName,
           },
-          middleName: {
-            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsMiddleName\']',
-            value: bodyData.middleName || '',
-          },
           lastName: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsLastName\']',
             value: bodyData.lastName || staticDataObj.lastName,
-          },
-          suffixName: {
-            element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ddlInsSuffix\']',
-            value: bodyData.suffixName || 'None',
           },
           phone1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
             value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
           },
+<<<<<<< HEAD
           phone2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
             value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
@@ -688,34 +691,24 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
             value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
           },
+=======
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
-            value: '3' || '',
+            value: '2',
           },
           emailOption: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ddlEmailOption\']',
-            value: 'EmailProvided' || '',
+            value: bodyData.email ? 'EmailProvided' : 'EmailNotProvided',
           },
           email: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsEmail\']',
-            value: bodyData.email || staticDataObj.email,
+            value: bodyData.email || '',
           },
           dateOfBirth: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtInsDOB\']',
             value: bodyData.birthDate || staticDataObj.birthDate,
           },
-          // security1: {
-          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum1\']',
-          //   value: bodyData.security1 || '',
-          // },
-          // security2: {
-          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum2\']',
-          //   value: bodyData.security2 || '',
-          // },
-          // security3: {
-          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$txtSocialSecurityNum3\']',
-          //   value: bodyData.security3 || '',
-          // },
           mailingAddress: {
             element: '#ctl00_MainContent_InsuredNamed1_txtInsAdr',
             value: bodyData.mailingAddress || staticDataObj.mailingAddress,
@@ -734,7 +727,7 @@ module.exports = {
           },
           hasMovedInLast60Days: {
             element: 'select[name="ctl00$MainContent$InsuredNamed1$ddlInsRecentMove60"]',
-            value: 'False' || '',
+            value: 'False',
           },
           priorInsuranceCo: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlCurrentCarrier"]',
@@ -742,7 +735,11 @@ module.exports = {
           },
           priorBICoverage: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlBICoverage"]',
+<<<<<<< HEAD
             value: bodyData.priorBICoverage || staticDataObj.priorBICoverage,
+=======
+            value: '25/50',
+>>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           },
           priorExpirationDate: {
             element: 'input[name="ctl00$MainContent$PriorPolicy$txtExpDateOld"]',
@@ -754,11 +751,11 @@ module.exports = {
           },
           prohibitedRisk: {
             element: 'select[name="ctl00$MainContent$ProhibitedRisk6$ddlProhibitedRisk"]',
-            value: 'False' || '',
+            value: 'False',
           },
           anydriversTNC: {
             element: 'select[name="ctl00$MainContent$ctl07$ddlAnswer"]',
-            value: 'False' || '',
+            value: 'False',
           },
         };
 
@@ -790,19 +787,19 @@ module.exports = {
             };
             clientInputSelect[`driverRelationship${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlRelationship`,
-              value: 'Other' || '',
+              value: 'Other',
             };
             clientInputSelect[`driverStatus${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlDriverStatus']`,
-              value: 'Rated Driver' || '',
+              value: 'Rated Driver',
             };
             clientInputSelect[`yearsOfExperience${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_txtYrsExperience`,
-              value: bodyData.drivers[j].yearsOfExperience || staticDataObj.drivers[0].yearsOfExperience,
+              value: bodyData.drivers[j].yearsOfExperience,
             };
             clientInputSelect[`driverLicenseStatus${i}`] = {
               element: `#ctl00_MainContent_Driver${i}_ddlDLStatus`,
-              value: 'Valid' || '',
+              value: 'Valid',
             };
             clientInputSelect[`driversLicenseNumber${i}`] = {
               element: `input[name='ctl00$MainContent$Driver${i}$txtDLNumber']`,
@@ -810,7 +807,7 @@ module.exports = {
             };
             clientInputSelect[`smartDrive${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlSmartDrive']`,
-              value: 'False' || '',
+              value: 'False',
             };
             clientInputSelect[`driversLicenseStateCd${i}`] = {
               element: `select[name='ctl00$MainContent$Driver${i}$ddlLicenseState']`,
@@ -829,7 +826,7 @@ module.exports = {
             };
             clientInputSelect[`vehicleType${j}`] = {
               element: `#ctl00_MainContent_AutoControl${i}_ddlType`,
-              value: bodyData.vehicles[j].vehicleType || staticDataObj.vehicles[0].vehicleType,
+              value: staticDataObj.vehicles[0].vehicleType,
             };
             clientInputSelect[`vehicleModelYear${j}`] = {
               element: `input[name='ctl00$MainContent$AutoControl${i}$txtModelYear']`,
@@ -853,7 +850,7 @@ module.exports = {
             };
             clientInputSelect[`antiTheft${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlAntiTheft']`,
-              value: 'Recovery Device',
+              value: bodyData.vehicles[j].antiTheft,
             };
             clientInputSelect[`garagingState${j}`] = {
               element: `select[name='ctl00$MainContent$AutoControl${i}$ddlState']`,
