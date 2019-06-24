@@ -40,7 +40,6 @@ module.exports = {
       }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
-<<<<<<< HEAD
 
       const staticDataObj = {
         newQuoteState: 'AL',
@@ -103,8 +102,6 @@ module.exports = {
         ],
       };
 
-=======
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
       const populatedData = await populateKeyValueData(bodyData);
 
       await loginStep();
@@ -252,11 +249,8 @@ module.exports = {
           await page.evaluate((firstName) => { document.querySelector(firstName.element).value = firstName.value; }, populatedData.firstName);
           await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
           await page.evaluate((phone1) => { document.querySelector(phone1.element).value = phone1.value; }, populatedData.phone1);
-<<<<<<< HEAD
           await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
           await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
-=======
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           await page.select(populatedData.phoneType.element, populatedData.phoneType.value);
           await page.select(populatedData.emailOption.element, populatedData.emailOption.value);
           await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
@@ -348,13 +342,8 @@ module.exports = {
           }
           stepResult.drivers = true;
         } catch (err) {
-<<<<<<< HEAD
-          console.log(err);
           console.log(err);
           console.log('Error at National AL Driver Step.');
-=======
-          console.log('Error at National AL Driver Step.', err);
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
@@ -363,7 +352,6 @@ module.exports = {
             stepResult,
             quoteId,
           };
-<<<<<<< HEAD
           let retried = false;
           if (!retried) {
             retried = true;
@@ -410,10 +398,6 @@ module.exports = {
             browser.close();
             return next();
           }
-=======
-          //browser.close();
-          //return next();
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
         }
       }
 
@@ -682,7 +666,6 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
             value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
           },
-<<<<<<< HEAD
           phone2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
             value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
@@ -691,8 +674,6 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
             value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
           },
-=======
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
             value: '2',
@@ -735,11 +716,7 @@ module.exports = {
           },
           priorBICoverage: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlBICoverage"]',
-<<<<<<< HEAD
             value: bodyData.priorBICoverage || staticDataObj.priorBICoverage,
-=======
-            value: '25/50',
->>>>>>> d8287f6261fe6d226cb84227db9f2c2c3c9e3f71
           },
           priorExpirationDate: {
             element: 'input[name="ctl00$MainContent$PriorPolicy$txtExpDateOld"]',
