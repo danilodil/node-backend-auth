@@ -64,6 +64,7 @@ module.exports = {
         residentStatus: 'HCO',
         priorInsuranceCo: '0',
         priorExpirationDate: '07/30/2019',
+        priorBICoverage: '25/50',
         // security1: '122',
         // security2: '22',
         // security3: '2222',
@@ -130,24 +131,32 @@ module.exports = {
         return next();
       } else if (params.stepName === 'drivers' && raterStore) {
         await driversStep();
-        req.session.data = {
-          title: 'Successfully finished National AL Drivers Step',
-          status: true,
-          quoteId: raterStore.quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        if (params.sendSummary && params.sendSummary === 'true') {
+          await underWritingStep();
+        } else {
+          req.session.data = {
+            title: 'Successfully finished National AL Drivers Step',
+            status: true,
+            quoteId: raterStore.quoteId,
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
       } else if (params.stepName === 'vehicles' && raterStore) {
         await vehiclesStep();
-        req.session.data = {
-          title: 'Successfully finished National AL vehicle Step',
-          status: true,
-          quoteId: raterStore.quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        if (params.sendSummary && params.sendSummary === 'true') {
+          await underWritingStep();
+        } else {
+          req.session.data = {
+            title: 'Successfully finished National AL vehicle Step',
+            status: true,
+            quoteId: raterStore.quoteId,
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
       } else if (params.stepName === 'summary' && raterStore) {
         await underWritingStep();
       }
@@ -268,8 +277,8 @@ module.exports = {
           await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
           await page.select(populatedData.suffixName.element, populatedData.suffixName.value);
           await page.evaluate((phone1) => { document.querySelector(phone1.element).value = phone1.value; }, populatedData.phone1);
-          //await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
-          //await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
+          await page.evaluate((phone2) => { document.querySelector(phone2.element).value = phone2.value; }, populatedData.phone2);
+          await page.evaluate((phone3) => { document.querySelector(phone3.element).value = phone3.value; }, populatedData.phone3);
           await page.select(populatedData.phoneType.element, populatedData.phoneType.value);
           await page.select(populatedData.emailOption.element, populatedData.emailOption.value);
           await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
@@ -288,6 +297,7 @@ module.exports = {
           quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
           stepResult.namedInsured = true;
         } catch (err) {
+          console.log(err);
           console.log('Error at National AL Named Insured Step:');
           stepResult.namedInsured = false;
           req.session.data = {
@@ -325,52 +335,55 @@ module.exports = {
           }
           await page.waitFor(4000);
           await page.waitForSelector('#ctl00_MainContent_Driver1_txtFirstName');
-          await clearInputText('#ctl00_MainContent_Driver1_txtFirstName');
-          await clearInputText('#ctl00_MainContent_Driver1_txtLastName');
-          await clearInputText('#ctl00_MainContent_Driver1_txtDateOfBirth');
+          // await clearInputText('#ctl00_MainContent_Driver1_txtFirstName');
+          // await clearInputText('#ctl00_MainContent_Driver1_txtLastName');
+          // await clearInputText('#ctl00_MainContent_Driver1_txtDateOfBirth');
           await page.select('#ctl00_MainContent_Driver1_ddlSex', '-1');
           await page.waitFor(600);
           await page.select('#ctl00_MainContent_Driver1_ddlMaritalStatus', '-1');
 
           for (let j in bodyData.drivers) {
-            j = parseInt(j) + 1;
+            let k = parseInt(j) + 1;
             await page.waitFor(600);
-            await page.waitForSelector(populatedData[`driverFirstName${j}`].element);
+            await page.waitForSelector(populatedData[`driverFirstName${k}`].element);
             await page.evaluate((firstName) => {
               document.querySelector(firstName.element).value = firstName.value;
-            }, populatedData[`driverFirstName${j}`]);
+            }, populatedData[`driverFirstName${k}`]);
             await page.evaluate((lastName) => {
               document.querySelector(lastName.element).value = lastName.value;
-            }, populatedData[`driverLastName${j}`]);
+            }, populatedData[`driverLastName${k}`]);
             await page.evaluate((dateOfBirth) => {
               document.querySelector(dateOfBirth.element).value = dateOfBirth.value;
-            }, populatedData[`driverDateOfBirth${j}`]);
-            await page.select(populatedData[`driverGender${j}`].element, populatedData[`driverGender${j}`].value.charAt(0));
-            await page.select(populatedData[`driverMaritalStatus${j}`].element, populatedData[`driverMaritalStatus${j}`].value.charAt(0));
+            }, populatedData[`driverDateOfBirth${k}`]);
+            await page.select(populatedData[`driverGender${k}`].element, populatedData[`driverGender${k}`].value.charAt(0));
+            await page.select(populatedData[`driverMaritalStatus${k}`].element, populatedData[`driverMaritalStatus${k}`].value.charAt(0));
             if (j !== 0) {
-              await page.select(populatedData[`driverRelationship${j}`].element, populatedData[`driverRelationship${j}`].value);
+              await page.select(populatedData[`driverRelationship${k}`].element, populatedData[`driverRelationship${k}`].value);
             }
-            await page.select(populatedData[`driverStatus${j}`].element, populatedData[`driverStatus${j}`].value);
+            await page.select(populatedData[`driverStatus${k}`].element, populatedData[`driverStatus${k}`].value);
 
             await page.evaluate((yearsOfExperience) => {
               document.querySelector(yearsOfExperience.element).value = yearsOfExperience.value;
-            }, populatedData[`yearsOfExperience${j}`]);
+            }, populatedData[`yearsOfExperience${k}`]);
             await page.evaluate((driversLicenseNumber) => {
               document.querySelector(driversLicenseNumber.element).value = driversLicenseNumber.value;
-            }, populatedData[`driversLicenseNumber${j}`]);
-            await page.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
-            await page.select(populatedData[`smartDrive${j}`].element, populatedData[`smartDrive${j}`].value);
-            await page.select(populatedData[`driversLicenseStateCd${j}`].element, populatedData[`driversLicenseStateCd${j}`].value);
+            }, populatedData[`driversLicenseNumber${k}`]);
+            await page.select(populatedData[`driverLicenseStatus${k}`].element, populatedData[`driverLicenseStatus${k}`].value);
+            await page.select(populatedData[`smartDrive${k}`].element, populatedData[`smartDrive${k}`].value);
+            await page.select(populatedData[`driversLicenseStateCd${k}`].element, populatedData[`driversLicenseStateCd${k}`].value);
           }
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           try {
             await page.waitFor(3000);
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           } catch (e) {
+            console.log(e);
             console.log('National AL Move to vehicle');
           }
           stepResult.drivers = true;
         } catch (err) {
+          console.log(err);
+          console.log(err);
           console.log('Error at National AL Driver Step.');
           stepResult.drivers = false;
           req.session.data = {
@@ -383,11 +396,42 @@ module.exports = {
           let retried = false;
           if (!retried) {
             retried = true;
+            for (let j in bodyData.drivers) {
+              let k = parseInt(j) + 1;
+              await page.waitFor(600);
+              await page.waitForSelector(populatedData[`driverFirstName${k}`].element);
+              await page.evaluate((firstName) => {
+                document.querySelector(firstName.element).value = firstName.value;
+              }, populatedData[`driverFirstName${k}`]);
+              await page.evaluate((lastName) => {
+                document.querySelector(lastName.element).value = lastName.value;
+              }, populatedData[`driverLastName${k}`]);
+              await page.evaluate((dateOfBirth) => {
+                document.querySelector(dateOfBirth.element).value = dateOfBirth.value;
+              }, populatedData[`driverDateOfBirth${k}`]);
+              await page.select(populatedData[`driverGender${k}`].element, populatedData[`driverGender${k}`].value.charAt(0));
+              await page.select(populatedData[`driverMaritalStatus${k}`].element, populatedData[`driverMaritalStatus${k}`].value.charAt(0));
+              if (j !== 0) {
+                await page.select(populatedData[`driverRelationship${k}`].element, populatedData[`driverRelationship${k}`].value);
+              }
+              await page.select(populatedData[`driverStatus${k}`].element, populatedData[`driverStatus${k}`].value);
+  
+              await page.evaluate((yearsOfExperience) => {
+                document.querySelector(yearsOfExperience.element).value = yearsOfExperience.value;
+              }, populatedData[`yearsOfExperience${k}`]);
+              await page.evaluate((driversLicenseNumber) => {
+                document.querySelector(driversLicenseNumber.element).value = driversLicenseNumber.value;
+              }, populatedData[`driversLicenseNumber${k}`]);
+              await page.select(populatedData[`driverLicenseStatus${k}`].element, populatedData[`driverLicenseStatus${k}`].value);
+              await page.select(populatedData[`smartDrive${k}`].element, populatedData[`smartDrive${k}`].value);
+              await page.select(populatedData[`driversLicenseStateCd${k}`].element, populatedData[`driversLicenseStateCd${k}`].value);
+            }
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
             try {
               await page.waitFor(3000);
               await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
             } catch (e) {
+              console.log(e);
               console.log('National AL Move to vehicle');
             }
             stepResult.drivers = true;
@@ -446,6 +490,7 @@ module.exports = {
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
         } catch (err) {
+          console.log(err);
           console.log('Error at National AL Vehicles Steps.', err);
           stepResult.vehicles = false;
           req.session.data = {
@@ -476,22 +521,24 @@ module.exports = {
           await page.waitForSelector(populatedData.priorInsuranceCo.element);
           await page.select(populatedData.priorInsuranceCo.element, populatedData.priorInsuranceCo.value);
           await page.waitFor(2000);
-          // await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
-          // await page.waitFor(1200);
-          // await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
-          // await page.waitFor(600);
+          await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
+          await page.waitFor(1200);
+          await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
+          await page.waitFor(600);
+          console.log('ELEMENT ###: ', populatedData.residentStatus.element, populatedData.residentStatus.value);
           await page.select(populatedData.residentStatus.element, populatedData.residentStatus.value);
           await page.waitFor(600);
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
           await page.waitFor(1000);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
-          await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
+          await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'True');
           await page.select('#ctl00_MainContent_ctl07_ddlAnswer', 'False');
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await coveragesStep();
           stepResult.underWriting = true;
         } catch (err) {
+          console.log(err);
           console.log('Error at National AL Underwriting :', err.stack);
           stepResult.underWriting = false;
           req.session.data = {
@@ -523,6 +570,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await summaryStep();
         } catch (err) {
+          console.log(err);
           console.log('Error at National AL coverages Step.', err);
           req.session.data = {
             title: 'Failed to retrieved National AL rate.',
@@ -541,7 +589,7 @@ module.exports = {
         try {
           await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
-          const tBody = await page.$$eval('table #ctl00_MainContent_ctl00_tblRow td', tds => tds.map(td => td.innerText));
+          const tBody = await page.$$eval('table #ctl00_MainContent_ctl03_tblRow td', tds => tds.map(td => td.innerText));
           quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
           const downPayments = {};
           tHead.forEach((key, i) => {
@@ -567,6 +615,7 @@ module.exports = {
           browser.close();
           return next();
         } catch (err) {
+          console.log(err);
           console.log('Error at National AL summaryStep:', err);
           stepResult.summary = false;
           req.session.data = {
@@ -631,14 +680,14 @@ module.exports = {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
             value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
           },
-          // phone2: {
-          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
-          //   value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
-          // },
-          // phone3: {
-          //   element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
-          //   value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
-          // },
+          phone2: {
+            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
+            value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
+          },
+          phone3: {
+            element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
+            value: bodyData.phone ? bodyData.phone.slice(6) : staticDataObj.phone3,
+          },
           phoneType: {
             element: 'select[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$ddlPhoneType\']',
             value: '3' || '',
@@ -693,7 +742,7 @@ module.exports = {
           },
           priorBICoverage: {
             element: 'select[name="ctl00$MainContent$PriorPolicy$ddlBICoverage"]',
-            value: '25/50' || '',
+            value: bodyData.priorBICoverage || staticDataObj.priorBICoverage,
           },
           priorExpirationDate: {
             element: 'input[name="ctl00$MainContent$PriorPolicy$txtExpDateOld"]',
@@ -756,7 +805,7 @@ module.exports = {
               value: 'Valid' || '',
             };
             clientInputSelect[`driversLicenseNumber${i}`] = {
-              element: `ctl00$MainContent$Driver${i}$txtDLNumber`,
+              element: `input[name='ctl00$MainContent$Driver${i}$txtDLNumber']`,
               value: bodyData.drivers[j].driversLicenseNumber || '',
             };
             clientInputSelect[`smartDrive${i}`] = {

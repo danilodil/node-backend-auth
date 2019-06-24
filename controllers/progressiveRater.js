@@ -1846,7 +1846,7 @@ module.exports = {
               await pageQuote.waitFor(1200);
               const vehiclesMake = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleMake${j}`].element}>option`);
               let vehicleMake = await pageQuote.evaluate(getValToSelect, vehiclesMake, populatedData[`vehicleMake${j}`].value);
-              if (!vehicleMake) {
+              if (!vehicleMake && vehiclesMake && vehiclesMake[0] && vehiclesMake[0].value) {
                 vehicleMake = vehiclesMake[0].value;
               }
               await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicleMake);
@@ -1854,7 +1854,7 @@ module.exports = {
               await pageQuote.waitFor(1200);
               const vehMdlNames = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleModel${j}`].element}>option`);
               let vehMdlName = await pageQuote.evaluate(getValToSelect, vehMdlNames, populatedData[`vehicleModel${j}`].value);
-              if (!vehMdlName) {
+              if (!vehMdlName && vehMdlNames && vehMdlNames[0] && vehMdlNames[0].value) {
                 vehMdlName = vehMdlNames[0].value;
               }
               await pageQuote.select(populatedData[`vehicleModel${j}`].element, vehMdlName);
@@ -1862,7 +1862,7 @@ module.exports = {
               await pageQuote.waitFor(1200);
               const vehStyles = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleBody${j}`].element}>option`);
               let vehStyle = await pageQuote.evaluate(getValToSelect, vehStyles, populatedData[`vehicleBody${j}`].value);
-              if (!vehStyle) {
+              if (!vehStyle && vehStyles && vehStyles[0] && vehStyles[0].value) {
                 vehStyle = vehStyles[0].value;
               }
               await pageQuote.select(populatedData[`vehicleBody${j}`].element, vehStyle);
