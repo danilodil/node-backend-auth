@@ -35,9 +35,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local' || req.query.isSimple) {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local' || req.query.isSimple) {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
@@ -105,7 +105,6 @@ module.exports = {
       const populatedData = await populateKeyValueData(bodyData);
 
       await loginStep();
-
       if (raterStore && raterStore.quoteId) {
         await existingQuoteStep();
       } else {
@@ -414,7 +413,7 @@ module.exports = {
                 await page.select(populatedData[`driverRelationship${k}`].element, populatedData[`driverRelationship${k}`].value);
               }
               await page.select(populatedData[`driverStatus${k}`].element, populatedData[`driverStatus${k}`].value);
-  
+
               await page.evaluate((yearsOfExperience) => {
                 document.querySelector(yearsOfExperience.element).value = yearsOfExperience.value;
               }, populatedData[`yearsOfExperience${k}`]);
@@ -558,7 +557,7 @@ module.exports = {
             await coveragesStep();
           } else {
             browser.close();
-           return next();
+            return next();
           }
         }
       }
@@ -567,9 +566,11 @@ module.exports = {
         console.log('National AL Coverages Step.');
         try {
           await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
-          await page.waitFor(600);
-          // await page.select('#ctl00_MainContent_ddlPayPlan', '5650');
+          await page.waitFor(1600);
+          await page.select('#ctl00_MainContent_ddlPayPlan', '5426'); // 20% down option
+          await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
+          await page.waitFor(2000);
           await summaryStep();
         } catch (err) {
           console.log(err);

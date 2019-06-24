@@ -47,7 +47,7 @@ module.exports = {
         downPayment: req.session.data.downPayment || null,
         error: req.session.data.error || null,
         quoteId: req.session.data.quoteId || null,
-        stepResult : req.session.data.stepResult || null,
+        stepResult: req.session.data.stepResult || null,
       };
       console.log('Rater saved:', newRater);
       await Rater.create(newRater);
@@ -59,20 +59,15 @@ module.exports = {
       quoteId: req.session.data.quoteId || null,
     };
     if (raterData && req.session.data.totalPremium && req.session.data.status) {
-      const currentPremium = parseFloat(req.session.data.totalPremium);
-      const previousPremium = parseFloat(raterData.totalPremium);
-
-      if (currentPremium < previousPremium || raterData.totalPremium === null) {
-        updateObj.totalPremium = req.session.data.totalPremium;
-        updateObj.months = req.session.data.months;
-        updateObj.downPayment = req.session.data.downPayment;
-        updateObj.succeeded = true;
-        updateObj.error = null;
-      }
+      updateObj.totalPremium = req.session.data.totalPremium;
+      updateObj.months = req.session.data.months;
+      updateObj.downPayment = req.session.data.downPayment;
+      updateObj.succeeded = true;
+      updateObj.error = null;
       console.log('Rater updated:', updateObj);
       await raterData.update(updateObj);
     }
-   
+
     return next();
   },
   getBestRating: async (req, res, next) => {
