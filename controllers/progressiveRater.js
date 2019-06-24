@@ -1348,9 +1348,9 @@ module.exports = {
           },
           ownOrRentPrimaryResidence: {
             element: 'select[name="hm_own_ind"]',
-            value: (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own home/condo' ? 'O'
-              : bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase() === 'own mobile home' ? 'M'
-                : 'M') || staticDetailsObj.ownOrRentPrimaryResidence,
+            value: (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase().includes('own') && !bodyData.ownOrRentPrimaryResidence.toLowerCase().includes('mobile') ? 'O'
+              : (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase().inludes('own') && bodyData.ownOrRentPrimaryResidence.toLowerCase().inludes('mobile')) ? 'M'
+                : 'R') || staticDetailsObj.ownOrRentPrimaryResidence,
           },
           rentersLimits: {
             element: 'select[name="pol_renters_prir_bi_lim_code"]',
@@ -1641,6 +1641,7 @@ module.exports = {
               return next();              
             }
           } else {
+            await saveStep();
             req.session.data = {
               title: 'Successfully finished Progressive AL Vehicle Step',
               status: true,
@@ -1655,6 +1656,7 @@ module.exports = {
           const [redirectToDrivers] = await pageQuote.$x('//a[contains(text(), "Drivers")]');
           if (redirectToDrivers) redirectToDrivers.click();
           await driverStep();
+          await saveStep();
           req.session.data = {
             title: 'Successfully finished Progressive AL Driver Step',
             status: true,
@@ -1927,7 +1929,9 @@ module.exports = {
               console.log('vehicleAutomaticBraking field not found');
             }
           }
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          if (!params.stepName) {
+            await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          }
           stepResult.vehicles = true;
         } catch (err) {
           console.log('Error at Progressive AL Vehicle Step:', err);
@@ -2103,6 +2107,7 @@ module.exports = {
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
           stepResult.underWriting = false;
+          await saveStep()
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
@@ -2118,6 +2123,21 @@ module.exports = {
         try {
           console.log('Progressive AL Error Step.');
           await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 });
+          const tdText = await page.$$eval('#ctl00_ContentPlaceHolder1__errorTable tbody tr td div p span', tds => tds.map(td => td.innerText));
+          console.log('TEXT ###: ', tdText);
+          for (let i=0;i<tdText.length;i++) {
+            switch(true) {
+              case tdText[i].includes('lapse'): 
+                await pageQuote.select(populatedData.priorInsuredCdInd.element, 'A');
+              case tdText[i].includes('Primary Residence'):
+                await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, 'O');
+              case tdText[i].includes('another Progressive policy'):
+                  await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, 'N');
+              case tdText[i].includes('Snapshot'):
+                  await pageQuote.select('#pol_ubi_exprnc', 'N');
+            }
+          }
+          await saveStep()
           req.session.data = {
             title: 'Failed to retrieved Progressive AL rate.',
             status: false,
