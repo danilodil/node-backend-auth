@@ -68,7 +68,6 @@ module.exports = {
           }
         }
       }
-
       if (!params.stepName) {
         await namedInsuredStep();
         await vehicleStep();
@@ -227,12 +226,7 @@ module.exports = {
       async function existingQuote() {
         console.log('Progressive AL Existing Quote Step');
         try {
-          console.log('HIT ###:');
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
-          const tHeads = await page.$$eval('table thead tr th', ths => ths.map(th => th.innerText));
-          const tBody = await page.$$eval('table tbody tr p#insuredNameCol a#insuredNameLink', tds => tds.map(td => td.innerText));
-          console.log('T HEADS ###: ', tHeads);
-          console.log('T BODY ###: ', tBody);
           await page.waitForSelector('#LastName');
           await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
           await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
@@ -1745,21 +1739,34 @@ module.exports = {
       }
 
       async function existingQuote() {
-        console.log('Progressive AL Existing Quote Step.');
+        console.log('Progressive AL Existing Quote Step');
         try {
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
-          await page.waitForSelector('#LastName');
-          await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
-          await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
-          await page.evaluate((policyEffectiveDate) => { (document.getElementById('DateStart')).value = policyEffectiveDate.value; }, populatedData.policyEffectiveDate);
-          await page.evaluate((priorPolicyTerminationDate) => { (document.getElementById('DateEnd')).value = priorPolicyTerminationDate.value; }, populatedData.priorPolicyTerminationDate);
-          await page.type(populatedData.agentCode.element, populatedData.agentCode.value);
-          await page.type('select[id="State"]', 'AL');
-          await page.select(populatedData.quoteStatus.element, populatedData.quoteStatus.value);
-          await page.evaluate(() => document.querySelector('#products_AU').click());
-          await page.waitFor(200);
-          await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
-          await page.evaluate(() => document.querySelector('.insuredNameLink').click());
+          // const tHeads = await page.$$eval('table thead tr th', ths => ths.map(th => th.innerText));
+          const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
+          const tdElement = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td));
+          const name = `${populatedData.lastName.value}, ${populatedData.firstName.value}`;
+          const nameSwitched = `${populatedData.firstName.value}, ${populatedData.lastName.value}`;
+          for (let i=0;i<tdText.length;i++) {
+            if (tdText[i] === name || tdText[i] === nameSwitched) {
+              await page.evaluate((index) => {
+                const els = document.getElementsByClassName('insuredNameLink');
+                els[index].click();
+              }, i);
+            }
+          }
+          // await page.waitForSelector('#LastName');
+          // await page.evaluate((lastName) => { (document.getElementById('LastName')).value = lastName.value; }, populatedData.lastName);
+          // await page.evaluate((firstName) => { (document.getElementById('FirstName')).value = firstName.value; }, populatedData.firstName);
+          // await page.evaluate((policyEffectiveDate) => { (document.getElementById('DateStart')).value = policyEffectiveDate.value; }, populatedData.policyEffectiveDate);
+          // await page.evaluate((priorPolicyTerminationDate) => { (document.getElementById('DateEnd')).value = priorPolicyTerminationDate.value; }, populatedData.priorPolicyTerminationDate);
+          // await page.type(populatedData.agentCode.element, populatedData.agentCode.value);
+          // await page.type('select[id="State"]', 'AL');
+          // await page.select(populatedData.quoteStatus.element, populatedData.quoteStatus.value);
+          // await page.evaluate(() => document.querySelector('#products_AU').click());
+          // await page.waitFor(200);
+          // await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
+          // await page.evaluate(() => document.querySelector('.insuredNameLink').click());
           stepResult.existingQuote = true;
         } catch (error) {
           console.log('Error at Progressive AL Existing Quote Step:', error);
