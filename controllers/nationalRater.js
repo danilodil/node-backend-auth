@@ -482,6 +482,8 @@ module.exports = {
             }, populatedData[`garagingzipCode${j}`]);
             await page.type(populatedData[`ownOrLeaseVehicle${j}`].elementId, populatedData[`ownOrLeaseVehicle${j}`].value);
           }
+          //ctl00_MainContent_AutoControl1_ddlNotFoundVehDescription, Midsize Car
+          //ctl00_MainContent_AutoControl1_pnlOriginalCostsNew, 10000
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           stepResult.vehicles = true;
           await page.waitFor(1000);
@@ -530,7 +532,7 @@ module.exports = {
           await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
           await page.waitFor(1000);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
-          await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'True');
+          await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
           await page.select('#ctl00_MainContent_ctl07_ddlAnswer', 'False');
           await page.waitFor(2000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
@@ -566,6 +568,7 @@ module.exports = {
         try {
           await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(600);
+          // await page.select('#ctl00_MainContent_ddlPayPlan', '5650');
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           await summaryStep();
         } catch (err) {
