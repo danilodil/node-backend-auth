@@ -1601,6 +1601,7 @@ module.exports = {
       } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
+          await saveStep();
           req.session.data = {
             title: 'Successfully finished Progressive AL Named Insured Step',
             status: true,
@@ -1614,13 +1615,40 @@ module.exports = {
           const [redirectToVehicles] = await pageQuote.$x('//a[contains(text(), "Vehicles")]');
           if (redirectToVehicles) redirectToVehicles.click();
           await vehicleStep();
-          req.session.data = {
-            title: 'Successfully finished Progressive AL Vehicle Step',
-            status: true,
-            stepResult,
-          };
-          browser.close();
-          return next();
+          if (params.sendSummary && params.sendSummary === 'true') {
+            try {
+              await pageQuote.waitForXPath('//a[contains(text(), "Underwriting")]', 5000);
+              const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
+              if (redirectToUnderWriting) redirectToUnderWriting.click();
+              await underwritingStep();
+              await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
+              const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
+              if (redirectToViolations) redirectToViolations.click();
+              await violationStep();
+              await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
+              const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
+              if (redirectToCoverage) redirectToCoverage.click();
+              await errorStep();
+              await coveragesStep();
+
+            } catch (error) {
+              req.session.data = {
+                title: 'Failed Progressive AL Coverage Step',
+                status: false,
+                stepResult,
+              };
+              browser.close();
+              return next();              
+            }
+          } else {
+            req.session.data = {
+              title: 'Successfully finished Progressive AL Vehicle Step',
+              status: true,
+              stepResult,
+            };
+            browser.close();
+            return next();
+          }
         }
         if (params.stepName === 'drivers' && raterStore) {
           await pageQuote.waitForXPath('//a[contains(text(), "Drivers")]', 5000);
@@ -2223,6 +2251,16 @@ module.exports = {
             error: 'There is some error validations at summaryStep',
             stepResult,
           };
+          browser.close();
+          return next();
+        }
+      }
+
+      async function saveStep() {
+        try {
+          console.log('Progressive AL Save Step');
+          await pageQuote.evaluate(() => document.querySelector('#ctl00_HeaderLinksControl_SaveLink').click());
+        } catch(error) {
           browser.close();
           return next();
         }
