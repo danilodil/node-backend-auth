@@ -36,9 +36,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local' || req.query.isSimple) {
-        browserParams = { headless: false };
-      }
+      // if (ENVIRONMENT.ENV === 'local' || req.query.isSimple) {
+      //   browserParams = { headless: false };
+      // }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
@@ -450,7 +450,7 @@ module.exports = {
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
           for (let j in bodyData.vehicles) {
-            if (j < bodyData.vehicles.length - 1) {
+            if (j < bodyData.vehicles.length) {
               const vI = +j+1;
               const el = await page.$(`[id="ctl00_MainContent_AutoControl${vI}_lblUnitNum"]`);
               if (!el) {

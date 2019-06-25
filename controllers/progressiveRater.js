@@ -1197,9 +1197,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
-        browserParams = { headless: false };
-      }
+      // if (ENVIRONMENT.ENV === 'local') {
+      //   browserParams = { headless: false };
+      // }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
      
@@ -1644,16 +1644,6 @@ module.exports = {
               const [redirectToUnderWriting] = await pageQuote.$x('//a[contains(text(), "Underwriting")]');
               if (redirectToUnderWriting) redirectToUnderWriting.click();
               await underwritingStep();
-              await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
-              const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
-              if (redirectToViolations) redirectToViolations.click();
-              await violationStep();
-              await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
-              const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
-              if (redirectToCoverage) redirectToCoverage.click();
-              await errorStep();
-              await coveragesStep();
-
             } catch (error) {
               req.session.data = {
                 title: 'Failed Progressive AL Coverage Step',
@@ -1884,7 +1874,7 @@ module.exports = {
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
           for (let j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
-              const el = await page.$(`[id="VEH.${j}.add"]`);
+              const el = await pageQuote.$(`[id="VEH.${j}.delete"]`);
               if (!el) {
                 const addElement = await pageQuote.$('[id="VEH.0.add"]');
                 await addElement.click();
@@ -2097,7 +2087,7 @@ module.exports = {
             }
           }
 
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          // await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           stepResult.violations = true;
         } catch (err) {
           console.log('Error at Progressive AL Violation Step', err);
@@ -2167,8 +2157,17 @@ module.exports = {
           const haveAnotherProgressivePolicyOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.haveAnotherProgressivePolicy.element}>option`);
           const haveAnotherProgressivePolicy = await getBestString(populatedData.haveAnotherProgressivePolicy.value, haveAnotherProgressivePolicyOpts);
           await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, haveAnotherProgressivePolicy);
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          await pageQuote.waitForXPath('//a[contains(text(), "Violations")]', 5000);
+          const [redirectToViolations] = await pageQuote.$x('//a[contains(text(), "Violations")]');
+          if (redirectToViolations) redirectToViolations.click();
+          await violationStep();
+          await pageQuote.waitForXPath('//a[contains(text(), "Coverages")]', 5000);
+          const [redirectToCoverage] = await pageQuote.$x('//a[contains(text(), "Coverages")]');
+          if (redirectToCoverage) redirectToCoverage.click();
+          await coveragesStep();
           await errorStep();
+          // await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          // await errorStep();
           stepResult.underWriting = true;
         } catch (err) {
           console.log('Error at Progressive AL Underwriting Step:', err);
@@ -2221,6 +2220,7 @@ module.exports = {
         try {
           console.log('Progressive AL Coverages Step.');
           await pageQuote.waitFor(4000);
+          dismissDialog(pageQuote);
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
 
@@ -2272,6 +2272,7 @@ module.exports = {
           await recalcElement.click();
           await pageQuote.waitFor(8000);
           await pageQuote.click('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue');
+          await summaryStep();
           stepResult.coverage = true;
 
         } catch (error) {
@@ -2292,6 +2293,7 @@ module.exports = {
         try {
           console.log('Progressive AL Summary Step.');
           await pageQuote.waitFor(6000);
+          dismissDialog(pageQuote);
           const premiumDetails = await pageQuote.evaluate(() => {
             const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
             const ress = {};
@@ -2316,13 +2318,13 @@ module.exports = {
           });
 
           await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
-          await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
+          await saveStep();
           stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
-            months: premiumDetails.plan ? premiumDetails.plan : null,
+            months: premiumDetails.plan ? premiumDetails.plan.replace(/\D/g,'') : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
             stepResult,
           };

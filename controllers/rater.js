@@ -35,7 +35,7 @@ module.exports = {
 
     const raterData = await Rater.findOne(existRater);
     /* create new rater result */
-    const isSucceeded = req.session.data.status && req.session.data.totalPremium ? true : false;
+    const isSucceeded = (req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
     if (!raterData) {
       const newRater = {
         companyId,
