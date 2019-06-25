@@ -29,12 +29,15 @@ exports.ezLynx = {
   UPLOAD_PATH_DEV: 'https://uat.webcetera.com/EzLynxWebService/EzLynxFileUpload.asmx',
 };
 
-exports.rater = {
+exports.progressiveRater = {
   LOGIN_URL: 'https://www.foragentsonly.com/login/',
   NEW_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/newquote/',
+  SEARCH_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
+  LOGIN_REATTEMPT: 2,
 };
 
 exports.cseRater = {
+  LOGIN_REATTEMPT: 2,
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
@@ -43,7 +46,9 @@ exports.nationalGeneralAlRater = {
   NEW_QUOTE_URL: 'https://www.natgenagency.com/MainMenu.aspx',
   NAMED_INSURED_URL: 'https://www.natgenagency.com/Quote/QuoteNamedInsured.aspx',
   DRIVERS_URL: 'https://www.natgenagency.com/Quote/QuoteDriver.aspx',
+  VEHICLES_URL: 'https://www.natgenagency.com/Quote/QuoteAuto.aspx',
   VEHICLE_HISTORY_URL: 'https://www.natgenagency.com/Quote/QuoteAutoHistory.aspx',
+  UNDERWRITING_URL: 'https://www.natgenagency.com/Quote/QuoteUW.aspx',
   COVERAGES_URL: 'https://www.natgenagency.com/Quote/QuoteCoveragesV2.aspx',
   BILLPLANS_URL: 'https://www.natgenagency.com/Quote/QuoteBillPlans.aspx',
 };
