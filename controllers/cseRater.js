@@ -5,89 +5,176 @@ const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { cseRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
+const ENVIRONMENT = require('./../constants/environment');
 
 module.exports = {
   cseRating: async (req, res, next) => {
     try {
       console.log('Inside cseRating');
-
+      const params = req.body;
       const { username, password } = req.body.decoded_vendor;
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      // const browser = await puppeteer.launch({ headless:false });
+      const raterStore = req.session.raterStore;
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
+
+      let stepResult = {
+        login: false,
+        existingQuote: false,
+        newQuote: false,
+        underWriting: false,
+        vehicles: false,
+        policy: false,
+        drivers: false,
+        summary: false,
+      };
+      let quoteId = null;
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
+      let browserParams = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      };
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
+      const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
-      const staticDetailsObj = {
-        firstName: 'Test',
-        lastName: 'User',
-        birthDate: '12/16/1993',
-        email: 'test@mail.com',
-        phone: '3026075611',
-        addressStreetName: 'Market St',
-        addressStreetNumber: '969',
-        city: 'San Diego',
-        state: 'CA',
-        zipCode: '92101',
-        lengthAtAddress: '1 year or more',
-        priorInsurance: 'Yes',
-        priorInsuranceCarrier: 'USAA',
-        // must always agree to closure
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleModelYear: '2015',
-            vehicleManufacturer: 'FORD',
-            vehicleModel: 'F350',
-            body: 'EXT CAB (8CYL 4x2)',
-            zipCode: '19934',
-            lengthOfOwnership: 'At least 1 year but less than 3 years',
-            primaryUse: 'Commute',
-            vehicleAnnualDistance: '15000',
-            vehicleDaysDrivenPerWeek: '4 days',
-            vehicleCommuteMilesDrivenOneWay: '2000',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            birthDate: '12/16/1993',
-            applicantGenderCd: 'Male',
-            maritalStatus: 'Married',
-            yearsLicensed: '3 years or more',
-            driverLicensedDt: '12/20/2013',
-            driverLicenseNumber: '123456789',
-            employment: 'Student (full-time)',
-            education: 'College Degree',
-          },
-        ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
-        policyEffectiveDate: '01/01/2018',
-        priorPolicyTerminationDate: '03/15/2019',
-        yearsWithPriorInsurance: '5 years or more',
-        ownOrRentPrimaryResidence: 'Rent',
-        numberOfResidentsInHome: '3',
-        rentersLimits: 'Greater Than 300,000',
-        haveAnotherProgressivePolicy: 'No',
-      };
-      const bodyData = await utils.cleanObj(req.body.data);
-      bodyData.results = {};
+      const populatedData = await populateKeyValueData(bodyData);
 
-      // For get all select options texts and values
+      await loginStep();
+
+      if (raterStore && raterStore.quoteId) {
+        await existingQuote();
+      } else {
+        await newQuoteStep();
+      }
+
+      if (!params.stepName) {
+        await underWritingStep();
+        await vehicleStep();
+        await policyStep();
+        await driverStep();
+        await summaryStep();
+      } else if (params.stepName === 'underWriting') {
+        await underWritingStep();
+        await page.waitForSelector('#QuoteAppSummary_QuoteAppNumber');
+        quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
+        req.session.data = {
+          title: 'Successfully finished CSE CA UnderWriting Step',
+          status: true,
+          quoteId,
+          stepResult,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'vehicles' && raterStore) {
+        await page.waitForSelector('#Wizard_Vehicles');
+        await page.click('#Wizard_Vehicles');
+        await page.waitFor(200);
+        await vehicleStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Vehicle Step',
+          status: true,
+          quoteId: raterStore.quoteId,
+          stepResult,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'policy' && raterStore) {
+        await page.waitForSelector('#Wizard_AutoGeneral');
+        await page.click('#Wizard_AutoGeneral');
+        await page.waitFor(200);
+        await policyStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Policy Step',
+          status: true,
+          quoteId: raterStore.quoteId,
+          stepResult,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'drivers' && raterStore) {
+        await page.waitForSelector('#Wizard_Drivers');
+        await page.click('#Wizard_Drivers');
+        await page.waitFor(100);
+        await driverStep();
+        req.session.data = {
+          title: 'Successfully finished CSE CA Drivers Step',
+          status: true,
+          quoteId: raterStore.quoteId,
+          stepResult,
+        };
+        browser.close();
+        return next();
+      } else if (params.stepName === 'summary' && raterStore) {
+        await page.waitForSelector('#Wizard_LossHistory');
+        await page.click('#Wizard_LossHistory');
+        await page.waitFor(100);
+        await summaryStep();
+      }
       function getSelectVal(inputID) {
         optVals = [];
-
         document.querySelectorAll(inputID).forEach((opt) => {
           optVals.push({ name: opt.innerText, value: opt.value });
         });
-
         return optVals;
       }
 
       function populateKeyValueData(bodyData) {
+        const staticDetailsObj = {
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          email: 'test@gmail.com',
+          phone: '0000000000',
+          addressStreetName: 'Market St',
+          addressStreetNumber: '969',
+          city: 'San Diego',
+          state: 'CA',
+          zipCode: '92101',
+          lengthAtAddress: '1 year or more',
+          priorInsurance: 'Yes',
+          priorInsuranceCarrier: 'USAA',
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleModelYear: '2015',
+              vehicleManufacturer: 'FORD',
+              vehicleModel: 'F350',
+              body: 'EXT CAB (8CYL 4x2)',
+              zipCode: '19934',
+              vehicleAnnualDistance: '15000',
+              vehicleDaysDrivenPerWeek: '4 days',
+              vehicleCommuteMilesDrivenOneWay: '2000',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              birthDate: '12/16/1993',
+              applicantGenderCd: 'Male',
+              maritalStatus: 'Married',
+              yearsLicensed: '3 years or more',
+              driverLicensedDt: '12/20/2013',
+              driverLicenseNumber: '123456789',
+            },
+          ],
+          priorIncident: 'AAD - At Fault Accident',
+          priorIncidentDate: '12/16/2012',
+          policyEffectiveDate: '01/01/2018',
+          priorPolicyTerminationDate: '03/15/2019',
+          yearsWithPriorInsurance: '5 years or more',
+          ownOrRentPrimaryResidence: 'Rent',
+          numberOfResidentsInHome: '3',
+          rentersLimits: 'Greater Than 300,000',
+          haveAnotherProgressivePolicy: 'No',
+        };
+
         const clientInputSelect = {
-          // product selction
           productSelection: [
             {
               element: 'BasicPolicy.ControllingStateCd',
@@ -98,8 +185,6 @@ module.exports = {
               value: 'PL-PREF-AUTO',
             },
           ],
-
-          // Underwriting Status
           underwriting: [
             {
               title: 'Expiration Date',
@@ -117,20 +202,10 @@ module.exports = {
               value: bodyData.firstName || staticDetailsObj.firstName,
             },
             {
-              title: 'MI',
-              element: 'InsuredName.OtherGivenName',
-              value: bodyData.middleName || staticDetailsObj.middleName,
-            },
-            {
               title: 'Last Name',
               element: 'InsuredName.Surname',
               value: bodyData.lastName || staticDetailsObj.lastName,
             },
-            // {
-            //   title: 'Suffix',
-            //   element: 'InsuredName.SuffixCd',
-            //   value: bodyData.suffixName || staticDetailsObj.suffixName,
-            // },
             {
               title: 'Birth Date',
               element: 'InsuredPersonal.BirthDt',
@@ -182,28 +257,26 @@ module.exports = {
               value: bodyData.email || staticDetailsObj.email,
             },
           ],
-
-          // Policy Coverage
           policyCoverage: [
             {
               title: 'Bodily Injury',
               element: 'Line.BILimit',
-              value: bodyData.bodilyInjuryCoverage || '25000/50000',
+              value: bodyData.policyCoverage.bodilyInjuryCoverage || '25000/50000',
             },
             {
               title: 'Property Damage',
               element: 'Line.PDLimit',
-              value: bodyData.propertyDamageCoverage || '10000',
+              value: bodyData.policyCoverage.propertyDamageCoverage || '10000',
             },
             {
               title: 'Medical Payments',
               element: 'Line.MedPayLimit',
-              value: bodyData.medicalCoverage || '2000',
+              value: bodyData.policyCoverage.medicalCoverage || '2000',
             },
             {
               title: 'Un/Under-insured Motorist - Bodily Injury',
               element: 'Line.UMBILimit',
-              value: bodyData.underInsuredMotoristCoverage || '15000/30000',
+              value: bodyData.policyCoverage.underInsuredMotoristCoverage || '15000/30000',
             },
             {
               title: 'UM-PD / WCD Applies',
@@ -228,7 +301,6 @@ module.exports = {
           ],
         };
 
-        // vehicle
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           clientInputSelect.vehicleMilageType = {
             title: 'Mileage Type',
@@ -246,6 +318,11 @@ module.exports = {
                 title: 'Registered State',
                 element: 'Vehicle.RegistrationStateProvCd',
                 value: 'CA',
+              },
+              {
+                title: 'Vehicle VIN',
+                element: 'Vehicle.VehIdentificationNumber',
+                value: element.vehicleVin || staticDetailsObj.vehicles[0].vehicleVin,
               },
               {
                 title: 'Model Year',
@@ -397,7 +474,6 @@ module.exports = {
           });
         }
 
-        // Driver Detail Edit
         if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
           bodyData.drivers.forEach((element, j) => {
             clientInputSelect[`editDriverDetails${j}`] = {
@@ -471,22 +547,58 @@ module.exports = {
         return clientInputSelect;
       }
 
-      // For Login
+      let loginReAttemptCounter = cseRater.LOGIN_REATTEMPT;
       async function loginStep() {
-        console.log('CSE CA Login Step.');
-        await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' }); // wait until page load
-        await page.waitForSelector('#frmLogin > div > div.signInTile');
-        await page.type('#j_username', username);
-        await page.type('#j_password', password);
-
-        await page.click('#SignIn');
-        await page.waitForNavigation({ timeout: 0 });
-        const populatedData = await populateKeyValueData(bodyData);
-
-        await newQuoteStep(populatedData);
+        try {
+          console.log('CSE CA Login Step.');
+          await page.goto(cseRater.LOGIN_URL, { waitUntil: 'load' });
+          await page.waitForSelector('#frmLogin > div > div.signInTile');
+          await page.type('#j_username', username);
+          await page.type('#j_password', password);
+          await page.click('#SignIn');
+          await page.waitForNavigation({ timeout: 0 });
+          stepResult.login = true;
+        } catch (error) {
+          console.log('Error at CSE CA Login Step:', error);
+          if (!loginReAttemptCounter) {
+            stepResult.login = false;
+            req.session.data = {
+              title: 'Failed to retrieved CSE CA rate.',
+              status: false,
+              error: 'There is some error validations at loginStep',
+              stepResult,
+            };
+            browser.close();
+            return next();
+          }
+          console.log('Reattempt CSE CA login');
+          loginReAttemptCounter--;
+          loginStep();
+        }
       }
 
-      async function newQuoteStep(populatedData) {
+      async function existingQuote() {
+        console.log('CSE Rater Existing Quote Id Step');
+        try {
+          await page.waitForSelector('#ToolbarSearchText');
+          await page.$eval('input[name=ToolbarSearchText]', (el, value) => el.value = value, raterStore.quoteId);
+          await page.click('#ToolbarSearch');
+          stepResult.existingQuote = true;
+        } catch (error) {
+          console.log('Error at CSE Existing Quote Step. :', error);
+          stepResult.existingQuote = false;
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            error: 'There is some error validations at Existing Quote Step',
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
+      }
+
+      async function newQuoteStep() {
         console.log('CSE CA New Quote Step.');
 
         try {
@@ -500,7 +612,6 @@ module.exports = {
           await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
           await page.click('#NewQuote');
 
-          // product selction
           const { productSelection } = populatedData;
           await page.waitForSelector('#Main > div');
           await page.evaluate((productSelectionData) => {
@@ -513,10 +624,25 @@ module.exports = {
           await page.waitFor(1000);
           await page.waitForSelector('#ProductSelectionList');
           await page.click('#ProductSelectionList > table > tbody > tr > td > a');
+          stepResult.newQuote = true;
+        } catch (e) {
+          console.log('Error at CSE CA New Quote Step. :', e);
+          stepResult.newQuote = false;
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            error: 'There is some error validations at newQuoteStep',
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
+      }
 
-          // Underwriting Status
+      async function underWritingStep() {
+        console.log('CSE CA underWriting Step.');
+        try {
           const { underwriting } = populatedData;
-
           await page.waitFor(1000);
           page.on('dialog', async (dialog) => {
             console.log(dialog.message());
@@ -524,11 +650,8 @@ module.exports = {
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          // page.on('console', msg => console.log('PAGE LOG:', msg._text));
-          page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
-              // console.log(JSON.stringify(oneElement));
               if (oneElement.value === 'AAGCA') {
                 setTimeout(() => {
                   document.getElementById(oneElement.element).value = oneElement.value;
@@ -539,15 +662,15 @@ module.exports = {
               }
             });
           }, underwriting);
-
           await page.click('#ResetCommercialName');
           await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
           await page.click('#DefaultAddress');
           await page.waitFor(1000);
+
           await page.click('#NextPage');
+          await page.waitFor(1000);
           await page.waitForSelector('#Question_Acknowledgement');
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_Acknowledgement').value = 'YES';
           });
@@ -556,17 +679,14 @@ module.exports = {
             document.getElementById('Question_cserules_isForRent').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_isResidence').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_notStreetLic').value = 'No';
           });
           await page.waitFor(1000);
-
           await page.evaluate(() => {
             document.getElementById('Question_cserules_useBusiness').value = 'Yes';
           });
@@ -575,27 +695,25 @@ module.exports = {
           await page.evaluate(() => {
             document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
           });
+          quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
           await page.click('#NextPage');
+          stepResult.underWriting = true;
         } catch (e) {
-          console.log('Error at CSE CA New Quote Step. :', e);
-          const response = { error: 'There is some error validations at newQuoteStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
-          console.log('Result : ', JSON.stringify(bodyData.results));
+          console.log('Error at CSE CA underWriting Step. :', e);
+          stepResult.underWriting = false;
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            error: 'There is some error validations at underWritingStep',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
         }
-        await vehicleStep(populatedData);
       }
 
-      // add vehicle
-      async function vehicleStep(populatedData) {
+      async function vehicleStep() {
         console.log('CSE CA Vehicle Step.');
         try {
           for (const j in bodyData.vehicles) {
@@ -643,49 +761,56 @@ module.exports = {
               await page.click('#Return');
             }
           }
+          stepResult.vehicles = true;
         } catch (e) {
           console.log('Error at CSE CA Vehicle Step :', e);
-          const response = { error: 'There is some error validations at vehicleStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
-          console.log('Result :', JSON.stringify(bodyData.results));
+          stepResult.vehicles = false;
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            error: 'There is some error validations at vehicleStep',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
         }
-        await policyStep(populatedData);
       }
 
-      // add policy
-      async function policyStep(populatedData) {
-        console.log('CSE CA Policy Step.');
-        // Policy Coverage
-        const { policyCoverage } = populatedData;
-        await page.waitFor(4000);
-        await page.waitForSelector('#Line\\.BILimit');
-        await page.evaluate((policyCoverage) => {
-          policyCoverage.forEach((oneElement) => {
-            document.getElementById(oneElement.element).value = oneElement.value;
-          });
-        }, policyCoverage);
-
-        await page.click('#NextPage');
-        await page.waitFor(1000);
-        await driverStep(populatedData);
+      async function policyStep() {
+        try {
+          console.log('CSE CA Policy Step.');
+          const { policyCoverage } = populatedData;
+          await page.waitFor(4000);
+          await page.waitForSelector('#Line\\.BILimit');
+          await page.evaluate((policyCoverage) => {
+            policyCoverage.forEach((oneElement) => {
+              document.getElementById(oneElement.element).value = oneElement.value;
+            });
+          }, policyCoverage);
+          await page.click('#NextPage');
+          await page.waitFor(1000);
+          stepResult.policy = true;
+        } catch (e) {
+          console.log('Error at CSE CA policyStep :', e);
+          stepResult.policy = false;
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            error: 'There is some error validations at policyStep',
+            stepResult,
+            quoteId,
+          };
+          browser.close();
+          return next();
+        }
       }
 
-      // Add driver/ Non driver
-      async function driverStep(populatedData) {
+      async function driverStep() {
         try {
           console.log('CSE CA Driver Step.');
           await page.waitForSelector('#EditLink');
           await page.click('#EditLink');
-          // Driver Detail Edit
           for (const j in bodyData.drivers) {
             const editDriverDetails = populatedData[`editDriverDetails${j}`];
             if (j === '0') {
@@ -725,65 +850,73 @@ module.exports = {
               }
             }
           }
+          stepResult.drivers = true;
         } catch (e) {
           console.log('Error at CSE CA Driver Step :', e);
-          const response = { error: 'There is some error validations at driverStep' };
-          bodyData.results = {
-            status: false,
-            response,
-          };
-          console.log('Result :', JSON.stringify(bodyData.results));
+          stepResult.drivers = false;
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
-            obj: bodyData.results,
+            status: false,
+            error: 'There is some error validations at driverStep',
+            stepResult,
+            quoteId,
           };
           browser.close();
           return next();
         }
       }
 
-      // For login
-      await loginStep();
-
-      await page.waitFor(3000);
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-
-      await page.waitForSelector('#NextPage');
-      await page.click('#NextPage');
-      await page.waitFor(3000);
-      const premiumDetails = await page.evaluate(() => {
-        const details = {
-          totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
-          TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
-          totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
-          transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
-        };
-        return details;
-      });
-
-      bodyData.results = {
-        status: true,
-        response: premiumDetails,
-      };
-      console.log('Result :', JSON.stringify(bodyData.results));
-      req.session.data = {
-        title: 'Successfully retrieved CSE CA rate.',
-        obj: bodyData.results,
-        totalPremium: bodyData.results.response.totalPremium ? bodyData.results.response.totalPremium.replace(/,/g, '') : null,
-        months:bodyData.results.response.plan ? bodyData.results.response.plan : null,
-        downPayment:bodyData.results.response.downPaymentAmount ? bodyData.results.response.downPaymentAmount.replace(/,/g, '') : null,
-      };
-      if(bodyData.results.status){
-        delete bodyData.results.response.totalPremium;
+      async function summaryStep() {
+        console.log('CSE CA summary Step.');
+        try {
+          await page.waitFor(3000);
+          await page.waitForSelector('#NextPage');
+          await page.click('#NextPage');
+          await page.waitFor(3000);
+  
+          await page.waitForSelector('#NextPage');
+          await page.click('#NextPage');
+          await page.waitFor(3000);
+  
+          await page.waitForSelector('#NextPage');
+          await page.click('#NextPage');
+          await page.waitFor(3000);
+          const premiumDetails = await page.evaluate(() => {
+            const details = {
+              totalPremium: document.getElementById('PremInfo_TotalPolicyTermPremium').innerText,
+              TransactionApRp: document.getElementById('PremInfo_Trans_AP_RP').innerText,
+              totalCommission: document.getElementById('PremInfo_TotalCommission').innerText,
+              transactionCommission: document.getElementById('PremInfo_TransactionCommission').innerText,
+              quoteId: document.getElementById('QuoteAppSummary_QuoteAppNumber').innerText,
+            };
+            return details;
+          });
+          stepResult.summary = true;
+          req.session.data = {
+            title: 'Successfully retrieved CSE CA rate.',
+            status: true,
+            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+            months: premiumDetails.plan ? premiumDetails.plan : null,
+            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            quoteId: premiumDetails.quoteId,
+            stepResult,
+          };
+          browser.close();
+          return next();  
+        } catch (err) {
+          console.log('Error at CSE CA summaryStep:', err);
+          stepResult.summary = false;
+          req.session.data = {
+            title: 'Failed to retrieved CSE CA rate.',
+            status: false,
+            error: 'There is some data error summaryStep',
+            stepResult,
+            quoteId,
+          };
+          browser.close();
+          return next();
+        }
       }
-      browser.close();
-      return next();
     } catch (error) {
       console.log('Error at CSE CA :  ', error);
       return next(Boom.badRequest('Failed to retrieved CSE CA rate.'));

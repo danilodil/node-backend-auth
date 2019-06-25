@@ -5,20 +5,22 @@ const Rater = require('../models/rater');
 
 module.exports = {
   saveRating: async (req, res, next) => {
+    if (!req.session.data) {
+      return next();
+    }
     console.log('Inside saveRating');
 
     let companyId = null;
     let clientId = null;
-    if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
-      companyId = req.body.decoded_user.user.companyUserId;
-      clientId = req.body.decoded_user.user.id;
+    const currentUser = req.body.decoded_user;
+    if (currentUser.user) {
+      companyId = currentUser.user.companyUserId;
+      clientId = currentUser.user.id;
     }
-
-    if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
-      companyId = req.body.decoded_user.client.companyClientId;
-      clientId = req.body.decoded_user.client.id;
+    if (currentUser.client) {
+      companyId = currentUser.client.companyClientId;
+      clientId = currentUser.client.id;
     }
-
     if (!companyId && !clientId) {
       return next(Boom.badRequest('Invalid Data'));
     }
@@ -32,67 +34,59 @@ module.exports = {
     };
 
     const raterData = await Rater.findOne(existRater);
-
-    if (raterData && req.session.data.obj.status) {
-      const currentPremium = parseFloat(req.session.data.totalPremium);
-      const previousPremium = parseFloat(raterData.totalPremium);
-      let isLessTotalPremium = true;
-      if (raterData.totalPremium && req.session.data.totalPremium) {
-        isLessTotalPremium = req.session.data.totalPremium && (currentPremium < previousPremium);
-      }
-      if (isLessTotalPremium) {
-        const updateObj = {};
-        if (req.session.data && req.session.data.totalPremium) {
-          updateObj.totalPremium = req.session.data.totalPremium;
-          updateObj.months = req.session.data.months;
-          updateObj.downPayment = req.session.data.downPayment;
-          updateObj.succeeded = true;
-          updateObj.result = JSON.stringify(req.session.data.obj.response);
-          updateObj.error = null;
-          await raterData.update(updateObj);
-        }
-      }
-    }
+    /* create new rater result */
+    const isSucceeded = (req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
     if (!raterData) {
       const newRater = {
         companyId,
         clientId,
         vendorName: req.body.vendorName,
-        succeeded: false,
-        // result: JSON.stringify(req.session.data),
+        succeeded: isSucceeded,
+        totalPremium: req.session.data.totalPremium || null,
+        months: req.session.data.months || null,
+        downPayment: req.session.data.downPayment || null,
+        error: req.session.data.error || null,
+        quoteId: req.session.data.quoteId || null,
+        stepResult: req.session.data.stepResult || null,
       };
-      if (req.session.data && req.session.data.totalPremium) {
-        newRater.totalPremium = req.session.data.totalPremium;
-        newRater.months = req.session.data.months;
-        newRater.downPayment = req.session.data.downPayment;
-        newRater.succeeded = true;
-        newRater.result = JSON.stringify(req.session.data.obj.response);
-      } else {
-        newRater.error = req.session.data.obj.response.error;
-      }
+      console.log('Rater saved:', newRater);
       await Rater.create(newRater);
     }
-    delete req.session.data.totalPremium;
+
+    /* update rater result */
+    const updateObj = {
+      stepResult: req.session.data.stepResult || null,
+      quoteId: req.session.data.quoteId || null,
+    };
+    if (raterData && req.session.data.totalPremium && req.session.data.status) {
+      updateObj.totalPremium = req.session.data.totalPremium;
+      updateObj.months = req.session.data.months;
+      updateObj.downPayment = req.session.data.downPayment;
+      updateObj.succeeded = true;
+      updateObj.error = null;
+      console.log('Rater updated:', updateObj);
+      await raterData.update(updateObj);
+    }
+
     return next();
   },
-  getRating: async (req, res, next) => {
-    console.log('Inside getRating');
-
+  getBestRating: async (req, res, next) => {
+    console.log('Inside getBestRating');
     try {
+      const currentUser = req.body.decoded_user;
       let companyId = null;
       let clientId = null;
-      if (req.body.decoded_user.user && req.body.decoded_user.user.companyUserId) {
-        companyId = req.body.decoded_user.user.companyUserId;
-        clientId = req.body.decoded_user.user.id;
+      if (currentUser.user) {
+        companyId = currentUser.user.companyUserId;
+        clientId = currentUser.user.id;
       }
-
-      if (req.body.decoded_user.client && req.body.decoded_user.client.companyClientId) {
-        companyId = req.body.decoded_user.client.companyClientId;
-        clientId = req.body.decoded_user.client.id;
+      if (currentUser.client) {
+        companyId = currentUser.client.companyClientId;
+        clientId = currentUser.client.id;
       }
 
       if (!companyId || !clientId) {
-        return next(Boom.badRequest('Invalid Data'));
+        return next(Boom.badRequest('Invalid User'));
       }
 
       const newRater = {
@@ -101,21 +95,19 @@ module.exports = {
           clientId,
           succeeded: true,
         },
-        attributes: ['companyId', 'clientId', 'result', 'createdAt', 'totalPremium','months','downPayment', 'succeeded'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
       };
 
       const raterData = await Rater.findAll(newRater);
 
       if (!raterData) {
-        return next(Boom.badRequest('Error retrieving rater'));
+        return next(Boom.badRequest('Error retrieving best rate'));
       }
       let bestRate = null;
       raterData.forEach(async (oneRate) => {
         if (!bestRate) {
           bestRate = oneRate;
-          bestRate.result = JSON.parse(bestRate.result);
         } else {
-          oneRate.result = JSON.parse(oneRate.result);
           const currentTotalPremium = parseFloat(oneRate.totalPremium);
           const previousTotalPremium = parseFloat(bestRate.totalPremium);
           const isLessTotalPremium = currentTotalPremium < previousTotalPremium;
@@ -127,8 +119,56 @@ module.exports = {
       req.session.data = bestRate;
       return next();
     } catch (error) {
-      console.log('error >> ', error.stack);
       return next(Boom.badRequest('Failed to retrieved best rate.'));
     }
+  },
+
+  getOneByName: async (req, res, next) => {
+    console.log('Inside getOneByName');
+    try {
+      const params = req.body;
+      const currentUser = req.body.decoded_user;
+      let companyId = null;
+      let clientId = null;
+      if (currentUser.user) {
+        companyId = currentUser.user.companyUserId;
+        clientId = currentUser.user.id;
+      }
+      if (currentUser.client) {
+        companyId = currentUser.client.companyClientId;
+        clientId = currentUser.client.id;
+      }
+
+      if (!companyId || !clientId) {
+        return next(Boom.badRequest('Invalid User'));
+      }
+
+      const newRater = {
+        where: {
+          companyId,
+          clientId,
+          vendorName: params.vendorName,
+        },
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
+      };
+
+      const raterData = await Rater.findOne(newRater);
+      if (raterData) {
+        req.session.raterStore = raterData.dataValues;
+      }
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest('Failed to retrieving rate.'));
+    }
+  },
+
+  getOneByNameData: async (req, res, next) => {
+    console.log('Inside getOneByNameData');
+    const raterStore = req.session.raterStore;
+    if (!raterStore) {
+      return next(Boom.badRequest('Error retrieving rate'));
+    }
+    req.session.data = raterStore;
+    return next();
   },
 };
