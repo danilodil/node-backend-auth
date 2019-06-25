@@ -6,6 +6,7 @@ const puppeteer = require('puppeteer');
 const { progressiveRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('./../constants/environment');
+const SS = require('string-similarity');
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
@@ -374,7 +375,7 @@ module.exports = {
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#VEH\\.0\\.add');
-          for (const j in bodyData.vehicles) {
+          for (let j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
               const addElement = await pageQuote.$('[id="VEH.0.add"]');
               await addElement.click();
@@ -382,7 +383,7 @@ module.exports = {
             }
           }
 
-          for (const j in bodyData.vehicles) {
+          for (let j in bodyData.vehicles) {
             const vehicle = [
               {
                 title: 'Is this a trailer',
@@ -480,13 +481,13 @@ module.exports = {
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#DRV\\.0\\.add');
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
               await pageQuote.click('#DRV\\.0\\.add');
               await pageQuote.waitFor(1000);
             }
           }
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             await pageQuote.waitForSelector(`#DRV\\.${j}\\.drvr_frst_nam`);
             await pageQuote.waitFor(600);
 
@@ -584,7 +585,7 @@ module.exports = {
           const drvrViolCdS = await pageQuote.evaluate(getSelctVal, `${populatedData.priorIncident0.element}>option`);
           const drvrViolCd = await pageQuote.evaluate(getValToSelect, drvrViolCdS, populatedData.priorIncident0.value);
           const priorIncidentDate = populatedData.priorIncidentDate0.value;
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
@@ -689,7 +690,7 @@ module.exports = {
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
 
-          for (const j in bodyData.coverage) {
+          for (let j in bodyData.coverage) {
             await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
 
             const liabilityOptions = await pageQuote.evaluate(getSelctVal, `select[name="VEH.${j}.veh_liab"]>option`);
@@ -820,6 +821,16 @@ module.exports = {
           });
         } catch (e) {
           console.log('e', e);
+        }
+      }
+
+      function acceptDialog(dialogPage)  {
+        try {
+          dialogPage.on('dialog', async (dialog) => {
+            await dialog.accept();
+          });
+        } catch(error) {
+          console.log('e', error);
         }
       }
 
@@ -1161,6 +1172,7 @@ module.exports = {
       const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
+      console.log('RATER STORE: ###', raterStore);
 
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
@@ -1229,7 +1241,7 @@ module.exports = {
               applicantGenderCd: 'Male',
               applicantMaritalStatusCd: 'Married',
               driverLicensedDt: '3 years or more',
-              employment: 'Student (full-time)',
+              employment: 'Banking/Finance/Real Estate',
               occupation: 'Other',
               education: 'College Degree',
             },
@@ -1299,7 +1311,7 @@ module.exports = {
           zipCode: {
             elementId: 'insd_zip_cd',
             element: '#insd_zip_cd',
-            value:bodyData.zipCode || '35005',
+            value: bodyData.zipCode || '35005',
           },
           lengthAtAddress: {
             element: 'select[name="len_of_res_insd"]',
@@ -1311,7 +1323,7 @@ module.exports = {
           },
           priorInsuranceCarrier: {
             element: 'select[name="curr_ins_co_cd_dsply"]',
-            value: bodyData.priorInsuranceCarrier || staticDetailsObj.priorInsuranceCarrier,
+            value: bodyData.priorInsuranceCarrier ? bodyData.priorInsuranceCarrier.toUpperCase() : staticDetailsObj.priorInsuranceCarrier,
           },
           finStblQstn: {
             element: 'select[name="fin_stbl_qstn"]',
@@ -1328,19 +1340,15 @@ module.exports = {
           },
           priorInsuredCdInd: {
             element: 'select[name="prir_ins_cd_insd"]',
-            value: (bodyData.priorInsurance === 'No' ? 'C' : 'A') || staticDetailsObj.priorInsurance,
+            value: bodyData.priorInsurance || staticDetailsObj.priorInsurance,
           },
           priorBiLimits: {
             element: 'select[name="prir_bi_lim"]',
-            value: '3',
+            value: bodyData.priorBodilyInjuryLimits || '3',
           },
           yearsWithPriorInsurance: {
             element: 'select[name="pop_len_most_recent_carr_insd"]',
-            value: (bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'less than 1 year' ? 'A'
-              : bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 1 year but less than 3 years' ? 'B'
-                : bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === 'at least 3 years but less than 5 years' ? 'C'
-                  : bodyData.yearsWithPriorInsurance && bodyData.yearsWithPriorInsurance.toLowerCase() === '5 years or more' ? 'D'
-                    : 'B') || staticDetailsObj.yearsWithPriorInsurance,
+            value: bodyData.yearsWithPriorInsurance || staticDetailsObj.yearsWithPriorInsurance,
           },
           numberOfResidentsInHome: {
             element: 'select[name="excess_res_nbr"]',
@@ -1348,9 +1356,7 @@ module.exports = {
           },
           ownOrRentPrimaryResidence: {
             element: 'select[name="hm_own_ind"]',
-            value: (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase().includes('own') && !bodyData.ownOrRentPrimaryResidence.toLowerCase().includes('mobile') ? 'O'
-              : (bodyData.ownOrRentPrimaryResidence && bodyData.ownOrRentPrimaryResidence.toLowerCase().inludes('own') && bodyData.ownOrRentPrimaryResidence.toLowerCase().inludes('mobile')) ? 'M'
-                : 'R') || staticDetailsObj.ownOrRentPrimaryResidence,
+            value: bodyData.ownOrRentPrimaryResidence || staticDetailsObj.ownOrRentPrimaryResidence,
           },
           rentersLimits: {
             element: 'select[name="pol_renters_prir_bi_lim_code"]',
@@ -1505,6 +1511,23 @@ module.exports = {
         return optVals;
       }
 
+      async function getBestString(value, data) {
+        const nArr = Array.from(data.map(entry => entry.name));
+        const nBestMatch = SS.findBestMatch(value, nArr);
+        const vArr = Array.from(data.map(entry => entry.value));
+        const vBestMatch = SS.findBestMatch(value, vArr);
+        let  i = 0;
+        if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+          i = nBestMatch.bestMatchIndex;
+        } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+          i = vBestMatch.bestMatchIndex;
+        } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+          i = nBestMatch.bestMatchIndex;
+        }
+        const bestValue = data[i].value;
+        return bestValue || '';
+      }
+
       // select particular value in dropdown
       function getValToSelect(data, valueToSelect) {
         let selected = '';
@@ -1519,17 +1542,7 @@ module.exports = {
               selected = entry.value;
             }
           });
-        }
-        if (!selected) {
-          data.forEach((entry) => {
-            if (entry.value && entry.value !== '') {
-              selected = entry.value;
-            }
-            // selected = data[stringSimilarity.findBestMatch(valueToSelect, data).bestMatchIndex];
-          });
-        }
-
-        if (!selected && data[1]) {
+        } if (!selected && data[1]) {
           selected = data[1].value;
         }
 
@@ -1562,6 +1575,16 @@ module.exports = {
           });
         } catch (e) {
           console.log('e', e);
+        }
+      }
+
+      async function acceptDialog(dialogPage) {
+        try {
+          dialogPage.on('dialog', async (dialog) => {
+            await dialog.accept();
+          });
+        } catch(error) {
+          console.log('e', error);
         }
       }
 
@@ -1828,13 +1851,13 @@ module.exports = {
           await pageQuote.evaluate(city => (document.querySelector(city.element)).value = city.value, populatedData.city);
 
           const states = await pageQuote.evaluate(getSelectValues, `${populatedData.state.element}>option`);
-          const state = await pageQuote.evaluate(getValToSelect, states, populatedData.state.value);
+          const state = await getBestString(populatedData.state.value, states);
           await pageQuote.select(populatedData.state.element, state);
 
           await pageQuote.evaluate(zipCode => (document.getElementById(zipCode.elementId)).value = zipCode.value, populatedData.zipCode);
 
           const lenOfResInsd = await pageQuote.evaluate(getSelectValues, `${populatedData.lengthAtAddress.element}>option`);
-          const lenOfRes = await pageQuote.evaluate(getValToSelect, lenOfResInsd, populatedData.lengthAtAddress.value);
+          const lenOfRes = await getBestString(populatedData.lengthAtAddress.value, lenOfResInsd);
           await pageQuote.select(populatedData.lengthAtAddress.element, lenOfRes);
           await pageQuote.select(populatedData.finStblQstn.element, populatedData.finStblQstn.value);
 
@@ -1859,15 +1882,35 @@ module.exports = {
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
-          for (const j in bodyData.vehicles) {
+          for (let j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length - 1) {
-              const addElement = await pageQuote.$('[id="VEH.0.add"]');
-              await addElement.click();
-              await pageQuote.waitFor(1000);
+              const el = await page.$(`[id="VEH.${j}.add"]`);
+              if (!el) {
+                const addElement = await pageQuote.$('[id="VEH.0.add"]');
+                await addElement.click();
+                await pageQuote.waitFor(1000);
+              }
+            }
+          }
+          for (let j=0;j<10;j++) {
+            if (bodyData.vehicles && bodyData.vehicles.length) {
+              const k = +bodyData.vehicles.length -1;
+              if (j > k) {
+                const deleteElement = await pageQuote.$(`[id="VEH.${j}.delete"]`);
+                if (deleteElement) {
+                  await deleteElement.click();
+                  await pageQuote.waitFor(1000);
+                  await pageQuote.on('dialog', async (dialog) => {
+                    console.log('DIALOG HIT');
+                    await dialog.accept();
+                  });
+                  await pageQuote.waitFor(1000);
+                }
+              }
             }
           }
 
-          for (const j in bodyData.vehicles) {
+          for (let j in bodyData.vehicles) {
 
             await pageQuote.type(populatedData[`vehicleVin${j}`].element, populatedData[`vehicleVin${j}`].value);
             await pageQuote.click(populatedData[`vehicleVin${j}`].buttonId);
@@ -1875,8 +1918,8 @@ module.exports = {
             if (!bodyData.vehicles[j].vehicleVin) {
               await pageQuote.waitForSelector(populatedData[`vehicleYear${j}`].element);
               const modelYears = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleYear${j}`].element}>option`);
-              let modelYear = await pageQuote.evaluate(getValToSelect, modelYears, populatedData[`vehicleYear${j}`].value);
-              if (!modelYear) {
+              let modelYear = await getBestString(populatedData[`vehicleYear${j}`].value, modelYears);
+              if (!modelYear && modelYears && modelYears[0]) {
                 modelYear = modelYears[0].value;
               }
               await pageQuote.select(populatedData[`vehicleYear${j}`].element, modelYear);
@@ -1884,16 +1927,16 @@ module.exports = {
               dismissDialog(pageQuote);
 
               await pageQuote.waitFor(1200);
-              const vehiclesMake = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleMake${j}`].element}>option`);
-              let vehicleMake = await pageQuote.evaluate(getValToSelect, vehiclesMake, populatedData[`vehicleMake${j}`].value);
-              if (!vehicleMake && vehiclesMake && vehiclesMake[0] && vehiclesMake[0].value) {
-                vehicleMake = vehiclesMake[0].value;
+              const vehicleMakes = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleMake${j}`].element}>option`);
+              let vehicleMake = await getBestString(populatedData[`vehicleMake${j}`].value, vehicleMakes);
+              if (!vehicleMake && vehicleMakes && vehicleMakes[0] && vehicleMakes[0].value) {
+                vehicleMake = vehicleMakes[0].value;
               }
               await pageQuote.select(populatedData[`vehicleMake${j}`].element, vehicleMake);
 
               await pageQuote.waitFor(1200);
               const vehMdlNames = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleModel${j}`].element}>option`);
-              let vehMdlName = await pageQuote.evaluate(getValToSelect, vehMdlNames, populatedData[`vehicleModel${j}`].value);
+              let vehMdlName = await getBestString(populatedData[`vehicleModel${j}`].value, vehMdlNames);
               if (!vehMdlName && vehMdlNames && vehMdlNames[0] && vehMdlNames[0].value) {
                 vehMdlName = vehMdlNames[0].value;
               }
@@ -1901,7 +1944,7 @@ module.exports = {
 
               await pageQuote.waitFor(1200);
               const vehStyles = await pageQuote.evaluate(getSelectValues, `${populatedData[`vehicleBody${j}`].element}>option`);
-              let vehStyle = await pageQuote.evaluate(getValToSelect, vehStyles, populatedData[`vehicleBody${j}`].value);
+              let vehStyle = await getBestString(populatedData[`vehicleBody${j}`].value, vehStyles);
               if (!vehStyle && vehStyles && vehStyles[0] && vehStyles[0].value) {
                 vehStyle = vehStyles[0].value;
               }
@@ -1953,14 +1996,14 @@ module.exports = {
         try {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('img[id="DRV.0.add"]');
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
               const addElement = await pageQuote.$('[id="DRV.0.add"]');
               await addElement.click();
               await pageQuote.waitFor(1000);
             }
           }
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             if (j === 0) {
               await pageQuote.waitForSelector(populatedData[`driverFirstName${j}`].element);
             }
@@ -1970,17 +2013,17 @@ module.exports = {
             await pageQuote.evaluate(driverDateOfBirth => (document.getElementById(driverDateOfBirth.elementId)).value = driverDateOfBirth.value, populatedData[`driverDateOfBirth${j}`]);
 
             const genders = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverGender${j}`].element}>option`);
-            const gender = await pageQuote.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
+            const genderValue = await getBestString(populatedData[`driverGender${j}`].value, genders);
             await pageQuote.waitFor(600);
-            await pageQuote.select(populatedData[`driverGender${j}`].element, gender);
+            await pageQuote.select(populatedData[`driverGender${j}`].element, genderValue);
 
-            const maritalStatuss = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
-            const maritalStatus = await pageQuote.evaluate(getValToSelect, maritalStatuss, populatedData[`driverMaritalStatus${j}`].value);
-            await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatus);
+            const maritalStatus = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
+            const maritalStatusValue = await getBestString(populatedData[`driverMaritalStatus${j}`].value, maritalStatus);
+            await pageQuote.select(populatedData[`driverMaritalStatus${j}`].element, maritalStatusValue);
 
             const drvrRelationships = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverRelationship${j}`].element}>option`);
-            const drvrRelationship = await pageQuote.evaluate(getValToSelect, drvrRelationships, populatedData[`driverRelationship${j}`].value);
-            await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationship);
+            const drvrRelationshipValue = await getBestString(populatedData[`driverRelationship${j}`].value, drvrRelationships);
+            await pageQuote.select(populatedData[`driverRelationship${j}`].element, drvrRelationshipValue);
             await pageQuote.waitFor(600);
 
             await pageQuote.select(populatedData[`driverLicenseStatus${j}`].element, populatedData[`driverLicenseStatus${j}`].value);
@@ -1994,25 +2037,24 @@ module.exports = {
 
             await pageQuote.waitFor(600);
             const drvrEmplStats = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverEmployment${j}`].element}>option`);
-            let drvrEmplStat = await pageQuote.evaluate(getValToSelect, drvrEmplStats, populatedData[`driverEmployment${j}`].value);
-            if (!drvrEmplStat) {
+            let drvrEmplStat = await getBestString(populatedData[`driverEmployment${j}`].value, drvrEmplStats);
+            if (!drvrEmplStat && drvrEmplStats && drvrEmplStats[0] && drvrEmplStats[0].value) {
               drvrEmplStat = drvrEmplStats[0].value;
             }
             await pageQuote.select(populatedData[`driverEmployment${j}`].element, drvrEmplStat);
-            await pageQuote.waitFor(600);
+            await pageQuote.waitFor(1200);
 
-            await pageQuote.waitFor(600);
             const drvOccStats = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverOccupation${j}`].element}>option`);
-            let drvrOccStat = await pageQuote.evaluate(getValToSelect, drvOccStats, populatedData[`driverOccupation${j}`].value);
-            if (!drvrOccStat) {
+            let drvrOccStat = await getBestString(populatedData[`driverOccupation${j}`].value, drvOccStats);
+            if (!drvrOccStat && drvOccStats[0] && drvOccStats[0].value) {
               drvrOccStat = drvOccStats[0].value;
             }
             await pageQuote.select(populatedData[`driverOccupation${j}`].element, drvrOccStat);
             await pageQuote.waitFor(600);
 
             const drvrEdLvls = await pageQuote.evaluate(getSelectValues, `${populatedData[`driverEducation${j}`].element}>option`);
-            let drvrEdLvl = await pageQuote.evaluate(getValToSelect, drvrEdLvls, populatedData[`driverEducation${j}`].value);
-            if (!drvrEdLvl) {
+            let drvrEdLvl = await getBestString(populatedData[`driverEducation${j}`].value, drvrEdLvls);
+            if (!drvrEdLvl && drvrEdLvls && drvrEdLvls[0] && drvrEdLvls[0].value) {
               drvrEdLvl = drvrEdLvls[0].value;
             }
             await pageQuote.waitFor(300);
@@ -2047,7 +2089,7 @@ module.exports = {
           const drvrViolCdS = await pageQuote.evaluate(getSelectValues, `${populatedData.priorIncident0.element}>option`);
           const drvrViolCd = await pageQuote.evaluate(getValToSelect, drvrViolCdS, populatedData.priorIncident0.value);
 
-          for (const j in bodyData.drivers) {
+          for (let j in bodyData.drivers) {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
@@ -2076,31 +2118,55 @@ module.exports = {
 
         try {
           await pageQuote.waitForSelector(populatedData.priorInsuredCdInd.element);
-          await pageQuote.select(populatedData.priorInsuredCdInd.element, populatedData.priorInsuredCdInd.value);
+          const priorInsCds = await pageQuote.evaluate(getSelectValues, `${populatedData.priorInsuredCdInd.element}>option`);
+          if (priorInsCds && priorInsCds.length && priorInsCds.length > 0) {
+            const priorInsurance = await getBestString(populatedData.priorInsuredCdInd.value, priorInsCds);
+            await pageQuote.select(populatedData.priorInsuredCdInd.element, priorInsurance);
+          }
 
           await pageQuote.waitFor(500);
+          await pageQuote.waitForSelector(populatedData.priorInsuranceCarrier.element);
           const currInsCoCdDsply = await pageQuote.evaluate(getSelectValues, `${populatedData.priorInsuranceCarrier.element}>option`);
-          const currInsCoCd = await pageQuote.evaluate(getValToSelect, currInsCoCdDsply, populatedData.priorInsuranceCarrier.value);
-          await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
+          if (currInsCoCdDsply && currInsCoCdDsply.length && currInsCoCdDsply.length > 0) {
+            const currInsCoCd = await getBestString(populatedData.priorInsuranceCarrier.value, currInsCoCdDsply);
+            await pageQuote.select(populatedData.priorInsuranceCarrier.element, currInsCoCd);
+          }
 
           await pageQuote.waitFor(500);
-          await pageQuote.select(populatedData.priorBiLimits.element, populatedData.priorBiLimits.value);
-          await pageQuote.waitFor(1000);
+          await pageQuote.waitForSelector(populatedData.priorBiLimits.element);
+          const priorBiLimitsOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.priorBiLimits.element}>option`);
+          if (priorBiLimitsOpts && priorBiLimitsOpts.length && priorBiLimitsOpts.length > 0) {
+            const priorBiLimit = await getBestString(populatedData.priorBiLimits.value, priorBiLimitsOpts);
+            await pageQuote.select(populatedData.priorBiLimits.element, priorBiLimit);
 
-          await pageQuote.select(populatedData.yearsWithPriorInsurance.element, populatedData.yearsWithPriorInsurance.value);
+          }
+
+          await pageQuote.waitFor(1000);
+          const yearsWithPriorInsuranceOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.yearsWithPriorInsurance.element}>option`);
+          const yearsWithPriorInsurance = await getBestString(populatedData.yearsWithPriorInsurance.value, yearsWithPriorInsuranceOpts);
+          await pageQuote.select(populatedData.yearsWithPriorInsurance.element, yearsWithPriorInsurance);
           try {
             const numberOfResidentsInHomeOpt = await pageQuote.evaluate(getSelectValues, `${populatedData.numberOfResidentsInHome.element}>option`);
-            const numberOfResidentsInHome = await pageQuote.evaluate(getValToSelect, numberOfResidentsInHomeOpt, populatedData.numberOfResidentsInHome.value);
+            const numberOfResidentsInHome = await getBestString(populatedData.numberOfResidentsInHome.value, numberOfResidentsInHomeOpt);
             await pageQuote.select(populatedData.numberOfResidentsInHome.element, numberOfResidentsInHome);
             await pageQuote.waitFor(600);
           } catch (e) {
             console.log('No number Of Residents In Home', e);
           }
-          await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, populatedData.ownOrRentPrimaryResidence.value);
+          const ownOrRentOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.ownOrRentPrimaryResidence.element}>option`);
+          const ownOrRent = await getBestString(populatedData.ownOrRentPrimaryResidence.value, ownOrRentOpts);
+          console.log(ownOrRentOpts, ownOrRent);
+          await pageQuote.select(populatedData.ownOrRentPrimaryResidence.element, ownOrRent);
           await pageQuote.waitFor(1000);
-          await pageQuote.select(populatedData.rentersLimits.element, populatedData.rentersLimits.value);
+
+          const rentersLimitsOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.rentersLimits.element}>option`);
+          const rentersLimit = await getBestString(populatedData.rentersLimits.value, rentersLimitsOpts);
+          await pageQuote.select(populatedData.rentersLimits.element, rentersLimit);
           await pageQuote.waitFor(500);
-          await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, populatedData.haveAnotherProgressivePolicy.value);
+
+          const haveAnotherProgressivePolicyOpts = await pageQuote.evaluate(getSelectValues, `${populatedData.haveAnotherProgressivePolicy.element}>option`);
+          const haveAnotherProgressivePolicy = await getBestString(populatedData.haveAnotherProgressivePolicy.value, haveAnotherProgressivePolicyOpts);
+          await pageQuote.select(populatedData.haveAnotherProgressivePolicy.element, haveAnotherProgressivePolicy);
           await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
           await errorStep();
           stepResult.underWriting = true;
@@ -2124,7 +2190,6 @@ module.exports = {
           console.log('Progressive AL Error Step.');
           await pageQuote.waitForSelector('#ctl00_ContentPlaceHolder1__errorTable', { timeout: 5000 });
           const tdText = await page.$$eval('#ctl00_ContentPlaceHolder1__errorTable tbody tr td div p span', tds => tds.map(td => td.innerText));
-          console.log('TEXT ###: ', tdText);
           for (let i=0;i<tdText.length;i++) {
             switch(true) {
               case tdText[i].includes('lapse'): 
@@ -2137,15 +2202,16 @@ module.exports = {
                   await pageQuote.select('#pol_ubi_exprnc', 'N');
             }
           }
-          await saveStep()
-          req.session.data = {
-            title: 'Failed to retrieved Progressive AL rate.',
-            status: false,
-            error: 'There is some error in data',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await pageQuote.evaluate(() => document.querySelector('#ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click());
+          // await saveStep()
+          // req.session.data = {
+          //   title: 'Failed to retrieved Progressive AL rate.',
+          //   status: false,
+          //   error: 'There is some error in data',
+          //   stepResult,
+          // };
+          // browser.close();
+          // return next();
         } catch (e) {
           // await coveragesStep(pageQuote);
         }
@@ -2158,7 +2224,7 @@ module.exports = {
           await pageQuote.waitForSelector('#pol_ubi_exprnc.madParticipateItem');
           await pageQuote.select('#pol_ubi_exprnc', 'N');
 
-          for (const j in bodyData.coverage) {
+          for (let j in bodyData.coverage) {
             await pageQuote.select(`#VEH\\.${j}\\.veh_use_ubi`, 'Y');
 
             const liabilityOptions = await pageQuote.evaluate(getSelectValues, `select[name="VEH.${j}.veh_liab"]>option`);
