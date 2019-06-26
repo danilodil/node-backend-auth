@@ -12,7 +12,7 @@ module.exports = {
   safecoAl: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-
+      const raterStore = req.session.raterStore;
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
@@ -28,6 +28,7 @@ module.exports = {
       let stepResult = {
         login: false,
         newQuote: false,
+        existingQuote: false,
         policyInfo: false,
         garagedInfo: false,
         houseHold: false,
@@ -40,9 +41,10 @@ module.exports = {
       };
 
       const staticDataObj = {
+        mailingAddress: '670 Park Avenue',
         city: 'Moody',
         state: 'AL',
-        zipCode: '19934',
+        zipCode: '36140',
         socialSecurityStatus: 'R',
         reasonForPolicy: 'N',
         garagedAddress: 'Howard Lake Park',
@@ -59,8 +61,9 @@ module.exports = {
         policyVehiclesCoverage: '100',
         firstName: 'Test',
         lastName: 'User',
-        dateOfBirth: '12/16/1993',
+        birthDate: '12/16/1993',
         gender: 'Male',
+        email: 'test@gmail.com',
         maritalStatus: 'Married',
         relationship: 'L',
         licenseState: 'AL',
@@ -79,9 +82,15 @@ module.exports = {
       const populatedData = await populateKeyValueData();
 
       await loginStep();
-      await newQuoteStep();
+      if (raterStore) {
+        await existingQuote();
+      } else {
+        await newQuoteStep();
+      }
       await policyInfoStep();
-      await GaragedInfoStep();
+      if (!raterStore) {
+        await GaragedInfoStep();
+      }
       await houseHoldStep();
       await DriversStep();
       await vehiclesStep();
@@ -89,6 +98,7 @@ module.exports = {
       await underwritingStep();
       await coveragesStep();
       await summaryStep();
+
 
       async function loginStep() {
         try {
@@ -151,6 +161,40 @@ module.exports = {
         }
       }
 
+      async function existingQuote() {
+        console.log('Safeco AL existing Quote Step');
+        try {
+          await page.waitFor(3000);
+          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+          await page.waitFor(4000);
+          await page.select('#SAMSearchBusinessType', '7|1|');
+          await page.select('#SAMSearchModifiedDateRange', '7');
+          await page.select('#SAMSearchActivityStatus', '8');
+          await page.type('#SAMSearchName', bodyData.firstName);
+          await page.evaluate(() => document.querySelector('#asearch').click());
+          await page.waitFor(2000);
+          await page.click('#divMain > table > tbody > tr > td > a > span');
+          await page.waitFor(2000);
+          await page.evaluate(() => document.querySelector('#aedit').click());
+          await page.waitFor(2000);
+          if (await page.$('[id="btnUnlock"]')) {
+            page.evaluate(() => document.querySelector('#btnUnlock').click());
+          }
+          stepResult.existingQuote = true;
+        } catch (err) {
+          console.log('Error at Safeco AL Existing Quote Step:', err);
+          stepResult.existingQuote = false;
+          req.session.data = {
+            title: 'Failed to retrieved Safeco AL rate.',
+            status: false,
+            error: 'There is some error validations at existing Quote Step',
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
+      }
+
       async function policyInfoStep() {
         console.log('Safeco AL Policy Information Step.');
 
@@ -163,28 +207,24 @@ module.exports = {
           if (await page.waitForSelector('#ui-dialog-title-1')) {
             await page.keyboard.press('Escape');
           }
-          await page.type(populatedData.firstName.element, populatedData.firstName.value);
-
+          await page.evaluate((firstName) => { document.querySelector(firstName.element).value = firstName.value; }, populatedData.firstName);
           await page.waitForSelector('#PolicyClientPersonLastName');
-          await page.type(populatedData.lastName.element, populatedData.lastName.value);
+          await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
 
           await page.select(populatedData.socialSecurityStatus.element, populatedData.socialSecurityStatus.value);
           await page.click(populatedData.dateOfBirth.element);
-          await page.type(populatedData.dateOfBirth.element, populatedData.dateOfBirth.value);
-          await page.type(populatedData.email.element, populatedData.email.value);
-
-          await page.click(populatedData.dateOfBirth.element);
-          await page.type(populatedData.dateOfBirth.element, populatedData.dateOfBirth.value);
+          await page.evaluate((dateOfBirth) => { document.querySelector(dateOfBirth.element).value = dateOfBirth.value; }, populatedData.dateOfBirth);
+          await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
 
           await page.waitFor(600);
-          await page.type(populatedData.mailingAddress.element, populatedData.mailingAddress.value);
+          await page.evaluate((mailingAddress) => { document.querySelector(mailingAddress.element).value = mailingAddress.value; }, populatedData.mailingAddress);
           await page.click(populatedData.zipCode.element);
-          await page.type(populatedData.zipCode.element, populatedData.zipCode.value);
+          await page.evaluate((zipCode) => { document.querySelector(zipCode.element).value = zipCode.value; }, populatedData.zipCode);
           await page.click(populatedData.city.element);
           if (await page.waitForSelector('#PolicyProducerName')) {
             await page.click(populatedData.city.element);
           }
-          await page.type(populatedData.city.element, populatedData.city.value);
+          await page.evaluate((city) => { document.querySelector(city.element).value = city.value; }, populatedData.city);
 
           await page.click(populatedData.state.element);
           if (await page.waitForSelector('#PolicyProducerName')) {
@@ -217,9 +257,10 @@ module.exports = {
           try {
             try {
               if (page.$('[id="ui-dialog-title-1"]')) {
-                await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
+                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
+              console.log('e', e);
               console.log('Safeco AL Error during close dialog.');
             }
             await page.waitFor(1000);
@@ -230,6 +271,8 @@ module.exports = {
             await page.keyboard.press('Backspace');
             await page.waitFor(1000);
             await page.type(populatedData.mailingAddress.element, '670 Park Avenue');
+            await page.click(populatedData.zipCode.element);
+            await page.evaluate((zipCode) => { document.querySelector(zipCode.element).value = '36140'; }, populatedData.zipCode);
             await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
             console.log('catch error');
@@ -264,10 +307,10 @@ module.exports = {
           await page.waitFor(800);
 
           await page.waitForSelector('#PolicyLocations2AddressLine1');
-          await page.type(populatedData.garagedAddress.element, populatedData.garagedAddress.value);
+          await page.evaluate((garagedAddress) => { document.querySelector(garagedAddress.element).value = garagedAddress.value; }, populatedData.garagedAddress);
 
           await page.click(populatedData.garagedZipcode.element);
-          await page.type(populatedData.garagedZipcode.element, populatedData.garagedZipcode.value);
+          await page.evaluate((garagedZipcode) => { document.querySelector(garagedZipcode.element).value = garagedZipcode.value; }, populatedData.garagedZipcode);
 
           await page.waitFor(1500);
           await page.evaluate((garagedCity) => {
@@ -308,7 +351,7 @@ module.exports = {
             try {
               try {
                 if (page.$('[id="ui-dialog-title-1"]')) {
-                  await page.click('a[class="ui-dialog-titlebar-close ui-corner-all"]');
+                  page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
                 }
               } catch (e) {
                 console.log('Safeco AL Error during close dialog');
@@ -349,15 +392,10 @@ module.exports = {
           for (const j in bodyData.drivers) {
             try {
               if (page.$('[id="ui-dialog-title-1"]')) {
-                await page.evaluate(() => {
-                  const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
-                  if (dismissDialog) {
-                    dismissDialog.click();
-                  }
-                });
+                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
-              console.log('Safeco AL Error uding close dialog');
+              console.log('Safeco AL Error during close dialog');
             }
 
             await page.waitFor(2000);
@@ -374,14 +412,12 @@ module.exports = {
             }, populatedData[`driverDateOfBirth${j}`]);
 
             await page.waitForSelector(populatedData[`driverGender${j}`].element);
-
             const genders = await page.evaluate(getSelctVal, `${populatedData[`driverGender${j}`].element}>option`);
             const gender = await page.evaluate(getValToSelect, genders, populatedData[`driverGender${j}`].value);
 
             await page.waitFor(800);
             await page.click(populatedData[`driverGender${j}`].element);
             await page.select(populatedData[`driverGender${j}`].element, gender);
-
             await page.waitFor(800);
             const maritalStatusOptions = await page.evaluate(getSelctVal, `${populatedData[`driverMaritalStatus${j}`].element}>option`);
             const maritalStatus = await page.evaluate(getValToSelect, maritalStatusOptions, populatedData[`driverMaritalStatus${j}`].value);
@@ -399,7 +435,9 @@ module.exports = {
 
             await page.waitFor(200);
             await page.click(populatedData[`ageWhen1stLicensed${j}`].element);
-            await page.type(populatedData[`ageWhen1stLicensed${j}`].element, populatedData[`ageWhen1stLicensed${j}`].value);
+            await page.evaluate((ageWhen1stLicensed) => {
+              (document.querySelector(ageWhen1stLicensed.element)).value = ageWhen1stLicensed.value;
+            }, populatedData[`ageWhen1stLicensed${j}`]);
 
             await page.evaluate(() => {
               const haslicenseSuspendInLast5Year = document.querySelector('td > span > input[id="PolicyDriverLicenseSuspendedRevokedYNN"]');
@@ -437,12 +475,7 @@ module.exports = {
                 await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
               }
               if (page.$('[id="ui-dialog-title-1"]')) {
-                await page.evaluate(() => {
-                  const dismissDialog = document.querySelector('div > a[class="ui-dialog-titlebar-close ui-corner-all"]');
-                  if (dismissDialog) {
-                    dismissDialog.click();
-                  }
-                });
+                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
@@ -480,21 +513,29 @@ module.exports = {
               vehicleVinIsKnown.click();
             });
             await page.waitFor(1000);
-            await page.type(populatedData[`vehicleVin${j}`].element, populatedData[`vehicleVin${j}`].value);
+            await page.evaluate((vehicleVin) => {
+              (document.querySelector(vehicleVin.element)).value = vehicleVin.value;
+            }, populatedData[`vehicleVin${j}`]);
             await page.waitFor(1000);
 
             if (await page.$('[id="PolicyVehicleTerritory"]')) {
-              await page.type(populatedData[`territory${j}`].element, populatedData[`territory${j}`].value);
+              await page.evaluate((territory) => {
+                (document.querySelector(territory.element)).value = territory.value;
+              }, populatedData[`territory${j}`]);
             }
             await page.select(populatedData[`vehicleUse${j}`].element, populatedData[`vehicleUse${j}`].value);
             await page.waitForSelector('#PolicyVehicleAnnualMiles');
             await page.focus('#PolicyVehicleAnnualMiles');
-            await page.type(populatedData[`annualMiles${j}`].element, populatedData[`annualMiles${j}`].value);
+            await page.evaluate((annualMiles) => {
+              (document.querySelector(annualMiles.element)).value = annualMiles.value;
+            }, populatedData[`annualMiles${j}`]);
             await page.evaluate(() => document.querySelector('#Save').click());
             await page.waitFor(3000);
 
             if (await page.$('[id="PolicyVehicleYearsVehicleOwned"]')) {
-              await page.type(populatedData[`yearsVehicleOwned${j}`].element, populatedData[`yearsVehicleOwned${j}`].value);
+              await page.evaluate((yearsVehicleOwned) => {
+                (document.querySelector(yearsVehicleOwned.element)).value = yearsVehicleOwned.value;
+              }, populatedData[`yearsVehicleOwned${j}`]);
             }
 
             if (j < bodyData.vehicles.length - 1) {
@@ -662,11 +703,11 @@ module.exports = {
         const clientInputSelect = {
           firstName: {
             element: 'input[name=\'PolicyClientPersonFirstName\']',
-            value: bodyData.firstName || '',
+            value: bodyData.firstName || staticDataObj.firstName,
           },
           lastName: {
             element: 'input[name=\'PolicyClientPersonLastName\']',
-            value: bodyData.lastName || '',
+            value: bodyData.lastName || staticDataObj.lastName,
           },
           socialSecurityStatus: {
             element: 'select[name=\'PolicyClientPersonSocialSecurityNumberStatus\']',
@@ -674,15 +715,15 @@ module.exports = {
           },
           dateOfBirth: {
             element: 'input[name=\'PolicyClientPersonBirthdate\']',
-            value: bodyData.birthDate || '',
+            value: bodyData.birthDate || staticDataObj.birthDate,
           },
           email: {
             element: 'input[name=\'PolicyClientEmailAddress\']',
-            value: bodyData.email || '',
+            value: bodyData.email || staticDataObj.email,
           },
           mailingAddress: {
             element: 'input[name=\'PolicyClientMailingLocationAddressLine1\']',
-            value: bodyData.mailingAddress || '',
+            value: bodyData.mailingAddress || staticDataObj.mailingAddress,
           },
           zipCode: {
             element: 'input[name=\'PolicyClientMailingLocationZipCode\']',
@@ -757,7 +798,7 @@ module.exports = {
             clientInputSelect[`driverDateOfBirth${j}`] = {
               elementId: 'PolicyDriverPersonBirthdate',
               element: 'input[name="PolicyDriverPersonBirthdate"]',
-              value: bodyData.drivers[j].applicantBirthDt || staticDataObj.dateOfBirth,
+              value: bodyData.drivers[j].applicantBirthDt || staticDataObj.birthDate,
             };
             clientInputSelect[`driverGender${j}`] = {
               element: 'select[name=\'PolicyDriverPersonGender\']',
