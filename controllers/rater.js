@@ -153,6 +153,9 @@ module.exports = {
       };
 
       const raterData = await Rater.findOne(newRater);
+      
+      console.log(raterData);
+
       if (raterData) {
         req.session.raterStore = raterData.dataValues;
       }
