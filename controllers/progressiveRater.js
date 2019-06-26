@@ -1172,7 +1172,6 @@ module.exports = {
       const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
-      console.log('RATER STORE: ###', raterStore);
 
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
@@ -2348,7 +2347,8 @@ module.exports = {
       async function saveStep() {
         try {
           console.log('Progressive AL Save Step');
-          await pageQuote.evaluate(() => document.querySelector('#ctl00_HeaderLinksControl_SaveLink').click());
+          await page.waitFor(() => document.querySelector('a#ctl00_HeaderLinksControl_SaveLink'), {timeout: 2000});
+          await pageQuote.evaluate(() => document.querySelector('a#ctl00_HeaderLinksControl_SaveLink').click());
           console.log('Progressive Save Clicked');
         } catch(error) {
           console.log('Progressive Error During Save Click: ', error);
