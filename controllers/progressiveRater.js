@@ -1630,6 +1630,7 @@ module.exports = {
             status: true,
             stepResult,
           };
+          console.log('Progressive Storing Data ###: ', req.session.data);
           browser.close();
           return next();
         }
@@ -2348,6 +2349,7 @@ module.exports = {
         try {
           console.log('Progressive AL Save Step');
           await pageQuote.evaluate(() => document.querySelector('#ctl00_HeaderLinksControl_SaveLink').click());
+          console.log('Progressive Save Clicked');
         } catch(error) {
           browser.close();
           return next();
