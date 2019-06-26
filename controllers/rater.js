@@ -5,7 +5,6 @@ const Rater = require('../models/rater');
 
 module.exports = {
   saveRating: async (req, res, next) => {
-    console.log(req.body.vendorName, req.session.data);
     if (!req.session.data) {
       return next();
     }
@@ -51,7 +50,7 @@ module.exports = {
         stepResult: req.session.data.stepResult || null,
       };
       await Rater.create(newRater);
-      console.log(`${req.body.vendorName} Rater Created:`, newRater);
+      console.log(`${req.body.vendorName} Rater Created`);
     }
 
     /* update rater result */
@@ -66,7 +65,7 @@ module.exports = {
       updateObj.succeeded = true;
       updateObj.error = null;
       await raterData.update(updateObj);
-      console.log(`${req.body.vendorName} Rater Updated:`, updateObj);
+      console.log(`${req.body.vendorName} Rater Updated`);
     }
 
     return next();
@@ -154,8 +153,6 @@ module.exports = {
       };
 
       const raterData = await Rater.findOne(newRater);
-
-      console.log(raterData);
 
       if (raterData) {
         req.session.raterStore = raterData.dataValues;
