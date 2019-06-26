@@ -1197,9 +1197,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
      
@@ -1630,6 +1630,7 @@ module.exports = {
             status: true,
             stepResult,
           };
+          console.log('Progressive Storing Data ###: ', req.session.data);
           browser.close();
           return next();
         }
@@ -2348,9 +2349,9 @@ module.exports = {
         try {
           console.log('Progressive AL Save Step');
           await pageQuote.evaluate(() => document.querySelector('#ctl00_HeaderLinksControl_SaveLink').click());
+          console.log('Progressive Save Clicked');
         } catch(error) {
-          browser.close();
-          return next();
+          console.log('Progressive Error During Save Click: ', error);
         }
       }
 
