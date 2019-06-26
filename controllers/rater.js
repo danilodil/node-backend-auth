@@ -5,6 +5,7 @@ const Rater = require('../models/rater');
 
 module.exports = {
   saveRating: async (req, res, next) => {
+    console.log(req.body.vendorName, req.session.data);
     if (!req.session.data) {
       return next();
     }
