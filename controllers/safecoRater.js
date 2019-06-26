@@ -256,8 +256,8 @@ module.exports = {
           await page.waitFor(5000);
           try {
             try {
-              if (page.$('[id="ui-dialog-title-1"]')) {
-                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
+              if (await page.$('[id="ui-dialog-title-1"]')) {
+                await page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
               console.log('Safeco AL Error during close dialog.');
@@ -269,9 +269,7 @@ module.exports = {
             await page.keyboard.up('Control');
             await page.keyboard.press('Backspace');
             await page.waitFor(1000);
-            await page.type(populatedData.mailingAddress.element, '670 Park Avenue');
-            await page.click(populatedData.zipCode.element);
-            await page.evaluate((zipCode) => { document.querySelector(zipCode.element).value = '36140'; }, populatedData.zipCode);
+            await page.type(populatedData.mailingAddress.element, staticDataObj.mailingAddress);
             await page.evaluate(() => document.querySelector('#Continue').click());
           } catch (e) {
             console.log('catch error');
@@ -349,8 +347,8 @@ module.exports = {
 
             try {
               try {
-                if (page.$('[id="ui-dialog-title-1"]')) {
-                  page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
+                if (await page.$('[id="ui-dialog-title-1"]')) {
+                  await page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
                 }
               } catch (e) {
                 console.log('Safeco AL Error during close dialog');
@@ -390,8 +388,8 @@ module.exports = {
 
           for (const j in bodyData.drivers) {
             try {
-              if (page.$('[id="ui-dialog-title-1"]')) {
-                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
+              if (await page.$('[id="ui-dialog-title-1"]')) {
+                await page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
@@ -473,8 +471,8 @@ module.exports = {
               if (page.$('[id="PolicyDriverCandidates3CandidateRelationship"]')) {
                 await page.select(populatedData.peopleInhouseHold2.element, populatedData.peopleInhouseHold2.value);
               }
-              if (page.$('[id="ui-dialog-title-1"]')) {
-                page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
+              if (await page.$('[id="ui-dialog-title-1"]')) {
+                await page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
               console.log('Safeco AL Error during close dialog');
@@ -516,7 +514,6 @@ module.exports = {
               (document.querySelector(vehicleVin.element)).value = vehicleVin.value;
             }, populatedData[`vehicleVin${j}`]);
             await page.waitFor(1000);
-
             if (await page.$('[id="PolicyVehicleTerritory"]')) {
               await page.evaluate((territory) => {
                 (document.querySelector(territory.element)).value = territory.value;
