@@ -260,7 +260,6 @@ module.exports = {
                 page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
               }
             } catch (e) {
-              console.log('e', e);
               console.log('Safeco AL Error during close dialog.');
             }
             await page.waitFor(1000);
