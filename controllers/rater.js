@@ -8,7 +8,7 @@ module.exports = {
     if (!req.session.data) {
       return next();
     }
-    console.log('Inside saveRating');
+    console.log(`${req.body.vendorName}: Saving Rate`);
 
     let companyId = null;
     let clientId = null;
@@ -49,8 +49,8 @@ module.exports = {
         quoteId: req.session.data.quoteId || null,
         stepResult: req.session.data.stepResult || null,
       };
-      console.log('Rater saved:', newRater);
       await Rater.create(newRater);
+      console.log(`${req.body.vendorName} Rater Created`);
     }
 
     /* update rater result */
@@ -64,14 +64,14 @@ module.exports = {
       updateObj.downPayment = req.session.data.downPayment;
       updateObj.succeeded = true;
       updateObj.error = null;
-      console.log('Rater updated:', updateObj);
       await raterData.update(updateObj);
+      console.log(`${req.body.vendorName} Rater Updated`);
     }
 
     return next();
   },
   getBestRating: async (req, res, next) => {
-    console.log('Inside getBestRating');
+    console.log(`${req.body.vendorName}: Inside Get Best Rate`);
     try {
       const currentUser = req.body.decoded_user;
       let companyId = null;
@@ -101,7 +101,7 @@ module.exports = {
       const raterData = await Rater.findAll(newRater);
 
       if (!raterData) {
-        return next(Boom.badRequest('Error retrieving best rate'));
+        return next(Boom.badRequest(`${req.body.vendorName} Error retrieving best rate`));
       }
       let bestRate = null;
       raterData.forEach(async (oneRate) => {
@@ -119,12 +119,12 @@ module.exports = {
       req.session.data = bestRate;
       return next();
     } catch (error) {
-      return next(Boom.badRequest('Failed to retrieved best rate.'));
+      return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
     }
   },
 
   getOneByName: async (req, res, next) => {
-    console.log('Inside getOneByName');
+    console.log(`${req.body.vendorName}: Inside Get Rater By Name`);
     try {
       const params = req.body;
       const currentUser = req.body.decoded_user;
@@ -153,12 +153,13 @@ module.exports = {
       };
 
       const raterData = await Rater.findOne(newRater);
+
       if (raterData) {
         req.session.raterStore = raterData.dataValues;
       }
       return next();
     } catch (error) {
-      return next(Boom.badRequest('Failed to retrieving rate.'));
+      return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieving rate`));
     }
   },
 
