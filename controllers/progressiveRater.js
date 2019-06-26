@@ -2351,8 +2351,7 @@ module.exports = {
           await pageQuote.evaluate(() => document.querySelector('#ctl00_HeaderLinksControl_SaveLink').click());
           console.log('Progressive Save Clicked');
         } catch(error) {
-          browser.close();
-          return next();
+          console.log('Progressive Error During Save Click: ', error);
         }
       }
 
