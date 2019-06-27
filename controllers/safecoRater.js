@@ -13,12 +13,13 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
+      const params = req.body;
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.ENV === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
 
@@ -39,6 +40,10 @@ module.exports = {
         coverage: false,
         summary: false,
       };
+
+      if (raterStore && raterStore.stepResult) {
+        stepResult = raterStore.stepResult;
+      }
 
       const staticDataObj = {
         mailingAddress: '670 Park Avenue',
@@ -87,18 +92,109 @@ module.exports = {
       } else {
         await newQuoteStep();
       }
-      await policyInfoStep();
-      if (!raterStore) {
-        await GaragedInfoStep();
+      if (!params.stepName) {
+        await policyInfoStep();
+        if (!raterStore) {
+          await GaragedInfoStep();
+        }
+        await houseHoldStep();
+        await driversStep();
+        await vehiclesStep();
+        await finalSteps();
+      } else if (params.stepName === 'namedInsured') {
+        await policyInfoStep();
+        if (!raterStore) {
+          // await GaragedInfoStep();
+        }
+        await houseHoldStep();
+        await page.waitFor(1000);
+        const quoteId = `${populatedData.lastName.value}, ${populatedData.firstName.value}`;
+        req.session.data = {
+          title: 'Successfully finished Safeco AL Named Insured Step',
+          status: true,
+          quoteId: quoteId,
+          stepResult
+        }
+        browser.close();
+        return next();
+      } else if (params.stepName === 'drivers' && raterStore) {
+        await driversStep();
+        if (params.sendSummary && params.sendSummary === 'true') {
+          await finalSteps();
+        } else {
+          const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedData.lastName.value}, ${populatedData.firstName.value}`);
+          req.session.data = {
+            title: 'Successfully finished Safeco AL Drivers Step',
+            status: true,
+            quoteId: quoteId,
+            stepResult
+          };
+          browser.close();
+          return next();
+        }
+      } else if (params.stepName === 'vehicles' && raterStore) {
+        await vehiclesStep();
+        if (params.sendSummary && params.sendSummary === 'true') {
+          await finalSteps();
+        } else {
+          const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedData.lastName.value}, ${populatedData.firstName.value}`);
+          req.session.data = {
+            title: 'Successfully finished Safeco AL Vehicles Step',
+            status: true,
+            quoteId: quoteId,
+            stepResult
+          };
+          browser.close();
+          return next();
+        }
+      } else if (params.stepName === 'summary' && raterStore) {
+        await finalSteps();
       }
-      await houseHoldStep();
-      await DriversStep();
-      await vehiclesStep();
-      await telemeticsStep();
-      await underwritingStep();
-      await coveragesStep();
-      await summaryStep();
 
+      async function existingQuote() {
+        console.log('Safeco AL existing Quote Step');
+        try {
+          await page.waitFor(3000);
+          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+          await page.waitFor(4000);
+          await page.select('#SAMSearchBusinessType', '7|1|');
+          await page.select('#SAMSearchModifiedDateRange', '7');
+          await page.select('#SAMSearchActivityStatus', '8');
+          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedData.lastName.value}, ${populatedData.firstName.value}`));
+          await page.evaluate(() => document.querySelector('#asearch').click());
+          await page.waitFor(2000);
+          await page.click('#divMain > table > tbody > tr > td > a > span');
+          await page.waitFor(2000);
+          await page.evaluate(() => document.querySelector('#aedit').click());
+          await page.waitFor(2000);
+          if (await page.$('[id="btnUnlock"]')) {
+            page.evaluate(() => document.querySelector('#btnUnlock').click());
+          }
+          stepResult.existingQuote = true;
+        } catch (err) {
+          console.log('Error at Safeco AL Existing Quote Step:', err);
+          stepResult.existingQuote = false;
+          req.session.data = {
+            title: 'Failed to retrieved Safeco AL rate.',
+            status: false,
+            error: 'There is some error validations at existing Quote Step',
+            stepResult,
+          };
+          browser.close();
+          return next();
+        }
+      }
+
+      async function finalSteps() {
+        try {
+          await telemeticsStep();
+          await underwritingStep();
+          await coveragesStep();
+          await summaryStep();
+        } catch(error) {
+          console.log('Safeco Error With Final Steps: ', error);
+        }
+      }
 
       async function loginStep() {
         try {
@@ -161,40 +257,6 @@ module.exports = {
         }
       }
 
-      async function existingQuote() {
-        console.log('Safeco AL existing Quote Step');
-        try {
-          await page.waitFor(3000);
-          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'domcontentloaded' });
-          await page.waitFor(4000);
-          await page.select('#SAMSearchBusinessType', '7|1|');
-          await page.select('#SAMSearchModifiedDateRange', '7');
-          await page.select('#SAMSearchActivityStatus', '8');
-          await page.type('#SAMSearchName', bodyData.firstName);
-          await page.evaluate(() => document.querySelector('#asearch').click());
-          await page.waitFor(2000);
-          await page.click('#divMain > table > tbody > tr > td > a > span');
-          await page.waitFor(2000);
-          await page.evaluate(() => document.querySelector('#aedit').click());
-          await page.waitFor(2000);
-          if (await page.$('[id="btnUnlock"]')) {
-            page.evaluate(() => document.querySelector('#btnUnlock').click());
-          }
-          stepResult.existingQuote = true;
-        } catch (err) {
-          console.log('Error at Safeco AL Existing Quote Step:', err);
-          stepResult.existingQuote = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at existing Quote Step',
-            stepResult,
-          };
-          browser.close();
-          return next();
-        }
-      }
-
       async function policyInfoStep() {
         console.log('Safeco AL Policy Information Step.');
 
@@ -234,7 +296,7 @@ module.exports = {
           await page.waitFor(200);
 
           await page.evaluate(() => {
-            const vehicleGaragedAtMailingAddress = document.querySelector('td > span > input[id="PolicyAutoDataVehicleGaragingAddressYNN"]');
+            const vehicleGaragedAtMailingAddress = document.querySelector('td > span > input[id="PolicyAutoDataVehicleGaragingAddressYNY"]');
             vehicleGaragedAtMailingAddress.click();
           });
 
@@ -381,11 +443,24 @@ module.exports = {
         }
       }
 
-      async function DriversStep() {
+      async function driversStep() {
         console.log('Safeco AL Drivers Step.');
         try {
           await page.waitFor(1000);
-
+          if (raterStore && raterStore.quoteId) {
+            try {
+              // await page.waitForSelector('td#tddriver', {timeout: 3000});
+              await page.evaluate(() => {
+                ecfields.noValidate(); __doPostBack('ScreenTabs1','driver');
+                console.log('HIT??');
+                // document.querySelector('td#tddriver').click()
+              });
+              await page.waitFor(50000);
+            } catch(error) {
+              console.log('Safeco Error Navigating To Driver Step: ', error);
+            }
+          }
+          await page.waitFor(5000);
           for (const j in bodyData.drivers) {
             try {
               if (await page.$('[id="ui-dialog-title-1"]')) {
