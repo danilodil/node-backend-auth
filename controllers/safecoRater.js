@@ -6,6 +6,7 @@ const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/environment');
+const { formatDate } = require('../lib/utils');
 
 
 module.exports = {
@@ -13,6 +14,7 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
+      const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
       const params = req.body;
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -84,10 +86,13 @@ module.exports = {
         yearsVehicleOwned: '5',
       };
 
-      const populatedData = await populateKeyValueData();
+      const populatedPolicyInfoObject = await populatePolicyInfoObject();
+      const populatedDriverInfoObject = await populateDriverInfoObject();
+      const populatedVehicleInfoObject = await populateVehicleInfoObject();
+      const populatedUnderwritingObject = await populateUnderwritingObject();
 
       await loginStep();
-      if (raterStore) {
+      if (raterStore && raterStore.quoteId) {
         await existingQuote();
       } else {
         await newQuoteStep();
@@ -100,9 +105,9 @@ module.exports = {
         await vehiclesStep();
         await finalSteps();
       } else {
-        if (params.stepName === 'policyInfo') {
+        if (params.stepName === 'namedInsured') {
           await policyInfoStep();
-          const quoteId = `${populatedData.lastName.value}, ${populatedData.firstName.value}`;
+          const quoteId = `${populatedDataObject.PolicyClientPersonLastName.value}, ${populatedDataObject.PolicyClientPersonFirstName.value}`;
           req.session.data = {
             title: 'Successfully finished Safeco AL Named Insured Step',
             status: true,
@@ -190,7 +195,7 @@ module.exports = {
           await page.select('#SAMSearchBusinessType', '7|1|');
           await page.select('#SAMSearchModifiedDateRange', '7');
           await page.select('#SAMSearchActivityStatus', '8');
-          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedData.lastName.value}, ${populatedData.firstName.value}`));
+          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedDataObject.PolicyClientPersonLastName.value}, ${populatedDataObject.PolicyClientPersonFirstName.value}`));
           await page.evaluate(() => document.querySelector('#asearch').click());
           await page.waitFor(2000);
           await page.click('#divMain > table > tbody > tr > td > a > span');
@@ -256,24 +261,24 @@ module.exports = {
         try {
           console.log('Safeco AL New Quote Step.');
           await page.waitFor(2000);
-          await page.goto(safecoAlRater.NEW_QUOTE_START_URL, { waitUntil: 'load' });
-          await page.waitFor(3000);
-          await page.click('#header > div > div > div.rowcontainer.logo-search-bar-wrapper > div > div > div.col-xs-2.hidden-xs > div > div > div > a');
-          while (true) {
-            await page.waitFor(1000);
-            const pageQuote = await browser.pages();
-            if (pageQuote.length > 2) {
-              page = pageQuote[2];
-              break;
-            }
-          }
+          await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
+          // await page.waitFor(3000);
+          // await page.click('#header > div > div > div.rowcontainer.logo-search-bar-wrapper > div > div > div.col-xs-2.hidden-xs > div > div > div > a');
+          // while (true) {
+          //   await page.waitFor(1000);
+          //   const pageQuote = await browser.pages();
+          //   if (pageQuote.length > 2) {
+          //     page = pageQuote[2];
+          //     break;
+          //   }
+          // }
           // await page.goto(safecoAlRater.NEW_QUOTE_START_NEWBUSINESS, { waitUntil: 'domcontentloaded' });
-          await page.waitFor(3000);
-          await page.waitForSelector('#NextButton', { timeout: 120000 });
-          await page.evaluate(() => {
-            const insuranceType = document.querySelector('#NextButton');
-            insuranceType.click();
-          });
+          // await page.waitFor(3000);
+          // await page.waitForSelector('#NextButton', { timeout: 120000 });
+          // await page.evaluate(() => {
+          //   const insuranceType = document.querySelector('#NextButton');
+          //   insuranceType.click();
+          // });
           stepResult.newQuote = true;
         } catch (err) {
           console.log('Error at Safeco AL New Quote Step:', err);
@@ -291,87 +296,14 @@ module.exports = {
 
       async function policyInfoStep() {
         console.log('Safeco AL Policy Information Step.');
-
         try {
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            ecfields.noValidate(); __doPostBack('ScreenTabs1', 'policyinfo');
+          await page.waitFor(3000);
+          page.on('console', msg => {
+            for (let i = 0; i < msg.args().length; ++i)
+              console.log(`${msg.args()[i]}`);
           });
-          await page.waitFor(1000);
-          await page.waitForSelector('#PolicyEffectiveDate');
-          await page.type('#PolicyEffectiveDate', '05/01/2019');
-          await page.waitFor(200);
-          await page.click(populatedData.firstName.element);
-          if (await page.waitForSelector('#ui-dialog-title-1')) {
-            await page.keyboard.press('Escape');
-          }
-          await page.evaluate((firstName) => { document.querySelector(firstName.element).value = firstName.value; }, populatedData.firstName);
-          await page.waitForSelector('#PolicyClientPersonLastName');
-          await page.evaluate((lastName) => { document.querySelector(lastName.element).value = lastName.value; }, populatedData.lastName);
-
-          await page.select(populatedData.socialSecurityStatus.element, populatedData.socialSecurityStatus.value);
-          await page.click(populatedData.dateOfBirth.element);
-          await page.evaluate((dateOfBirth) => { document.querySelector(dateOfBirth.element).value = dateOfBirth.value; }, populatedData.dateOfBirth);
-          await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
-
-          await page.waitFor(600);
-          await page.evaluate((mailingAddress) => { document.querySelector(mailingAddress.element).value = mailingAddress.value; }, populatedData.mailingAddress);
-          await page.click(populatedData.zipCode.element);
-          await page.evaluate((zipCode) => { document.querySelector(zipCode.element).value = zipCode.value; }, populatedData.zipCode);
-          await page.click(populatedData.city.element);
-          if (await page.waitForSelector('#PolicyProducerName')) {
-            await page.click(populatedData.city.element);
-          }
-          await page.evaluate((city) => { document.querySelector(city.element).value = city.value; }, populatedData.city);
-
-          await page.click(populatedData.state.element);
-          if (await page.waitForSelector('#PolicyProducerName')) {
-            await page.click(populatedData.state.element);
-          }
-          await page.select(populatedData.state.element, populatedData.state.value);
-          await page.waitFor(200);
-
-          await page.evaluate(() => {
-            const vehicleGaragedAtMailingAddress = document.querySelector('td > span > input[id="PolicyAutoDataVehicleGaragingAddressYNY"]');
-            vehicleGaragedAtMailingAddress.click();
-          });
-
-          await page.waitFor(200);
-          await page.click(populatedData.reasonForPolicy.element);
-          await page.select(populatedData.reasonForPolicy.element, populatedData.reasonForPolicy.value);
-          await page.waitFor(200);
-
-          await page.evaluate(() => {
-            const anyReportableIncidents = document.querySelector('td > span > input[id="PolicyAutoDataAnyIncidentsOnPolicyYNN"]');
-            anyReportableIncidents.click();
-          });
-
-          await page.evaluate(() => {
-            const anyWrittenPolicyUsedforDelivery = document.querySelector('td > span > input[id="PolicyAutoDataDeliveryVehicleYNN"]');
-            anyWrittenPolicyUsedforDelivery.click();
-          });
-          await page.evaluate(() => document.querySelector('#Continue').click());
-          await page.waitFor(5000);
-          try {
-            try {
-              if (await page.$('[id="ui-dialog-title-1"]')) {
-                await page.evaluate(() => document.querySelector('#ui-dialog-title-1').click());
-              }
-            } catch (e) {
-              console.log('Safeco AL Error during close dialog.');
-            }
-            await page.waitFor(1000);
-            await page.focus(populatedData.mailingAddress.element);
-            await page.keyboard.down('Control');
-            await page.keyboard.press('A');
-            await page.keyboard.up('Control');
-            await page.keyboard.press('Backspace');
-            await page.waitFor(1000);
-            await page.type(populatedData.mailingAddress.element, staticDataObj.mailingAddress);
-            await page.evaluate(() => document.querySelector('#Continue').click());
-          } catch (e) {
-            console.log('catch error');
-          }
+          await fillPageForm(populatedPolicyInfoObject);
+          await page.waitFor(2000);
           stepResult.policyInfo = true;
         } catch (err) {
           console.log('Error at Safeco AL Policy Information Step:', err);
@@ -493,13 +425,12 @@ module.exports = {
           try {
             await page.evaluate(() => {
               ecfields.noValidate(); __doPostBack('ScreenTabs1', 'driver');
-              console.log('HIT??');
             });
             await page.waitFor(10000);
           } catch (error) {
             console.log('Safeco Error Navigating To Driver Step: ', error);
           }
-          await page.waitFor(5000);
+          await page.waitFor(3000);
           for (const j in bodyData.drivers) {
             try {
               if (await page.$('[id="ui-dialog-title-1"]')) {
@@ -812,48 +743,417 @@ module.exports = {
         return selected;
       }
 
+      async function fillPageForm(pData)  {
+        await page.evaluate(async (data) => {
+          if (ecfields) {
+            ecfields.clearErrors();
+          }
+          if (ecfields.buildModalErr) {
+            ecfields.buildModalErr = function() {};
+          }
+          if (ecfields.buildModalHtml) {
+            ecfields.buildModalHtml = function() {};
+          }
+          function compareTwoStrings(first, second) {
+            first = first.replace(/\s+/g, '')
+            second = second.replace(/\s+/g, '')
+          
+            if (!first.length && !second.length) return 1;                   // if both are empty strings
+            if (!first.length || !second.length) return 0;                   // if only one is empty string
+            if (first === second) return 1;       							 // identical
+            if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
+            if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+          
+            let firstBigrams = new Map();
+            for (let i = 0; i < first.length - 1; i++) {
+              const bigram = first.substring(i, i + 2);
+              const count = firstBigrams.has(bigram)
+                ? firstBigrams.get(bigram) + 1
+                : 1;
+          
+              firstBigrams.set(bigram, count);
+            };
+          
+            let intersectionSize = 0;
+            for (let i = 0; i < second.length - 1; i++) {
+              const bigram = second.substring(i, i + 2);
+              const count = firstBigrams.has(bigram)
+                ? firstBigrams.get(bigram)
+                : 0;
+          
+              if (count > 0) {
+                firstBigrams.set(bigram, count - 1);
+                intersectionSize++;
+              }
+            }
+          
+            return (2.0 * intersectionSize) / (first.length + second.length - 2);
+          }
+          
+          function findBestMatch(mainString, targetStrings) {
+            if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+            
+            const ratings = [];
+            let bestMatchIndex = 0;
+          
+            for (let i = 0; i < targetStrings.length; i++) {
+              const currentTargetString = targetStrings[i];
+              const currentRating = compareTwoStrings(mainString, currentTargetString)
+              ratings.push({target: currentTargetString, rating: currentRating})
+              if (currentRating > ratings[bestMatchIndex].rating) {
+                bestMatchIndex = i
+              }
+            }
+            
+            
+            const bestMatch = ratings[bestMatchIndex]
+            
+            return { ratings, bestMatch, bestMatchIndex };
+          }
+          
+          function areArgsValid(mainString, targetStrings) {
+            if (typeof mainString !== 'string') return false;
+            if (!Array.isArray(targetStrings)) return false;
+            if (!targetStrings.length) return false;
+            if (targetStrings.find(s => typeof s !== 'string')) return false;
+            return true;
+          }
+          async function getBestValue(value, data) {
+            try {
+              const optionsArray = [...data];
+              const nArr = optionsArray.map(entry => entry.text);
+              const vArr = optionsArray.map(entry => entry.value);
+              if (value && value.length && value.length > 0 && value.length < 2) {
+                if (vArr.indexOf(value) !== -1) {
+                  return value;
+                }
+              } else if (value && value.length > 1) {
+                const nBestMatch = await findBestMatch(value, nArr);
+                const vBestMatch = await findBestMatch(value, vArr);
+                let i = 0;
+                if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+                  i = nBestMatch.bestMatchIndex;
+                } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+                  i = vBestMatch.bestMatchIndex;
+                } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  i = nBestMatch.bestMatchIndex;
+                }
+                const bestValue = optionsArray[i].value;
+                return bestValue;
+              } else if (value) {
+                return value || '';
+              } else {
+                return '';
+              }
+            } catch(error) {
+              console.log(`Error: ${error}`);
+            }
+          }
+          let list = data;
+          for (let fieldName in list)   {
+            const ecField = list[fieldName] ? list[fieldName] : null;
+            const xField = data[fieldName] ? data[fieldName] : null;
+            if (ecField) {
+              ecField.required = false;
+              ecField.rules = [];
+            }
+            if (ecField && xField) {
+              const el = document.getElementById(fieldName);
+              if (el && el.onchange) {
+                el.onchange = null;
+              }
+              if (el && xField.value) {
+                if (el.type === 'text' && xField.value) {
+                  el.value = xField.value;
+                } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
+                  el.value = await getBestValue(xField.value, el.options);
+                } else if (el.type === 'radio' || el.type === 'checkbox') {
+                  el.checked = (xField.value && xField.value === true) ? true : false;
+                }
+              }
+            }
+          }
+          const elS = document.getElementById('Save');
+          const elC = document.getElementById('Continue');
+          if (elC) {
+            elC.click();
+          } else if (elS) {
+            elS.click();
+          } else {
+            console.log('Safeco Continue Element Not Found On Policy Info');
+          }
+        }, pData);
+      }
+
+      function populatePolicyInfoObject() {
+        const policyInfoData = {
+          PolicyAutoDataAnyIncidentsOnPolicyYNN: {type: "radio", value: true, name: "PolicyAutoDataAnyIncidentsOnPolicyYNN"},
+          PolicyAutoDataDeliveryVehicleYNN: {type: "radio", value: true, name: "PolicyAutoDataDeliveryVehicleYNN"},
+          PolicyAutoDataVehicleGaragingAddressYNY: {type: "radio", value: true, name: "PolicyAutoDataVehicleGaragingAddressYNY"},
+          PolicyAutoDataVerifiableYNN: {type: "radio", value: true, name: "PolicyAutoDataVerifiableYNN"},
+          PolicyAutoDataAutoBusinessType: {type: "select-one", value: "N", name: "PolicyAutoDataAutoBusinessType"},
+          PolicyClientEmailAddress: {type: "text", value: bodyData.email || staticDataObj.email, name: "PolicyClientEmailAddress"},
+          PolicyClientMailingLocationAddressLine1: {type: "text", value: bodyData.mailingAddress || staticDataObj.mailingAddress, name: "PolicyClientMailingLocationAddressLine1"},
+          // PolicyClientMailingLocationAddressLine2: {type: "text", value: "", name: "PolicyClientMailingLocationAddressLine2"},
+          PolicyClientMailingLocationCity: {type: "text", value: bodyData.city || staticDataObj.city, name: "PolicyClientMailingLocationCity"},
+          PolicyClientMailingLocationState: {type: "select-one", value: bodyData.state || staticDataObj.state, name: "PolicyClientMailingLocationState"},
+          PolicyClientMailingLocationZipCode: {type: "text", value: bodyData.zipCode || staticDataObj.zipCode, name: "PolicyClientMailingLocationZipCode"},
+          PolicyClientPersonBirthdate: {type: "text", value: bodyData.birthDate || staticDataObj.birthDate, name: "PolicyClientPersonBirthdate"},
+          PolicyClientPersonFirstName: {type: "text", value: bodyData.firstName || staticDataObj.firstName, name: "PolicyClientPersonFirstName"},
+          PolicyClientPersonLastName: {type: "text", value: bodyData.lastName || staticDataObj.lastName, name: "PolicyClientPersonLastName"},
+          PolicyClientPersonSocialSecurityNumberStatus: {type: "select-one", value: "R", name: "PolicyClientPersonSocialSecurityNumberStatus"},
+          PolicyEffectiveDate: {type: "text", value: tomorrow, name: "PolicyEffectiveDate"},
+          PolicyRatingState: {type: "select-one", value: "1", name: "PolicyRatingState"},
+          // PolicyClientMailingLocationOverrideUSPSAddressEditYN: {type: "checkbox", value: "", name: "PolicyClientMailingLocationOverrideUSPSAddressEditYN"},
+          // PolicyInternationalTravelerYN: {type: "checkbox", value: "", name: "PolicyInternationalTravelerYN"},
+          // PolicyLaunchAKTruePricingPOAUserYN: {type: "select-one", value: "", name: "PolicyLaunchAKTruePricingPOAUserYN"},
+          // PolicyLaunchPriceMatchUserYN: {type: "select-one", value: "", name: "PolicyLaunchPriceMatchUserYN"},
+          // PolicyLaunchSpecialtyLowTouchLaunchValues: {type: "select-one", value: "", name: "PolicyLaunchSpecialtyLowTouchLaunchValues"},
+          // PolicyOfferCode: {type: "text", value: "", name: "PolicyOfferCode"},
+          // PolicyQuoteDate: {type: "text", value: "", name: "PolicyQuoteDate"},
+          // PolicyAutoDataAccidentFreeDate: {type: "text", value: "", name: "PolicyAutoDataAccidentFreeDate"},
+          // PolicyDescriptiveName: {type: "text", value: "", name: "PolicyDescriptiveName"},
+          // PolicyClientAgentCustomerID: {type: "text", value: "", name: "PolicyClientAgentCustomerID"},
+          // PolicyAutoDataDriverAffidavitMsgYN: {type: "text", value: "", name: "PolicyAutoDataDriverAffidavitMsgYN"},
+          // PolicyAutoDataLongevityCrDate: {type: "text", value: "", name: "PolicyAutoDataLongevityCrDate"},
+          // PolicyAutoDataMultipleCarDiscYN: {type: "checkbox", value: "", name: "PolicyAutoDataMultipleCarDiscYN"},
+          // PolicyAutoDataNamedNonOwnerYN: {type: "checkbox", value: "", name: "PolicyAutoDataNamedNonOwnerYN"},
+          // PolicyAutoDataRewindRetiredMessageDisplayedYN: {type: "text", value: "", name: "PolicyAutoDataRewindRetiredMessageDisplayedYN"},
+          // PolicyAutoDataSNAP3StateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP3StateYN"},
+          // PolicyBookTransferID: {type: "text", value: "", name: "PolicyBookTransferID"},
+          // PolicyAcordClientAppName: {type: "hidden", value: "", name: "PolicyAcordClientAppName"},
+          // PolicyDiscountText: {type: "hidden", value: "", name: "PolicyDiscountText"},
+          // PolicyAcordClientAppOrg: {type: "hidden", value: "", name: "PolicyAcordClientAppOrg"},
+          // PolicyInternationalRVHiddenValue: {type: "hidden", value: "", name: "PolicyInternationalRVHiddenValue"},
+          // PolicyAgencyEmailAddress: {type: "hidden", value: "", name: "PolicyAgencyEmailAddress"},
+          // PolicyAgencyPhoneNumber: {type: "hidden", value: "", name: "PolicyAgencyPhoneNumber"},
+          // PolicyAgentNumber: {type: "select-one", value: "", name: "PolicyAgentNumber"},
+          // PolicyAutoDataCaliforniaAutoNewDiscountsYN: {type: "hidden", value: "", name: "PolicyAutoDataCaliforniaAutoNewDiscountsYN"},
+          // PolicyAutoDataSNAP3MultipleVersionStateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP3MultipleVersionStateYN"},
+          // PolicyOriginSource: {type: "hidden", value: "", name: "PolicyOriginSource"},
+          // PolicyOriginalQuoteDate: {type: "text", value: "", name: "PolicyOriginalQuoteDate"},
+          // PolicyProducerName: {type: "text", value: "", name: "PolicyProducerName"},
+          // PolicyQuoteEntryID: {type: "text", value: "", name: "PolicyQuoteEntryID"},
+          // PolicyAutoDatarPolicyNumberChildren: {type: "hidden", value: "", name: "PolicyAutoDatarPolicyNumberChildren"},
+          // PolicyRewriteCustomerSinceDate: {type: "hidden", value: "", name: "PolicyRewriteCustomerSinceDate"},
+          // PolicySourceDataSplitCountLOB: {type: "hidden", value: "", name: "PolicySourceDataSplitCountLOB"},
+          // PolicyAutoDatarPolicyNumberMarried: {type: "hidden", value: "", name: "PolicyAutoDatarPolicyNumberMarried"},
+          // PolicyClientPersonMiddleName: {type: "text", value: "", name: "PolicyClientPersonMiddleName"},
+        }
+        return policyInfoData;
+      }
+      function populateUnderwritingObject() {
+        const underwritingInfoData = {
+          PolicyAutoDataPrevBILimit: {type: "select-one", value: "", name: "PolicyAutoDataPrevBILimit"},
+          PolicyAutoDataPrevCSLLimit: {type: "select-one", value: "", name: "PolicyAutoDataPrevCSLLimit"},
+          PolicyAutoDataPrevLiabilityType: {type: "select-one", value: "", name: "PolicyAutoDataPrevLiabilityType"},
+          PolicyAutoDataPriorAutoPolicyExpirationDate: {type: "text", value: "", name: "PolicyAutoDataPriorAutoPolicyExpirationDate"},
+          PolicyAutoDataResidenceType: {type: "select-one", value: "", name: "PolicyAutoDataResidenceType"},
+          PolicyAutoDataResidenceTypeOtherDesc: {type: "text", value: "", name: "PolicyAutoDataResidenceTypeOtherDesc"},
+          PolicyCurrentInsuranceValue: {type: "select-one", value: "", name: "PolicyCurrentInsuranceValue"},
+          PolicyPrevInsuranceCarrier: {type: "text", value: "", name: "PolicyPrevInsuranceCarrier"},
+          PolicyPrevInsuranceCarrierValue: {type: "select-one", value: "", name: "PolicyPrevInsuranceCarrierValue"},
+          PolicyPriorPolicyDuration: {type: "text", value: "", name: "PolicyPriorPolicyDuration"},
+          // PolicyAutoDataAutoBusinessType: {type: "hidden", value: "", name: "PolicyAutoDataAutoBusinessType"},
+          // PolicyAutoDataSNAP3StateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP3StateYN"},
+          // PolicyBTSFCallStatus: {type: "hidden", value: "", name: "PolicyBTSFCallStatus"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoCurrentInsuranceValue: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoCurrentInsuranceValue"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevBILimit: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevBILimit"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevCSLLimit: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevCSLLimit"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevInsuranceCarrier: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevInsuranceCarrier"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevInsuranceCarrierValue: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevInsuranceCarrierValue"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevLiabilityType: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPrevLiabilityType"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPriorAutoPolicyExpirationDate: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPriorAutoPolicyExpirationDate"},
+          // PolicyCLUECCAgentEnteredCurrentCarrierInfoPriorPolicyDuration: {type: "hidden", value: "", name: "PolicyCLUECCAgentEnteredCurrentCarrierInfoPriorPolicyDuration"},
+          // PolicyCLUECCReportResultsCCAgentOverrideYN: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCCAgentOverrideYN"},
+          // PolicyCLUECCReportResultsCCOrderResult: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCCOrderResult"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoCurrentInsuranceValue: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoCurrentInsuranceValue"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPrevBILimit: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPrevBILimit"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPrevCSLLimit: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPrevCSLLimit"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPrevInsuranceCarrier: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPrevInsuranceCarrier"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPrevInsuranceCarrierValue: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPrevInsuranceCarrierValue"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPrevLiabilityType: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPrevLiabilityType"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPriorAutoPolicyExpirationDate: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPriorAutoPolicyExpirationDate"},
+          // PolicyCLUECCReportResultsCurrentCarrierInfoPriorPolicyDuration: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsCurrentCarrierInfoPriorPolicyDuration"},
+          // PolicyCLUECCReportResultsReconciliationAction: {type: "hidden", value: "", name: "PolicyCLUECCReportResultsReconciliationAction"},
+          // PolicyCLUEReportID: {type: "hidden", value: "", name: "PolicyCLUEReportID"},
+          // PolicyClientNameLine1: {type: "hidden", value: "", name: "PolicyClientNameLine1"},
+          // PolicyClientNameLine2: {type: "hidden", value: "", name: "PolicyClientNameLine2"},
+          // PolicyDiscountText: {type: "hidden", value: "", name: "PolicyDiscountText"},
+          // PolicyDrivers1DriverType: {type: "hidden", value: "", name: "PolicyDrivers1DriverType"},
+          // PolicyInternationalTravelerYN: {type: "hidden", value: "", name: "PolicyInternationalTravelerYN"},
+          // PolicyRatingState: {type: "hidden", value: "", name: "PolicyRatingState"},
+          // PolicyXrefPolicies1PolicyNumber: {type: "text", value: "", name: "PolicyXrefPolicies1PolicyNumber"},
+          // PolicyXrefPolicies1PolicyType: {type: "select-one", value: "", name: "PolicyXrefPolicies1PolicyType"},
+          // PolicyXrefPolicies2PolicyNumber: {type: "text", value: "", name: "PolicyXrefPolicies2PolicyNumber"},
+          // PolicyXrefPolicies2PolicyType: {type: "select-one", value: "", name: "PolicyXrefPolicies2PolicyType"},
+          // PolicyXrefPolicies3PolicyNumber: {type: "text", value: "", name: "PolicyXrefPolicies3PolicyNumber"},
+          // PolicyXrefPolicies3PolicyType: {type: "select-one", value: "", name: "PolicyXrefPolicies3PolicyType"},
+          // PolicyXrefPolicies4PolicyNumber: {type: "text", value: "", name: "PolicyXrefPolicies4PolicyNumber"},
+          // PolicyXrefPolicies4PolicyType: {type: "select-one", value: "", name: "PolicyXrefPolicies4PolicyType"},
+        }
+        return underwritingInfoData;
+      }
+
+      function populateDriverInfoObject() {
+        if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
+          const driversInfoData = [];
+          for (const j in bodyData.drivers) {
+            const driverInfoData = {
+              PolicyDriverPersonFirstName: {type: "text", value: "", name: "PolicyDriverPersonFirstName"},
+              PolicyDriverPersonLastName: {type: "text", value: "", name: "PolicyDriverPersonLastName"},
+              PolicyDriverPersonEducation: {type: "select-one", value: "", name: "PolicyDriverPersonEducation"},
+              PolicyDriverPersonGender: {type: "select-one", value: "", name: "PolicyDriverPersonGender"},
+              PolicyDriverPersonBirthdate: {type: "text", value: "", name: "PolicyDriverPersonBirthdate"},
+              PolicyDriverPersonMaritalStatus: {type: "select-one", value: "", name: "PolicyDriverPersonMaritalStatus"},
+              PolicyDriverPersonSocialSecurityNumberStatus: {type: "select-one", value: "", name: "PolicyDriverPersonSocialSecurityNumberStatus"},
+              PolicyDriverRelationshipToInsured: {type: "select-one", value: "", name: "PolicyDriverRelationshipToInsured"},
+              PolicyDriverLicenseState: {type: "select-one", value: "", name: "PolicyDriverLicenseState"},
+              PolicyDriverLicenseSuspendedRevokedYNN: {type: "radio", value: false, name: "PolicyDriverLicenseSuspendedRevokedYNN"},
+              PolicyDriverPersonBusinessTypeCategory: {type: "select-one", value: "", name: "PolicyDriverPersonBusinessTypeCategory"},
+              PolicyDriverPersonCommonOccupationCategory: {type: "select-one", value: "", name: "PolicyDriverPersonCommonOccupationCategory"},
+              PolicyDriverPersonOccupationCategory: {type: "select-one", value: "", name: "PolicyDriverPersonOccupationCategory"},
+              PolicyDriverSR22FilingYNN: {type: "radio", value: false, name: "PolicyDriverSR22FilingYNN"},
+              PolicyDriverSR22FilingYN2N: {type: "radio", value: false, name: "PolicyDriverSR22FilingYN2N"},
+              PolicyDriverFirstAgeLicensed: {type: "text", value: "", name: "PolicyDriverFirstAgeLicensed"},
+              // PolicyAutoDataCaliforniaAutoNewDiscountsYN: {type: "hidden", value: "", name: "PolicyAutoDataCaliforniaAutoNewDiscountsYN"},
+              // PolicyAutoDataNamedNonOwnerYN: {type: "hidden", value: "", name: "PolicyAutoDataNamedNonOwnerYN"},
+              // PolicyAutoDataSNAP3StateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP3StateYN"},
+              // PolicyClientAgentCustomerID: {type: "hidden", value: "", name: "PolicyClientAgentCustomerID"},
+              // PolicyDriverAccidentPrevCourseDate: {type: "text", value: "", name: "PolicyDriverAccidentPrevCourseDate"},
+              // PolicyDriverDistantStudentDiscYN: {type: "checkbox", value: "", name: "PolicyDriverDistantStudentDiscYN"},
+              // PolicyDriverDriverTrainingCrYN: {type: "checkbox", value: "", name: "PolicyDriverDriverTrainingCrYN"},
+              // PolicyDriverDriverType: {type: "select-one", value: "", name: "PolicyDriverDriverType"},
+              // PolicyDriverDriverTypeReason: {type: "select-one", value: "", name: "PolicyDriverDriverTypeReason"},
+              // PolicyDriverGoodStudentDiscYN: {type: "checkbox", value: "", name: "PolicyDriverGoodStudentDiscYN"},
+              // PolicyDriverLicenseNumberOtherOverrideYN: {type: "checkbox", value: "", name: "PolicyDriverLicenseNumberOtherOverrideYN"},
+              // PolicyDriverMADriverTrainingInd: {type: "hidden", value: "", name: "PolicyDriverMADriverTrainingInd"},
+              // PolicyDriverPersonBirthdateFromVendorYN: {type: "text", value: "", name: "PolicyDriverPersonBirthdateFromVendorYN"},
+              // PolicyDriverPersonMiddleName: {type: "text", value: "", name: "PolicyDriverPersonMiddleName"},
+              // PolicyDriverSR22FilingCaseNumber: {type: "text", value: "", name: "PolicyDriverSR22FilingCaseNumber"},
+              // PolicyDriverSR22FilingCaseNumber2: {type: "text", value: "", name: "PolicyDriverSR22FilingCaseNumber2"},
+              // PolicyDriverSR22FilingDate: {type: "text", value: "", name: "PolicyDriverSR22FilingDate"},
+              // PolicyDriverSR22FilingDate2: {type: "text", value: "", name: "PolicyDriverSR22FilingDate2"},
+              // PolicyDriverSR22FilingEndDate: {type: "text", value: "", name: "PolicyDriverSR22FilingEndDate"},
+              // PolicyDriverSR22FilingEndDate2: {type: "text", value: "", name: "PolicyDriverSR22FilingEndDate2"},
+              // PolicyDriverSR22FilingState: {type: "select-one", value: "", name: "PolicyDriverSR22FilingState"},
+              // PolicyDriverSR22FilingState2: {type: "select-one", value: "", name: "PolicyDriverSR22FilingState2"},
+              // PolicyEffectiveDate: {type: "hidden", value: "", name: "PolicyEffectiveDate"},
+              // PolicyFiveByteReasonCodeYN: {type: "hidden", value: "", name: "PolicyFiveByteReasonCodeYN"},
+              // PolicyInternationalTravelerYN: {type: "hidden", value: "", name: "PolicyInternationalTravelerYN"},
+              // PolicyLaunchPriceMatchUserYN: {type: "hidden", value: "", name: "PolicyLaunchPriceMatchUserYN"},
+              // PolicyProducerName: {type: "hidden", value: "", name: "PolicyProducerName"},
+              // PolicyQuoteDate: {type: "hidden", value: "", name: "PolicyQuoteDate"},
+              // PolicySourceDataTransitionSignal: {type: "hidden", value: "", name: "PolicySourceDataTransitionSignal"},
+              // PolicyTermBeginDate: {type: "hidden", value: "", name: "PolicyTermBeginDate"},
+              // PolicyscrSNAPVersion: {type: "hidden", value: "", name: "PolicyscrSNAPVersion"}
+            }
+            driversInfoData.push(driverInfoData);
+          }
+        }
+        return driversInfoData;
+      }
+
+      function populateVehicleInfoObject() {
+        if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
+          const vehiclesInfoData = [];
+          for (const j in bodyData.vehicles) {
+            const vehicleInfoData = {
+              PolicyVehicleVINKnownYNY: {type: "radio", value: true, name: "PolicyVehicleVINKnownYNY"},
+              PolicyVehicleVIN: {type: "text", value: "", name: "PolicyVehicleVIN"},
+              PolicyVehicleAnnualMiles: {type: "text", value: "", name: "PolicyVehicleAnnualMiles"},
+              PolicyVehicleYearsVehicleOwned: {type: "text", value: "", name: "PolicyVehicleYearsVehicleOwned"},
+              PolicyVehicleUse: {type: "select-one", value: "", name: "PolicyVehicleUse"},
+              PolicyVehicleMake: {type: "select-one", value: "", name: "PolicyVehicleMake"},
+              PolicyVehicleModel: {type: "text", value: "", name: "PolicyVehicleModel"},
+              PolicyVehicleModelYear: {type: "text", value: "", name: "PolicyVehicleModelYear"},
+              PolicyVehicleBodystyle: {type: "select-one", value: "", name: "PolicyVehicleBodystyle"},
+              PolicyVehicleCostNew: {type: "text", value: "", name: "PolicyVehicleCostNew"},
+              PolicyVehicles1RightTrackStatus: {type: "select-one", value: "", name: "PolicyVehicles1RightTrackStatus"},
+              // PolicyAgencyState: {type: "hidden", value: "", name: "PolicyAgencyState"},
+              // PolicyAgentLowMileageEligibleYN: {type: "hidden", value: "", name: "PolicyAgentLowMileageEligibleYN"},
+              // PolicyAgentNumber: {type: "hidden", value: "", name: "PolicyAgentNumber"},
+              // PolicyAutoDataGaragingIBSZipMismatchEditFiredYN: {type: "hidden", value: "", name: "PolicyAutoDataGaragingIBSZipMismatchEditFiredYN"},
+              // PolicyAutoDataNYInsScoreEditFiredYN: {type: "hidden", value: "", name: "PolicyAutoDataNYInsScoreEditFiredYN"},
+              // PolicyAutoDataNewAutoContractStateYN: {type: "hidden", value: "", name: "PolicyAutoDataNewAutoContractStateYN"},
+              // PolicyAutoDataSNAP2StateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP2StateYN"},
+              // PolicyAutoDataSNAP3StateYN: {type: "hidden", value: "", name: "PolicyAutoDataSNAP3StateYN"},
+              // PolicyEffectiveDate: {type: "hidden", value: "", name: "PolicyEffectiveDate"},
+              // PolicyOriginSource: {type: "hidden", value: "", name: "PolicyOriginSource"},
+              // PolicyQuoteDate: {type: "hidden", value: "", name: "PolicyQuoteDate"},
+              // PolicyRatingState: {type: "hidden", value: "", name: "PolicyRatingState"},
+              // PolicyTermBeginDate: {type: "hidden", value: "", name: "PolicyTermBeginDate"},
+              // PolicyVehicleAntiTheftCrType: {type: "select-one", value: "", name: "PolicyVehicleAntiTheftCrType"},
+              // PolicyVehicleAntilockBrakingDiscYN: {type: "checkbox", value: "", name: "PolicyVehicleAntilockBrakingDiscYN"},
+              // PolicyVehicleAntiqueClassicIndicator: {type: "select-one", value: "", name: "PolicyVehicleAntiqueClassicIndicator"},
+              // PolicyVehicleCorporateOwnedYN: {type: "checkbox", value: "", name: "PolicyVehicleCorporateOwnedYN"},
+              // PolicyVehicleDaysPerWeekDrivenToWorkSchool: {type: "select-one", value: "", name: "PolicyVehicleDaysPerWeekDrivenToWorkSchool"},
+              // PolicyVehicleLowMileageYN: {type: "checkbox", value: "", name: "PolicyVehicleLowMileageYN"},
+              // PolicyVehicleMilesOneWayToWorkSchool: {type: "text", value: "", name: "PolicyVehicleMilesOneWayToWorkSchool"},
+              // PolicyVehicleNumberOfCylinders: {type: "select-one", value: "", name: "PolicyVehicleNumberOfCylinders"},
+              // PolicyVehicleNumberOfDoors: {type: "select-one", value: "", name: "PolicyVehicleNumberOfDoors"},
+              // PolicyVehiclePassiveRestraintDiscType: {type: "select-one", value: "", name: "PolicyVehiclePassiveRestraintDiscType"},
+              // PolicyVehiclePerformanceVehicleType: {type: "select-one", value: "", name: "PolicyVehiclePerformanceVehicleType"},
+              // PolicyVehiclePolkBodystyle: {type: "hidden", value: "", name: "PolicyVehiclePolkBodystyle"},
+              // PolicyVehiclePolkMake: {type: "hidden", value: "", name: "PolicyVehiclePolkMake"},
+              // PolicyVehiclePolkModel: {type: "hidden", value: "", name: "PolicyVehiclePolkModel"},
+              // PolicyVehiclePolkVINPrefix: {type: "hidden", value: "", name: "PolicyVehiclePolkVINPrefix"},
+              // PolicyVehiclePolkVISReturnCode: {type: "hidden", value: "", name: "PolicyVehiclePolkVISReturnCode"},
+              // PolicyVehicleRecVehicleAvgValue: {type: "hidden", value: "", name: "PolicyVehicleRecVehicleAvgValue"},
+              // PolicyVehicleSettlementOption: {type: "select-one", value: "", name: "PolicyVehicleSettlementOption"},
+              // PolicyVehicleSymbol: {type: "text", value: "", name: "PolicyVehicleSymbol"},
+              // PolicyVehicleTelematicsEligibilityIndicator: {type: "text", value: "", name: "PolicyVehicleTelematicsEligibilityIndicator"},
+              // PolicyVehicleValidationAttemptedYN: {type: "hidden", value: "", name: "PolicyVehicleValidationAttemptedYN"},
+              // PolicyVehiclemp_GaragedLocation_ID: {type: "select-one", value: "", name: "PolicyVehiclemp_GaragedLocation_ID"},
+              // PolicyVehiclemp_PrincipalOperator_ID: {type: "select-one", value: "", name: "PolicyVehiclemp_PrincipalOperator_ID"}
+            }
+            vehiclesInfoData.push(vehicleInfoData);
+          }
+        }
+        return vehiclesInfoData;
+      }
       function populateKeyValueData() {
         const clientInputSelect = {
-          firstName: {
-            element: 'input[name=\'PolicyClientPersonFirstName\']',
-            value: bodyData.firstName || staticDataObj.firstName,
-          },
-          lastName: {
-            element: 'input[name=\'PolicyClientPersonLastName\']',
-            value: bodyData.lastName || staticDataObj.lastName,
-          },
-          socialSecurityStatus: {
-            element: 'select[name=\'PolicyClientPersonSocialSecurityNumberStatus\']',
-            value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus,
-          },
-          dateOfBirth: {
-            element: 'input[name=\'PolicyClientPersonBirthdate\']',
-            value: bodyData.birthDate || staticDataObj.birthDate,
-          },
-          email: {
-            element: 'input[name=\'PolicyClientEmailAddress\']',
-            value: bodyData.email || staticDataObj.email,
-          },
-          mailingAddress: {
-            element: 'input[name=\'PolicyClientMailingLocationAddressLine1\']',
-            value: bodyData.mailingAddress || staticDataObj.mailingAddress,
-          },
-          zipCode: {
-            element: 'input[name=\'PolicyClientMailingLocationZipCode\']',
-            value: bodyData.zipCode || staticDataObj.zipCode,
-          },
-          city: {
-            element: 'input[name=\'PolicyClientMailingLocationCity\']',
-            value: bodyData.city || staticDataObj.city,
-          },
-          state: {
-            element: 'select[name=\'PolicyClientMailingLocationState\']',
-            value: bodyData.state || staticDataObj.state,
-          },
-          reasonForPolicy: {
-            element: 'select[name=\'PolicyAutoDataAutoBusinessType\']',
-            value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy,
-          },
+          // firstName: {
+          //   element: 'input[name=\'PolicyClientPersonFirstName\']',
+          //   value: bodyData.firstName || staticDataObj.firstName,
+          // },
+          // lastName: {
+          //   element: 'input[name=\'PolicyClientPersonLastName\']',
+          //   value: bodyData.lastName || staticDataObj.lastName,
+          // },
+          // socialSecurityStatus: {
+          //   element: 'select[name=\'PolicyClientPersonSocialSecurityNumberStatus\']',
+          //   value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus,
+          // },
+          // dateOfBirth: {
+          //   element: 'input[name=\'PolicyClientPersonBirthdate\']',
+          //   value: bodyData.birthDate || staticDataObj.birthDate,
+          // },
+          // email: {
+          //   element: 'input[name=\'PolicyClientEmailAddress\']',
+          //   value: bodyData.email || staticDataObj.email,
+          // },
+          // mailingAddress: {
+          //   element: 'input[name=\'PolicyClientMailingLocationAddressLine1\']',
+          //   value: bodyData.mailingAddress || staticDataObj.mailingAddress,
+          // },
+          // zipCode: {
+          //   element: 'input[name=\'PolicyClientMailingLocationZipCode\']',
+          //   value: bodyData.zipCode || staticDataObj.zipCode,
+          // },
+          // city: {
+          //   element: 'input[name=\'PolicyClientMailingLocationCity\']',
+          //   value: bodyData.city || staticDataObj.city,
+          // },
+          // state: {
+          //   element: 'select[name=\'PolicyClientMailingLocationState\']',
+          //   value: bodyData.state || staticDataObj.state,
+          // },
+          // reasonForPolicy: {
+          //   element: 'select[name=\'PolicyAutoDataAutoBusinessType\']',
+          //   value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy,
+          // },
           garagedAddress: {
             element: 'input[name=\'PolicyLocations2AddressLine1\']',
             value: staticDataObj.garagedAddress || '',
