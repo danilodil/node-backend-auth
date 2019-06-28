@@ -302,7 +302,7 @@ module.exports = {
             for (let i = 0; i < msg.args().length; ++i)
               console.log(`${msg.args()[i]}`);
           });
-          await fillPageForm(populatedPolicyInfoObject);
+          await fillPageForm(populatedPolicyInfoObject, 'driver');
           await page.waitFor(2000);
           stepResult.policyInfo = true;
         } catch (err) {
@@ -743,8 +743,9 @@ module.exports = {
         return selected;
       }
 
-      async function fillPageForm(pData)  {
-        await page.evaluate(async (data) => {
+      // nextStep can be 'policyinfo', 'vehicle', 'driver', 'telematics', 'underwriting' 'coverages', 'summary'
+      async function fillPageForm(pData, nextStep)  {
+        await page.evaluate(async (data, nextStep) => {
           if (ecfields) {
             ecfields.clearErrors();
           }
@@ -873,16 +874,9 @@ module.exports = {
               }
             }
           }
-          const elS = document.getElementById('Save');
-          const elC = document.getElementById('Continue');
-          if (elC) {
-            elC.click();
-          } else if (elS) {
-            elS.click();
-          } else {
-            console.log('Safeco Continue Element Not Found On Policy Info');
-          }
-        }, pData);
+          ecfields.noValidate(); 
+          __doPostBack('ScreenTabs1',nextStep);
+        }, pData, nextStep);
       }
 
       function populatePolicyInfoObject() {
