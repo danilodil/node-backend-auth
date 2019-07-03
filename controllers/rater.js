@@ -37,6 +37,7 @@ module.exports = {
     /* create new rater result */
     const isSucceeded = (req.session && req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
     if (!raterData) {
+      console.log(req.session.data);
       const newRater = {
         companyId,
         clientId,
@@ -47,6 +48,7 @@ module.exports = {
         downPayment: req.session.data.downPayment || null,
         error: req.session.data.error || null,
         quoteId: req.session.data.quoteId || null,
+        quoteIds: req.session.data.quoteIds || null,
         stepResult: req.session.data.stepResult || null,
       };
       await Rater.create(newRater);
@@ -57,6 +59,7 @@ module.exports = {
     const updateObj = {
       stepResult: req.session.data.stepResult || null,
       quoteId: req.session.data.quoteId || null,
+      quoteIds: req.session.data.quoteIds || null,
     };
     if (raterData && req.session.data.totalPremium && req.session.data.status) {
       updateObj.totalPremium = req.session.data.totalPremium;
@@ -64,6 +67,9 @@ module.exports = {
       updateObj.downPayment = req.session.data.downPayment;
       updateObj.succeeded = true;
       updateObj.error = null;
+      await raterData.update(updateObj);
+      console.log(`${req.body.vendorName} Rater Updated`);
+    } else if (raterData) {
       await raterData.update(updateObj);
       console.log(`${req.body.vendorName} Rater Updated`);
     }
@@ -149,7 +155,7 @@ module.exports = {
           clientId,
           vendorName: params.vendorName,
         },
-        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'quoteIds'],
       };
 
       const raterData = await Rater.findOne(newRater);
