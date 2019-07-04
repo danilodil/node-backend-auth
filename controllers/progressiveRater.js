@@ -1741,9 +1741,12 @@ module.exports = {
                     let bestValue = await getBestValue(value, obj.options);
                     SetFieldValue(obj, bestValue);
                     if (obj.id.includes('drvr_empl_stat')) {
-                      const index = obj.id.replace( /^\D+/g, '');
+                      const index = obj.id.replace( /^\D+/g, '')[0];
+                      console.log(`Index: ${index}`);
                       const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj(`DRV.0.drvr_occup_lvl`);
+                      console.log(`ID: ${occObj.id}`);
                       const occValue = (data && data[occObj.id]) ? data[occObj.id] : 'Other';
+                      console.log(`Value: ${value}`);
                       obj.onchange = async function() {
                         setTimeout(async() => {
                           const occBestValue = await getBestValue(occValue, occObj.options);
