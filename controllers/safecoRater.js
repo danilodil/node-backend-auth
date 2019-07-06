@@ -33,8 +33,6 @@ module.exports = {
         newQuote: false,
         existingQuote: false,
         policyInfo: false,
-        garagedInfo: false,
-        houseHold: false,
         vehicles: false,
         drivers: false,
         telemetics: false,
@@ -64,7 +62,7 @@ module.exports = {
         policyCurrentInsuranceValue: 'DW',
         policyDataResidenceType: 'H',
         policyDataPackageSelection: 'B',
-        policyVehiclesTrackStatus: 'NP',
+        policyVehiclesTrackStatus: 'Not Participating',
         policyVehiclesCoverage: '100',
         firstName: 'Test',
         lastName: 'User',
@@ -84,15 +82,33 @@ module.exports = {
         vehicleUse: '8',
         annualMiles: '50',
         yearsVehicleOwned: '5',
+        vehicles: [
+          {
+            // Vehicle Type will always be 1981 or newer
+            vehicleVin: '1FTSF30L61EC23425',
+            vehicleUse: '8',
+            annualMiles: '50',
+            yearsVehicleOwned: '5',
+            garagedLocation: '2',
+            principalOperator: '1',
+            policyVehiclesTrackStatus: 'Not Participating',
+          },
+        ],
+        drivers: [
+          {
+            firstName: 'Test',
+            lastName: 'User',
+            gender: 'Male',
+            birthDate: '12/16/1993',
+            maritalStatus: 'Single',
+            relationship: 'L',
+            licenseState: 'AL',
+            ageWhen1stLicensed: '21',
+            commonOccupation: 'Manager',
+          },
+        ],
       };
-
-      const populatedPolicyInfoObject = await populatePolicyInfoObject();
-      const populatedHouseHoldInfoObject = await populateHouseHoldInfoObject();
-      const populatedDriverInfoObject = await populateDriverInfoObject();
-      const populatedVehicleInfoObject = await populateVehicleInfoObject();
-      const populatedUnderwritingObject = await populateUnderwritingObject();
-      const populatedCoverageInfoObject = await populateCoverageInfoObject();
-      const populatedTelematicsInfoObject = await populateTelematicsInfoObject();
+      const populatedData = await populateData();
 
       await loginStep();
       if (raterStore && raterStore.quoteId) {
@@ -108,30 +124,16 @@ module.exports = {
       } else {
         if (params.stepName === 'namedInsured') {
           await policyInfoStep();
-          const quoteId = `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`;
-          req.session.data = {
-            title: 'Successfully finished Safeco AL Named Insured Step',
-            status: true,
-            quoteId: quoteId,
-            stepResult,
-          };
-          browser.close();
-          return next();
+          const quoteId = `${bodyData.lastName}, ${bodyData.firstName}`;
+          exitSuccess('Named Insured', quoteId);
         }
         if (params.stepName === 'garagedInfo' && raterStore) {
           await GaragedInfoStep();
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`);
-            req.session.data = {
-              title: 'Successfully finished Safeco AL Garaged Info Step',
-              status: true,
-              quoteId: quoteId,
-              stepResult,
-            };
-            browser.close();
-            return next();
+            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            exitSuccess('Garaged Info', quoteId);
           }
         }
         if (params.stepName === 'houseHold' && raterStore) {
@@ -139,15 +141,8 @@ module.exports = {
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`);
-            req.session.data = {
-              title: 'Successfully finished Safeco AL HouseHold Step',
-              status: true,
-              quoteId: quoteId,
-              stepResult,
-            };
-            browser.close();
-            return next();
+            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            exitSuccess('House Hold', quoteId);
           }
         }
         if (params.stepName === 'drivers' && raterStore) {
@@ -155,15 +150,8 @@ module.exports = {
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`);
-            req.session.data = {
-              title: 'Successfully finished Safeco AL Drivers Step',
-              status: true,
-              quoteId: quoteId,
-              stepResult,
-            };
-            browser.close();
-            return next();
+            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            exitSuccess('Drivers', quoteId);
           }
         }
         if (params.stepName === 'vehicles' && raterStore) {
@@ -171,15 +159,8 @@ module.exports = {
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`);
-            req.session.data = {
-              title: 'Successfully finished Safeco AL Vehicles Step',
-              status: true,
-              quoteId: quoteId,
-              stepResult,
-            };
-            browser.close();
-            return next();
+            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            exitSuccess('Vehicles', quoteId);
           }
         }
         if (params.stepName === 'summary' && raterStore) {
@@ -196,7 +177,7 @@ module.exports = {
           await page.select('#SAMSearchBusinessType', '7|1|');
           await page.select('#SAMSearchModifiedDateRange', '7');
           await page.select('#SAMSearchActivityStatus', '8');
-          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${populatedPolicyInfoObject.PolicyClientPersonLastName.value}, ${populatedPolicyInfoObject.PolicyClientPersonFirstName.value}`));
+          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`));
           await page.evaluate(() => document.querySelector('#asearch').click());
           await page.waitFor(3000);
           await page.waitForSelector('#divMain');
@@ -250,16 +231,7 @@ module.exports = {
           await page.waitForNavigation({ waitUntil: 'load' });
           stepResult.login = true;
         } catch (error) {
-          console.log('Error at Safeco AL Login Step:', error);
-          stepResult.login = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at loginStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(error, 'Login');
         }
       }
 
@@ -270,29 +242,15 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
           stepResult.newQuote = true;
         } catch (err) {
-          console.log('Error at Safeco AL New Quote Step:', err);
-          stepResult.newQuote = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at newQuoteStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(error, 'New Quote');
         }
       }
 
       async function policyInfoStep() {
-        console.log('Safeco AL Policy Information Step.');
         try {
           await page.waitFor(3000);
-          page.on('console', msg => {
-            for (let i = 0; i < msg.args().length; ++i)
-              console.log(`${msg.args()[i]}`);
-          });
-          await page.waitFor(1000);
-          await fillPageForm(populatedPolicyInfoObject, 'driver');
+          await loadStep('policyinfo', false);
+          await fillPageForm('driver');
           stepResult.policyInfo = true;
         } catch (err) {
           console.log('Error at Safeco AL Policy Information Step:', err);
@@ -317,164 +275,127 @@ module.exports = {
         }
       }
 
-      async function GaragedInfoStep() {
-        console.log('Safeco AL Garaged Info Step');
-        try {
-          await page.waitFor(800);
-          await page.evaluate(() => {
-            ecfields.noValidate(); __doPostBack('ScreenTabs1', 'garagedlocation');
-          });
-          await page.waitFor(1000);
-          await page.waitForSelector('#PolicyLocations2AddressLine1');
-          await page.evaluate((garagedAddress) => { document.querySelector(garagedAddress.element).value = garagedAddress.value; }, populatedData.garagedAddress);
+      // async function GaragedInfoStep() {
+      //   try {
+      //     await page.waitFor(800);
+      //     await page.evaluate(() => {
+      //       ecfields.noValidate(); __doPostBack('ScreenTabs1', 'garagedlocation');
+      //     });
+      //     await page.waitFor(1000);
+      //     await page.waitForSelector('#PolicyLocations2AddressLine1');
+      //     await page.evaluate((garagedAddress) => { document.querySelector(garagedAddress.element).value = garagedAddress.value; }, populatedData.garagedAddress);
 
-          await page.click(populatedData.garagedZipcode.element);
-          await page.evaluate((garagedZipcode) => { document.querySelector(garagedZipcode.element).value = garagedZipcode.value; }, populatedData.garagedZipcode);
+      //     await page.click(populatedData.garagedZipcode.element);
+      //     await page.evaluate((garagedZipcode) => { document.querySelector(garagedZipcode.element).value = garagedZipcode.value; }, populatedData.garagedZipcode);
 
-          await page.waitFor(1500);
-          await page.evaluate((garagedCity) => {
-            document.querySelector(garagedCity.element).value = garagedCity.value;
-          }, populatedData.garagedCity);
+      //     await page.waitFor(1500);
+      //     await page.evaluate((garagedCity) => {
+      //       document.querySelector(garagedCity.element).value = garagedCity.value;
+      //     }, populatedData.garagedCity);
 
-          await page.waitFor(1500);
-          await page.evaluate(() => document.querySelector('#Continue').click());
-          stepResult.garagedInfo = true;
-        } catch (err) {
-          console.log('Error at Safeco AL Garaged Info:', err);
-          stepResult.garagedInfo = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at GaragedInfoStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
-        }
-      }
+      //     await page.waitFor(1500);
+      //     await page.evaluate(() => document.querySelector('#Continue').click());
+      //     stepResult.garagedInfo = true;
+      //   } catch (err) {
+      //     await exitFail(err, 'Garaged Info');
+      //   }
+      // }
 
-      async function houseHoldStep() {
-        console.log('Safeco AL House Hold Step');
-        try {
-          await page.waitFor(5000);
-          await fillPageForm(populatedHouseHoldInfoObject, 'driver');
+      // async function houseHoldStep() {
+      //   try {
+      //     await page.waitFor(5000);
+      //     await fillPageForm(populatedHouseHoldInfoObject, 'driver');
 
-          stepResult.houseHold = true;
-        } catch (e) {
-          console.log('Error at Safeco AL House Hold:', e);
-          stepResult.houseHold = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at houseHoldStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
-        }
-      }
+      //     stepResult.houseHold = true;
+      //   } catch (e) {
+      //     await exitFail(e, 'House Hold');
+      //   }
+      // }
 
       async function driversStep() {
-        console.log('Safeco AL Drivers Step.');
         try {
-          await page.waitFor(3000);
-          await fillPageForm(populatedDriverInfoObject, 'vehicle');
+          await loadStep('driver', true);
+          const afterCustomCode = async function () {
+            for (let j in bodyData.drivers) {
+              await page.evaluate(async (data, i) => {
+                const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
+                const PolicyDriverSR22FilingYN2N = document.getElementById(`PolicyDriverSR22FilingYN2N`);
+                const LicenseSuspendedRevokedYNNexist = document.getElementById(`PolicyDriverLicenseSuspendedRevokedYNN`);
+                if (PolicyDriverSR22FilingYNN) {
+                  PolicyDriverSR22FilingYNN.click();
+                  PolicyDriverSR22FilingYN2N.click();
+                  LicenseSuspendedRevokedYNNexist.click();
+                }
+              }, populatedData, j);
+              await page.waitFor(1000);
+            }
+          }
+          await fillPageForm('vehicle', afterCustomCode);
           stepResult.drivers = true;
         } catch (err) {
-          console.log('Error at Safeco AL Driver Step:', err.stack);
-          stepResult.drivers = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at driverStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Driver');
         }
       }
 
       async function vehiclesStep() {
-        console.log('Safeco AL Vehicles Step.');
         try {
-          await page.waitFor(3000);
-          await fillPageForm(populatedVehicleInfoObject, 'telematics');
+          const afterCustomCode = async function () {
+            for (let j in bodyData.vehicles) {
+              await page.evaluate(async (data, i) => {
+                const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
+                const vinEl = document.getElementById(`PolicyVehicleVIN`);
+                const vinBtn = document.getElementById(`imgVINLookUp`);
+                if (vinEl) {
+                  vinExist.click();
+                  vinEl.value = data[`PolicyVehicleVIN`].value;
+                  console.log('step 3');
+                  vinBtn.click();
+                  console.log('step 4');
+                }
+              }, populatedData, j)
+              await page.waitFor(1000);
+            }
+          }
+
+          await fillPageForm('telematics', null, afterCustomCode);
           await page.waitFor(2000);
           stepResult.vehicles = true;
         } catch (err) {
-          console.log('Error at Safeco AL Vehicles Step:', err.stack);
-          stepResult.vehicles = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at vehiclesStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Vehicles');
         }
       }
 
       async function telemeticsStep() {
-        console.log('Safeco AL Telemetics Step.');
         try {
           await page.waitFor(2000);
-          await fillPageForm(populatedTelematicsInfoObject, 'underwriting');
+          // await loadStep('telematics', true);
+          await fillPageForm('underwriting');
           stepResult.telemetics = true;
         } catch (err) {
-          console.log('err telemetics:', err);
-          stepResult.telemetics = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at telemeticsStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Telematics');
         }
       }
 
       async function underwritingStep() {
-        console.log('Safeco AL Underwriting Step.');
         try {
           await page.waitFor(2000);
-          await fillPageForm(populatedUnderwritingObject, 'coverage');
+          // await loadStep('underwriting', true);
+          await fillPageForm('coverages');
           await page.waitFor(2000);
           stepResult.underWriting = true;
         } catch (err) {
-          console.log('Error at Safeco AL Underwriting Step:', err);
-          stepResult.underWriting = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at underwritingStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Underwriting');
         }
       }
 
       async function coveragesStep() {
-        console.log('Safeco AL Coverages Step.');
         try {
           await page.waitFor(2000);
-          await page.waitForSelector('#PolicyAutoDataPackageSelection');
-          await page.waitFor(2000);
-          await fillPageForm(populatedCoverageInfoObject, 'summary');
+          // await loadStep('coverages', true);
+          await fillPageForm('summary');
           stepResult.coverage = true;
         } catch (err) {
-          console.log('Error at Safeco AL Coverages Step:', err);
-          stepResult.coverage = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at coveragesStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Coverages');
         }
       }
 
@@ -482,6 +403,7 @@ module.exports = {
         console.log('Safeco AL Summary Step.');
         try {
           await page.waitFor(2000);
+          await loadStep('summary', true);
           await page.waitForSelector('#PolicyPremiumTotalWithPIFLabel');
           const premiumDetails = await page.evaluate(() => {
             const downPaymentsObj = {};
@@ -502,23 +424,22 @@ module.exports = {
           browser.close();
           return next();
         } catch (err) {
-          console.log('Error at Safeco AL Summary Step:', err);
-          stepResult.summary = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at summaryStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'Summary');
         }
       }
 
       // nextStep can be 'policyinfo', 'vehicle', 'driver', 'telematics', 'underwriting' 'coverages', 'summary'
-      async function fillPageForm(pData, nextStep) {
+      // async function fillPageForm(pData, nextStep) {
+      async function fillPageForm(nextStep, beforeCustomCode, afterCustomCode, delayAfter) {
         try {
-          await page.evaluate(async (data, nextStep) => {
+          page.on('console', msg => {
+            for (let i = 0; i < msg.args().length; ++i)
+              console.log(`${msg.args()[i]}`);
+          });
+          if (beforeCustomCode) {
+            await beforeCustomCode();
+          }
+          const qO = await page.evaluate(async (data) => {
             if (ecfields) {
               ecfields.clearErrors();
             }
@@ -528,6 +449,32 @@ module.exports = {
             if (ecfields.buildModalHtml) {
               ecfields.buildModalHtml = function () { };
             }
+
+            let list = data;
+            for (let fieldName in list) {
+              const ecField = list[fieldName] ? list[fieldName] : null;
+              const xField = data[fieldName] ? data[fieldName] : null;
+              if (ecField) {
+                ecField.required = false;
+                ecField.rules = [];
+              }
+              if (ecField && xField) {
+                const el = document.getElementById(fieldName);
+                if (el && el.onchange) {
+                  el.onchange = null;
+                }
+                if (el && xField.value) {
+                  if (el.type === 'text' && xField.value) {
+                    el.value = xField.value;
+                  } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
+                    el.value = await getBestValue(xField.value, el.options);
+                  } else if (el.type === 'radio' || el.type === 'checkbox') {
+                    el.checked = (xField.value && xField.value === true) ? true : false;
+                  }
+                }
+              }
+            }
+
             function compareTwoStrings(first, second) {
               first = first.replace(/\s+/g, '')
               second = second.replace(/\s+/g, '')
@@ -546,7 +493,7 @@ module.exports = {
                   : 1;
 
                 firstBigrams.set(bigram, count);
-              }
+              };
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -571,14 +518,15 @@ module.exports = {
 
               for (let i = 0; i < targetStrings.length; i++) {
                 const currentTargetString = targetStrings[i];
-                const currentRating = compareTwoStrings(mainString, currentTargetString);
-                ratings.push({ target: currentTargetString, rating: currentRating });
+                const currentRating = compareTwoStrings(mainString, currentTargetString)
+                ratings.push({ target: currentTargetString, rating: currentRating })
                 if (currentRating > ratings[bestMatchIndex].rating) {
-                  bestMatchIndex = i;
+                  bestMatchIndex = i
                 }
               }
 
-              const bestMatch = ratings[bestMatchIndex];
+
+              const bestMatch = ratings[bestMatchIndex]
 
               return { ratings, bestMatch, bestMatchIndex };
             }
@@ -589,18 +537,19 @@ module.exports = {
               if (targetStrings.find(s => typeof s !== 'string')) return false;
               return true;
             }
+
             async function getBestValue(value, data) {
               try {
                 const optionsArray = [...data];
-                const nArr = optionsArray.map(entry => entry.text);
-                const vArr = optionsArray.map(entry => entry.value);
+                const nArr = optionsArray.map(entry => entry.text.toLowerCase());
+                const vArr = optionsArray.map(entry => entry.value.toLowerCase());
                 if (value && value.length && value.length > 0 && value.length < 2) {
-                  if (vArr.indexOf(value) !== -1) {
+                  if (vArr.indexOf(value.toLowerCase()) !== -1) {
                     return value;
                   }
                 } else if (value && value.length > 1) {
-                  const nBestMatch = await findBestMatch(value, nArr);
-                  const vBestMatch = await findBestMatch(value, vArr);
+                  const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
+                  const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
                   let i = 0;
                   if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
                     i = nBestMatch.bestMatchIndex;
@@ -620,35 +569,21 @@ module.exports = {
                 console.log(`Error: ${error}`);
               }
             }
-            let list = data;
-            for (let fieldName in list) {
-              const ecField = list[fieldName] ? list[fieldName] : null;
-              const xField = data[fieldName] ? data[fieldName] : null;
-              if (ecField) {
-                ecField.required = false;
-                ecField.rules = [];
-              }
-              if (ecField && xField) {
-                const el = document.getElementById(fieldName);
-                if (el && el.onchange) {
-                  el.onchange = null;
-                }
-                if (el && xField.value) {
-                  if (el.type === 'text' && xField.value) {
-                    el.value = xField.value;
-                  } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
-                    el.value = await getBestValue(xField.value, el.options);
-                  } else if (el.type === 'radio' || el.type === 'checkbox') {
-                    el.checked = (xField.value && xField.value === true) ? true : false;
-                  } else if (xField.type === 'click') {
-                    await document.querySelector(`#${xField.name}`).click();
-                  }
-                }
-              }
-            }
-            ecfields.noValidate();
-            __doPostBack('ScreenTabs1', nextStep);
-          }, pData, nextStep);
+          }, populatedData);
+          if (qO) {
+            quoteObj = qO;
+          }
+          if (afterCustomCode) {
+            await afterCustomCode();
+          }
+          if (nextStep) {
+            await navigateMenu(nextStep);
+          }
+          if (delayAfter) {
+            await page.waitFor(delayAfter);
+          } else {
+            await page.waitFor(1000);
+          }
         } catch (err) {
           console.log('Error at Safeco AL FillPageForm Step:', err);
           req.session.data = {
@@ -662,140 +597,136 @@ module.exports = {
         }
       }
 
-      function populatePolicyInfoObject() {
-        const policyInfoData = {
-          PolicyAutoDataAnyIncidentsOnPolicyYNN: { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' },
-          PolicyAutoDataDeliveryVehicleYNN: { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' },
-          PolicyAutoDataVehicleGaragingAddressYNY: { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' },
-          PolicyAutoDataVerifiableYNN: { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' },
-          PolicyAutoDataAutoBusinessType: { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' },
-          PolicyClientEmailAddress: { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' },
-          PolicyClientMailingLocationAddressLine1: { type: 'text', value: bodyData.mailingAddress || staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' },
-          PolicyClientMailingLocationCity: { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' },
-          PolicyClientMailingLocationState: { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' },
-          PolicyClientMailingLocationZipCode: { type: 'text', value: bodyData.zipCode || staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' },
-          PolicyClientPersonBirthdate: { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' },
-          PolicyClientPersonFirstName: { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' },
-          PolicyClientPersonLastName: { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' },
-          PolicyClientPersonSocialSecurityNumberStatus: { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' },
-          PolicyEffectiveDate: { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' },
-          PolicyRatingState: { type: 'select-one', value: '1', name: 'PolicyRatingState' },
-        };
-        return policyInfoData;
+      function populateData() {
+        const dataObj = {};
+        if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
+          for (const j in bodyData.vehicles) {
+            const element = bodyData.vehicles[j];
+            dataObj['PolicyVehicleVINKnownYNY'] = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
+            dataObj['PolicyVehicleVIN'] = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
+            dataObj['PolicyVehicleAnnualMiles'] = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
+            dataObj['PolicyVehicleYearsVehicleOwned'] = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
+            dataObj['PolicyVehicleUse'] = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
+            dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+            dataObj['PolicyVehiclemp_GaragedLocation_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
+            dataObj['PolicyVehiclemp_PrincipalOperator_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
+          }
+        }
+        if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
+          for (const j in bodyData.drivers) {
+            const element = bodyData.drivers[j];
+            dataObj['PolicyDriverPersonFirstName'] = { type: 'text', value: element.firstName || staticDataObj.drivers[0].firstName, name: 'PolicyDriverPersonFirstName' };
+            dataObj['PolicyDriverPersonLastName'] = { type: 'text', value: element.lastName || staticDataObj.drivers[0].lastName, name: 'PolicyDriverPersonLastName' };
+            dataObj['PolicyDriverPersonEducation'] = { type: 'select-one', value: staticDataObj.drivers[0].education, name: 'PolicyDriverPersonEducation' };
+            dataObj['PolicyDriverPersonGender'] = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: 'PolicyDriverPersonGender' };
+            dataObj['PolicyDriverPersonBirthdate'] = { type: 'text', value: element.applicantBirthDt || staticDataObj.drivers[0].birthDate, name: 'PolicyDriverPersonBirthdate' };
+            dataObj['PolicyDriverPersonMaritalStatus'] = { type: 'select-one', value: element.maritalStatus || staticDataObj.drivers[0].maritalStatus, name: 'PolicyDriverPersonMaritalStatus' };
+            dataObj['PolicyDriverRelationshipToInsured'] = { type: 'select-one', value: staticDataObj.drivers[0].relationship, name: 'PolicyDriverRelationshipToInsured' };
+            dataObj['PolicyDriverLicenseState'] = { type: 'select-one', value: element.licenseState || staticDataObj.drivers[0].licenseState, name: 'PolicyDriverLicenseState' };
+            dataObj['PolicyDriverPersonCommonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' };
+            dataObj['PolicyDriverPersonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonOccupationCategory' };
+            dataObj['PolicyDriverFirstAgeLicensed'] = { type: 'text', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' };
+          }
+        }
+
+        dataObj['PolicyAutoDataAnyIncidentsOnPolicyYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' };
+        dataObj['PolicyAutoDataDeliveryVehicleYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' };
+        dataObj['PolicyAutoDataVehicleGaragingAddressYNY'] = { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' };
+        dataObj['PolicyAutoDataVerifiableYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
+        dataObj['PolicyAutoDataAutoBusinessType'] = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
+        dataObj['PolicyClientEmailAddress'] = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
+        dataObj['PolicyClientMailingLocationAddressLine1'] = { type: 'text', value: staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
+        dataObj['PolicyClientMailingLocationCity'] = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
+        dataObj['PolicyClientMailingLocationState'] = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
+        dataObj['PolicyClientMailingLocationZipCode'] = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };
+        dataObj['PolicyClientPersonBirthdate'] = { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' };
+        dataObj['PolicyClientPersonFirstName'] = { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' };
+        dataObj['PolicyClientPersonLastName'] = { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' };
+        dataObj['PolicyClientPersonSocialSecurityNumberStatus'] = { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' };
+        dataObj['PolicyEffectiveDate'] = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
+        dataObj['PolicyRatingState'] = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
+        dataObj['PolicyAutoDataResidenceType'] = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
+        dataObj['PolicyCurrentInsuranceValue'] = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
+        dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+        dataObj['PolicyDataPackageSelection'] = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
+        dataObj['PolicyVehicles1CoverageCOMPLimitDed'] = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
+        return dataObj;
       }
 
-      function populateHouseHoldInfoObject() {
-        const houseHoldInfoData = {
-          PolicyDriverCandidates2CandidateRelationship: { type: 'select-one', value: staticDataObj.peopleInhouseHold1, name: 'PolicyDriverCandidates2CandidateRelationship' },
-          PolicyDriverCandidates3CandidateRelationship: { type: 'select-one', value: staticDataObj.peopleInhouseHold2, name: 'PolicyDriverCandidates3CandidateRelationship' },
-          PolicyDriverCandidates4CandidateRelationship: { type: 'select-one', value: staticDataObj.peopleInhouseHold3, name: 'PolicyDriverCandidates4CandidateRelationship' },
-        };
-        return houseHoldInfoData;
+      async function loadStep(step, navigate) {
+        try {
+          console.log(`Safeco AL ${step} Step`);
+          await page.waitFor(500);
+          if (navigate) {
+            await navigateMenu(step);
+          }
+          await page.waitFor(1500);
+        } catch (error) {
+          await exitFail(error, 'load');
+        }
       }
 
-      function populateUnderwritingObject() {
-        const underwritingInfoData = {
-          PolicyAutoDataResidenceType: { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' },
-          PolicyCurrentInsuranceValue: { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' },
-        };
-        return underwritingInfoData;
+      async function navigateMenu(step) {
+        try {
+          await page.waitFor(1000);
+          if (step === 'driver') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'driver');
+            });
+          } else if (step === 'vehicle') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'vehicle');
+            });
+          } else if (step === 'telematics') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'telematics');
+            });
+          } else if (step === 'underwriting') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'underwriting');
+            });
+          } else if (step === 'coverages') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'coverage');
+            });
+          } else if (step === 'summary') {
+            await page.evaluate(() => {
+              ecfields.noValidate(); __doPostBack('ScreenTabs1', 'summary');
+            });
+          }
+        } catch (error) {
+          await exitFail(error, 'NavigateMenu');
+        }
       }
 
-      function populateDriverInfoObject() {
-        const driverInfoData = {
-          PolicyDriverPersonFirstName: { type: 'text', value: staticDataObj.firstName, name: 'PolicyDriverPersonFirstName' },
-          PolicyDriverPersonLastName: { type: 'text', value: staticDataObj.lastName, name: 'PolicyDriverPersonLastName' },
-          PolicyDriverPersonEducation: { type: 'select-one', value: staticDataObj.education, name: 'PolicyDriverPersonEducation' },
-          PolicyDriverPersonGender: { type: 'select-one', value: staticDataObj.gender, name: 'PolicyDriverPersonGender' },
-          PolicyDriverPersonBirthdate: { type: 'text', value: staticDataObj.birthDate, name: 'PolicyDriverPersonBirthdate' },
-          PolicyDriverPersonMaritalStatus: { type: 'select-one', value: staticDataObj.maritalStatus, name: 'PolicyDriverPersonMaritalStatus' },
-          PolicyDriverRelationshipToInsured: { type: 'select-one', value: staticDataObj.relationship, name: 'PolicyDriverRelationshipToInsured' },
-          PolicyDriverLicenseState: { type: 'select-one', value: staticDataObj.licenseState, name: 'PolicyDriverLicenseState' },
-          PolicyDriverLicenseSuspendedRevokedYNN: { type: 'radio', value: false, name: 'PolicyDriverLicenseSuspendedRevokedYNN' },
-          PolicyDriverPersonCommonOccupationCategory: { type: 'select-one', value: staticDataObj.commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' },
-          PolicyDriverPersonOccupationCategory: { type: 'select-one', value: staticDataObj.commonOccupation, name: 'PolicyDriverPersonOccupationCategory' },
-          PolicyDriverSR22FilingYNN: { type: 'radio', value: false, name: 'PolicyDriverSR22FilingYNN' },
-          PolicyDriverSR22FilingYN2N: { type: 'radio', value: false, name: 'PolicyDriverSR22FilingYN2N' },
-          PolicyDriverFirstAgeLicensed: { type: 'text', value: staticDataObj.ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' },
-        };
-        return driverInfoData;
-        // const driversInfoData = [];
-        // if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
-        //   for (const j in bodyData.drivers) {
-        //     const driverInfoData = {
-        //       PolicyDriverPersonFirstName: { type: 'text', value: bodyData.drivers[j].firstName || staticDataObj.firstName, name: 'PolicyDriverPersonFirstName' },
-        //       PolicyDriverPersonLastName: { type: 'text', value: bodyData.drivers[j].lastName || staticDataObj.lastName, name: 'PolicyDriverPersonLastName' },
-        //       PolicyDriverPersonEducation: { type: 'select-one', value: bodyData.drivers[j].education || staticDataObj.education, name: 'PolicyDriverPersonEducation' },
-        //       PolicyDriverPersonGender: { type: 'select-one', value: bodyData.drivers[j].gender || staticDataObj.gender, name: 'PolicyDriverPersonGender' },
-        //       PolicyDriverPersonBirthdate: { type: 'text', value: bodyData.drivers[j].applicantBirthDt || staticDataObj.birthDate, name: 'PolicyDriverPersonBirthdate' },
-        //       PolicyDriverPersonMaritalStatus: { type: 'select-one', value: bodyData.drivers[j].maritalStatus || staticDataObj.maritalStatus, name: 'PolicyDriverPersonMaritalStatus' },
-
-        //       PolicyDriverRelationshipToInsured: { type: 'select-one', value: bodyData.drivers[j].relationship || staticDataObj.relationship, name: 'PolicyDriverRelationshipToInsured' },
-        //       PolicyDriverLicenseState: { type: 'select-one', value: staticDataObj.licenseState, name: 'PolicyDriverLicenseState' },
-        //       PolicyDriverLicenseSuspendedRevokedYNN: { type: 'radio', value: false, name: 'PolicyDriverLicenseSuspendedRevokedYNN' },
-        //       // PolicyDriverPersonBusinessTypeCategory: {type: "select-one", value: "", name: "PolicyDriverPersonBusinessTypeCategory"},
-        //       PolicyDriverPersonCommonOccupationCategory: { type: 'select-one', value: bodyData.drivers[j].commonOccupation || staticDataObj.commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' },
-        //       PolicyDriverPersonOccupationCategory: { type: 'select-one', value: bodyData.drivers[j].commonOccupation || staticDataObj.commonOccupation, name: 'PolicyDriverPersonOccupationCategory' },
-        //       PolicyDriverSR22FilingYNN: { type: 'radio', value: false, name: 'PolicyDriverSR22FilingYNN' },
-        //       PolicyDriverSR22FilingYN2N: { type: 'radio', value: false, name: 'PolicyDriverSR22FilingYN2N' },
-        //       PolicyDriverFirstAgeLicensed: { type: 'text', value: bodyData.drivers[j].ageWhen1stLicensed || staticDataObj.ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' },
-        //     };
-        //     driversInfoData.push(driverInfoData);
-        //   }
-        // }
-        // return driversInfoData;
+      async function exitFail(error, step) {
+        console.log(`Error during Safeco AL ${step} step:`, error);
+        if (req && req.session && req.session.data) {
+          req.session.data = {
+            title: 'Failed to retrieved Safeco AL rate.',
+            status: false,
+            error: `There is some error validations at ${step} step`,
+            stepResult,
+          };
+        }
+        browser.close();
+        return next();
       }
 
-      function populateVehicleInfoObject() {
-
-        const vehicleInfoData = {
-          PolicyVehicleVINKnownYNY: { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' },
-          PolicyVehicleVIN: { type: 'text', value: staticDataObj.vehicleVin, name: 'PolicyVehicleVIN' },
-          imgVINLookUp: { type: 'click', value: true, name: 'imgVINLookUp' },
-          PolicyVehicleAnnualMiles: { type: 'text', value: staticDataObj.annualMiles, name: 'PolicyVehicleAnnualMiles' },
-          PolicyVehicleYearsVehicleOwned: { type: 'text', value: staticDataObj.yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' },
-          PolicyVehicleUse: { type: 'select-one', value: staticDataObj.vehicleUse, name: 'PolicyVehicleUse' },
-          PolicyVehicles1RightTrackStatus: { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' },
-          PolicyVehiclemp_GaragedLocation_ID: { type: 'select-one', value: staticDataObj.garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' },
-          PolicyVehiclemp_PrincipalOperator_ID: { type: 'select-one', value: staticDataObj.principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' },
-        };
-        return vehicleInfoData;
-        // const vehiclesInfoData = [];
-        // if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
-        //   for (const j in bodyData.vehicles) {
-        //     const vehicleInfoData = {
-        //       PolicyVehicleVINKnownYNY: { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' },
-        //       PolicyVehicleVIN: { type: 'text', value: bodyData.vehicles[j].vehicleVin || staticDataObj.vehicleVin, name: 'PolicyVehicleVIN' },
-        //       imgVINLookUp: { type: 'click', value: true, name: 'imgVINLookUp' },
-        //       PolicyVehicleAnnualMiles: { type: 'text', value: staticDataObj.annualMiles, name: 'PolicyVehicleAnnualMiles' },
-        //       PolicyVehicleYearsVehicleOwned: { type: 'text', value: staticDataObj.yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' },
-        //       PolicyVehicleUse: { type: 'select-one', value: staticDataObj.vehicleUse, name: 'PolicyVehicleUse' },
-        //       PolicyVehicles1RightTrackStatus: { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' },
-        //       PolicyVehiclemp_GaragedLocation_ID: { type: 'select-one', value: staticDataObj.garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' },
-        //       PolicyVehiclemp_PrincipalOperator_ID: { type: 'select-one', value: staticDataObj.principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' },
-        //     };
-        //     vehiclesInfoData.push(vehicleInfoData);
-        //   }
-        // }
-        // return vehiclesInfoData;
-        // }
-      }
-
-      function populateCoverageInfoObject() {
-
-        const coverageInfoData = {
-          PolicyDataPackageSelection: { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' },
-          PolicyVehicles1CoverageCOMPLimitDed: { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' },
-        };
-        return coverageInfoData;
-      }
-
-      function populateTelematicsInfoObject() {
-        const telematicsInfoData = {
-          PolicyVehicles1RightTrackStatus: { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' },
-
-        };
-        return telematicsInfoData;
+      async function exitSuccess(step, quoteID) {
+        try {
+          req.session.data = {
+            title: `Successfully finished Safeco AL ${step} Step`,
+            status: true,
+            quoteId: quoteID,
+            stepResult,
+          };
+          browser.close();
+          return next();
+        } catch (error) {
+          console.log('error from exitSuccess', error);
+          await exitFail(error, 'exitSuccess');
+        }
       }
 
       page.on('dialog', async (dialog) => {
