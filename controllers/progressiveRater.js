@@ -16,7 +16,6 @@ module.exports = {
       const params = req.body;
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
-
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
 
