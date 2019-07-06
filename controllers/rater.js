@@ -37,7 +37,6 @@ module.exports = {
     /* create new rater result */
     const isSucceeded = (req.session && req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
     if (!raterData) {
-      console.log(req.session.data);
       const newRater = {
         companyId,
         clientId,

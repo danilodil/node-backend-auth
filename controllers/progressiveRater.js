@@ -1478,7 +1478,101 @@ module.exports = {
               await pageQuote.waitFor(1000);
             }
           }
-          await fillPageForm('Violations', customCode, null, 3000);
+          const afterCode = async function() {
+            const occupations = ['Homemaker (full-time)','Retired (full-time)','Unemployed','Student (full-time)','Agriculture/Forestry/Fishing','Art/Design/Media','Banking/Finance/Real Estate','Business/Sales/Office','Construction / Energy / Mining','Education/Library','Engineer/Architect/Science/Math','Food Service / Hotel Services','Government/Military','Information Technology','Insurance','Legal/Law Enforcement/Security','Medical/Social Services/Religion','Personal Care/Service','Production / Manufacturing','Repair / Maintenance / Grounds','Sports/Recreation','Travel / Transportation / Storage'];
+            const codes = ['01','02','03','04','AA','AB','AC','AD','AE','AF','AG','AH','AJ','AK','AL','AM','AN','AP','AQ','AR','AS','AT'];
+            for (let i=0;i<bodyData.drivers.length;i++) {
+              console.log(i);
+              let bmi = +findBestMatch(populatedData[`DRV.${i}.drvr_empl_stat`].value, occupations).bestMatchIndex;
+              let value = bmi ? codes[bmi] : 'AC';
+
+              await pageQuote.select(`DRV.${i}.drvr_stat_dsply`, value);
+              await pageQuote.waitFor(500);
+              await pageQuote.evaluate(() => {
+                const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
+                SetFieldValue(rObj, 'R');
+                FldOnChange(rObj, true);
+              }, i);
+              await pageQuote.waitFor(500);
+              // await pageQuote.evaluate(() => {
+              //   const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
+              //   FldOnChange(rObj, true);
+              //   FldOnChange(obj, true);
+              // }, i);
+              await pageQuote.waitFor(1000);
+              if (value !== '01' && value !== '02' && value !== '03' && value !== '04') {
+                let otherValue = value + 'Z';
+                await pageQuote.select(`DRV.${i}.drvr_occup_lvl`, otherValue);
+                await pageQuote.waitFor(500);
+              }
+              await pageQuote.waitFor(10000);
+            }
+
+
+            function compareTwoStrings(first, second) {
+              first = first.replace(/\s+/g, '')
+              second = second.replace(/\s+/g, '')
+
+              if (!first.length && !second.length) return 1;                   // if both are empty strings
+              if (!first.length || !second.length) return 0;                   // if only one is empty string
+              if (first === second) return 1;       							 // identical
+              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+
+              let firstBigrams = new Map();
+              for (let i = 0; i < first.length - 1; i++) {
+                const bigram = first.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram) + 1
+                  : 1;
+
+                firstBigrams.set(bigram, count);
+              };
+
+              let intersectionSize = 0;
+              for (let i = 0; i < second.length - 1; i++) {
+                const bigram = second.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram)
+                  : 0;
+
+                if (count > 0) {
+                  firstBigrams.set(bigram, count - 1);
+                  intersectionSize++;
+                }
+              }
+
+              return (2.0 * intersectionSize) / (first.length + second.length - 2);
+            }
+            function findBestMatch(mainString, targetStrings) {
+              if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+              const ratings = [];
+              let bestMatchIndex = 0;
+
+              for (let i = 0; i < targetStrings.length; i++) {
+                const currentTargetString = targetStrings[i];
+                const currentRating = compareTwoStrings(mainString, currentTargetString)
+                ratings.push({ target: currentTargetString, rating: currentRating })
+                if (currentRating > ratings[bestMatchIndex].rating) {
+                  bestMatchIndex = i
+                }
+              }
+
+
+              const bestMatch = ratings[bestMatchIndex]
+
+              return { ratings, bestMatch, bestMatchIndex };
+            }
+            function areArgsValid(mainString, targetStrings) {
+              if (typeof mainString !== 'string') return false;
+              if (!Array.isArray(targetStrings)) return false;
+              if (!targetStrings.length) return false;
+              if (targetStrings.find(s => typeof s !== 'string')) return false;
+              return true;
+            }
+          };
+          await fillPageForm('Violations', customCode, afterCode, 1000);
           stepResult.drivers = true;
         } catch (error) {
           await exitFail(error, 'drivers');
@@ -1725,29 +1819,25 @@ module.exports = {
                   } else if (obj.type === 'select-one' && obj.options && obj.options.length && obj.options.length > 0) {
                     let bestValue = await getBestValue(value, obj.options);
                     SetFieldValue(obj, bestValue);
-                    if (obj.id.includes('drvr_empl_stat')) {
-                      const index = obj.id.replace( /^\D+/g, '')[0];
-                      console.log(`Index: ${index}`);
-                      const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj(`DRV.0.drvr_occup_lvl`);
-                      console.log(`ID: ${occObj.id}`);
-                      const occValue = (data && data[occObj.id]) ? data[occObj.id] : 'Other';
-                      console.log(`Value: ${value}`);
-                      obj.onchange = async function() {
-                        setTimeout(async() => {
-                          const occBestValue = await getBestValue(occValue, occObj.options);
-                          console.log(`Occupation for Driver ${occObj.id}| value:${occValue} bestValue:${occBestValue} option0:${(occObj.options && occObj.options[0]) ? occObj.options[0].value : 'No 0th options'} option2:${(occObj.options && occObj.options[2]) ? occObj.options[2].value : 'No 2nd options'} `);
-                          SetFieldValue(occObj, bestValue);
-                        }, 500);
-                      }
-                      FldOnChange(obj, true);
-                    }
+                    // if (obj.id.includes('drvr_empl_stat')) {
+                    //   const index = obj.id.replace( /^\D+/g, '')[0];
+                    //   const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj(`DRV.0.drvr_occup_lvl`);
+                    //   const rObj = index ? GetObj(`DRV.${index}.drvr_stat_dsply`) : GetObj(`DRV.0.drvr_stat_dsply`);
+                    //   const letter = bestValue[bestValue.length -1];
+                    //   const value = `A${letter}Z`;
+                    //   FldOnChange(rObj, true);
+                    //   FldOnChange(obj, true);
+                    //   setTimeout(async() => {
+                    //     SetFieldValue(occObj, value);
+                    //   }, 1000);
+                    // }
                   } else if (obj.type === 'radio' || obj.type === 'checkbox') {
                     obj.checked = (value && value === true) ? true : false;
                   }
                 }
-                if (obj && obj.onchange && !obj.id.includes('drvr_empl_stat')) {
-                  obj.onchange = null;
-                }
+                // if (obj && obj.onchange && !obj.id.includes('drvr_empl_stat')) {
+                //   obj.onchange = null;
+                // }
               }
             }
             return quoteObj;
