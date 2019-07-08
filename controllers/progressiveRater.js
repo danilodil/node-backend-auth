@@ -8,7 +8,7 @@ const utils = require('../lib/utils');
 const ENVIRONMENT = require('./../constants/environment');
 const SS = require('string-similarity');
 const { formatDate } = require('../lib/utils');
-const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+const tomorrowDate = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
@@ -727,7 +727,7 @@ module.exports = {
           }
         }
         dataObj[`agt_cd`] = { type: 'select-one', value: '07378', name: 'agt_cd' };
-        dataObj[`pol_eff_dt`] = { type: 'text', value: '07/01/2019', name: 'pol_eff_dt' };
+        dataObj[`pol_eff_dt`] = { type: 'text', value: tomorrowDate, name: 'pol_eff_dt' };
         dataObj[`nam_opr`] = { type: 'select-one', value: 'N', name: 'nam_opr' };
         dataObj[`DRV.0.drvr_frst_nam`] = { type: 'text', value: bodyData.firstName || staticDetailsObj.firstName, name: 'DRV.0.drvr_frst_nam' };
         dataObj[`DRV.0.drvr_lst_nam`] = { type: 'text', value: bodyData.lastName || staticDetailsObj.lastName, name: 'DRV.0.drvr_lst_nam' };
@@ -784,7 +784,6 @@ module.exports = {
         violations: false,
         underWriting: false,
         coverage: false,
-        summary: false,
       };
 
       if (raterStore && raterStore.stepResult) {
@@ -799,59 +798,6 @@ module.exports = {
       }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
-
-      const staticDetailsObj = {
-        firstName: 'Test',
-        lastName: 'User',
-        birthDate: '12/16/1993',
-        email: 'test@mail.com',
-        phone: '302-222-5555',
-        mailingAddress: '216 Humphreys Dr',
-        city: 'Adamsville',
-        state: 'Alabama',
-        zipCode: '35005',
-        lengthAtAddress: '1 year or more',
-        priorInsurance: 'A',
-        priorInsuranceCarrier: 'USAA',
-        // must always agree to closure
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleModelYear: '2015',
-            vehicleManufacturer: 'FORD',
-            vehicleModel: 'F350',
-            vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
-            applicantPostalCd: '35005',
-            lengthOfOwnership: 'At least 1 year but less than 3 years',
-            primaryUse: 'Commute',
-            occupation: 'Appraiser - Real Estate',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            applicantBirthDt: '12/16/1993',
-            applicantGenderCd: 'Male',
-            applicantMaritalStatusCd: 'Single',
-            driverLicensedDt: '3 years or more',
-            driverLicenseNumber: '',
-            employment: 'Banking/Finance/Real Estate',
-            occupation: 'Other',
-            education: 'College Degree',
-          },
-        ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
-        policyEffectiveDate: '04/30/2019',
-        priorPolicyTerminationDate: '03/15/2019',
-        yearsWithPriorInsurance: '5 years or more',
-        ownOrRentPrimaryResidence: 'Rent',
-        numberOfResidentsInHome: '3',
-        rentersLimits: 'Greater Than 300,000',
-        haveAnotherProgressivePolicy: 'No',
-      };
 
       function dismissDialog(errorPage) {
         try {
@@ -955,7 +901,6 @@ module.exports = {
         }
       }
 
-      // redirect to new quoate form
       async function newQuoteStep() {
         console.log('Progressive AL New Quote Step.');
         try {
@@ -996,7 +941,6 @@ module.exports = {
       }
 
       async function namedInsuredStep() {
-        console.log('Progressive AL Named Insured Step.');
         try {
           await loadStep('NamedInsured', false);
           await fillPageForm2('Driver');
@@ -1043,7 +987,6 @@ module.exports = {
         }
       }
 
-      // driver Form
       async function driverStep() {
         try {
           await loadStep('Driver', true);
@@ -1172,8 +1115,6 @@ module.exports = {
           await loadStep('Underwriting', true);
           await fillPageForm();
           await pageQuote.waitFor(500);
-          await coveragesStep();
-
           stepResult.underWriting = true;
         } catch (error) {
           await exitFail(error, 'underwriting');
@@ -1270,6 +1211,7 @@ module.exports = {
             const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
             return details;
           });
+          stepResult.coverage = true;
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
@@ -1277,28 +1219,12 @@ module.exports = {
             months: (payDetails && payDetails.term) ? payDetails.term : null,
             downPayment: (payDetails && payDetails.downPayment) ? payDetails.downPayment : null,
             stepResult,
+            quoteIds: quoteObj,
           };
-          stepResult.coverage = true;
-          stepResult.summary = true;
-          // await saveStep();
           browser.close();
           return next();
         } catch (error) {
           await exitFail(error, 'coverages');
-        }
-      }
-
-      async function saveStep() {
-        try {
-          console.log('Progressive AL Save Step');
-          await pageQuote.waitFor(2000);
-          await pageQuote.waitForSelector('#aspnetForm');
-          await pageQuote.evaluate(() => {
-            NavigateLinks('SaveLink');
-          });
-          await pageQuote.waitFor(3000);
-        } catch (error) {
-          await exitFail(error, 'save');
         }
       }
 
@@ -1361,7 +1287,6 @@ module.exports = {
         }
       }
 
-      // nextStep can be 'Vehicles', 'Driver', 'Underwriting', 'Coverages', 'BillPlans'
       async function fillPageForm(nextStep, beforeCustomCode, afterCustomCode, delayAfter) {
         try {
           pageQuote.on('console', msg => {
@@ -1709,6 +1634,60 @@ module.exports = {
       }
 
       function populateData() {
+
+        const staticDetailsObj = {
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          email: 'test@mail.com',
+          phone: '302-222-5555',
+          mailingAddress: '216 Humphreys Dr',
+          city: 'Adamsville',
+          state: 'Alabama',
+          zipCode: '35005',
+          lengthAtAddress: '1 year or more',
+          priorInsurance: 'A',
+          priorInsuranceCarrier: 'USAA',
+          // must always agree to closure
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleModelYear: '2015',
+              vehicleManufacturer: 'FORD',
+              vehicleModel: 'F350',
+              vehicleBodyStyle: 'EXT CAB (8CYL 4x2)',
+              applicantPostalCd: '35005',
+              lengthOfOwnership: 'At least 1 year but less than 3 years',
+              primaryUse: 'Commute',
+              occupation: 'Appraiser - Real Estate',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              applicantBirthDt: '12/16/1993',
+              applicantGenderCd: 'Male',
+              applicantMaritalStatusCd: 'Single',
+              driverLicensedDt: '3 years or more',
+              driverLicenseNumber: '',
+              employment: 'Banking/Finance/Real Estate',
+              occupation: 'Other',
+              education: 'College Degree',
+            },
+          ],
+          priorIncident: 'AAD - At Fault Accident',
+          priorIncidentDate: '12/16/2012',
+          policyEffectiveDate: '04/30/2019',
+          priorPolicyTerminationDate: '03/15/2019',
+          yearsWithPriorInsurance: '5 years or more',
+          ownOrRentPrimaryResidence: 'Rent',
+          numberOfResidentsInHome: '3',
+          rentersLimits: 'Greater Than 300,000',
+          haveAnotherProgressivePolicy: 'No',
+        };
+
         const dataObj = {};
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           for (const j in bodyData.vehicles) {
@@ -1768,7 +1747,7 @@ module.exports = {
 
         dataObj['DRV.0.VIO.0.drvr_viol_cd'] = { type: 'select-one', value: staticDetailsObj.priorIncident, name: 'DRV.0.VIO.0.drvr_viol_cd' };
         dataObj['DRV.0.VIO.0.drvr_viol_dt_dsply'] = { type: 'text', value: staticDetailsObj.priorIncidentDate, name: 'DRV.0.VIO.0.drvr_viol_dt_dsply' };
-        dataObj[`pol_eff_dt`] = { type: 'text', value: '07/30/2019', name: 'pol_eff_dt' };
+        dataObj[`pol_eff_dt`] = { type: 'text', value: tomorrowDate, name: 'pol_eff_dt' };
         dataObj[`nam_opr`] = { type: 'select-one', value: 'N', name: 'nam_opr' };
         dataObj[`DRV.0.drvr_frst_nam`] = { type: 'text', value: bodyData.firstName || staticDetailsObj.firstName, name: 'DRV.0.drvr_frst_nam' };
         dataObj[`DRV.0.drvr_mid_nam`] = { type: 'text', value: '', name: 'DRV.0.drvr_mid_nam' };
