@@ -179,7 +179,6 @@ module.exports = {
           stepResult.existingQuote = true;
         } catch (err) {
           await exitFail(error, 'Existing Quote');
-          browser.close();
           return next();
         }
       }
