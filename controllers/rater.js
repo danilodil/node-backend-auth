@@ -37,6 +37,7 @@ module.exports = {
     /* create new rater result */
     const isSucceeded = (req.session && req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
     if (!raterData) {
+      console.log(req.session.data);
       const newRater = {
         companyId,
         clientId,
@@ -55,6 +56,7 @@ module.exports = {
     }
 
     /* update rater result */
+    console.log('SAVING RATE: ', req.session.data);
     const updateObj = {
       stepResult: req.session.data.stepResult || null,
       quoteId: req.session.data.quoteId || null,

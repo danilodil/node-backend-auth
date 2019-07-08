@@ -144,7 +144,6 @@ module.exports = {
         await violationStep();
         await underwritingStep();
         await coveragesStep();
-        await summaryStep();
       } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
@@ -167,9 +166,6 @@ module.exports = {
         if (params.stepName === 'coverage' && raterStore) {
           await errorStep();
           await coveragesStep();
-        }
-        if (params.stepName === 'summary' && raterStore) {
-          await summaryStep();
         }
       }
 
@@ -392,61 +388,39 @@ module.exports = {
           });
           await pageQuote.waitFor(500);
           dismissDialog(pageQuote);
-          await pageQuote.waitFor(1000);
-          await fillPageForm();
-          await pageQuote.waitFor(1000);
-          await summaryStep();
-          stepResult.coverage = true;
-        } catch (error) {
-          await exitFail(error, 'coverages');
-        }
-      }
-
-      async function summaryStep() {
-        try {
-          await loadStep('BillPlans', true);
-          dismissDialog(pageQuote);
-          await pageQuote.waitFor(4000);
-          const premiumDetails = await pageQuote.evaluate(() => {
-            const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
-            const premiumDetailsObj = {
-              totalPremium: Elements[2].textContent.replace(/\n/g, '').trim(),
-              downPaymentAmount: Elements[3].textContent.replace(/\n/g, '').trim(),
-              paymentAmount: Elements[4].textContent.replace(/\n/g, '').trim(),
-              term: Elements[1].textContent.replace(/\n/g, '').trim(),
-            };
-
-            let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
-            while (true) {
-              if (previousElement.querySelector('th')) {
-                premiumDetailsObj.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
-                break;
-              }
-              if (previousElement.previousElementSibling.tagName === 'TR') {
-                previousElement = previousElement.previousElementSibling;
-              } else {
-                break;
-              }
-            }
-            return premiumDetailsObj;
+          await pageQuote.waitFor(500);
+          await fillPageForm2(null);
+          await pageQuote.evaluate(() => {
+            RecalculateRates();
           });
-
-          await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
-          await pageQuote.click('#ctl00_HeaderLinksControl_SaveLink');
-          stepResult.summary = true;
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#tot_pol_prem');
+          const payDetails = await pageQuote.evaluate(() => {
+            let el = document.getElementById('tot_pol_prem');
+            let el2 = document.getElementById('down_pmt_amt');
+            const premium = el.getAttribute('value');
+            const downPayment = el2.getAttribute('value');
+            
+            const term = 6;
+            const payments = ((+premium - +downPayment)/+term);
+            const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
+            return details;
+          });
           req.session.data = {
-            title: 'Successfully retrieved progressive DE rate.',
+            title: 'Successfully retrieved progressive AL rate.',
             status: true,
-            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
-            months: premiumDetails.plan ? premiumDetails.plan : null,
-            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            totalPremium: (payDetails && payDetails.premium) ? payDetails.premium : null,
+            months: (payDetails && payDetails.term) ? payDetails.term : null,
+            downPayment: (payDetails && payDetails.downPayment) ? payDetails.downPayment : null,
             stepResult,
           };
+          stepResult.coverage = true;
+          stepResult.summary = true;
           await saveStep();
           browser.close();
           return next();
         } catch (error) {
-          await exitFail(error, 'summary');
+          await exitFail(error, 'coverages');
         }
       }
 
@@ -922,10 +896,22 @@ module.exports = {
         await violationStep();
         await underwritingStep();
         await coveragesStep();
-        await summaryStep();
       } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
+          await pageQuote.waitForSelector('#aspnetForm');
+          const failed = await pageQuote.evaluate(() => {
+            if (document.querySelector('#S_REJECT_FR_GET_KICK_TEXT')) {
+              document.getElementById('ctl00_NavigationButtonContentPlaceHolder_buttonContinue').click();
+              return true;
+            } else {
+              return false;
+            }
+          });
+          if (failed) {
+            await pageQuote.waitFor(1000);
+            await namedInsuredStep();
+          }
           await exitSuccess('namedInsured');
         }
         if (params.stepName === 'vehicles' && raterStore) {
@@ -945,9 +931,6 @@ module.exports = {
         if (params.stepName === 'coverage' && raterStore) {
           await errorStep();
           await coveragesStep();
-        }
-        if (params.stepName === 'summary' && raterStore) {
-          await summaryStep();
         }
       }
 
@@ -990,23 +973,22 @@ module.exports = {
       async function existingQuote() {
         console.log('Progressive AL Existing Quote Step');
         try {
-          // if (raterStore && raterStore.quoteIds && raterStore.quoteIds !== {}) {
-          //   const quote = raterStore.quoteIds;
-          //   const url = `https://www.foragentsonly.com/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quote.quoteKey}&quoteNumber=${quote.quoteNumber}&st_cd=${quote.stateCd || 'AL'}&prod_cd=${quote.prodCd}&qt_src=DQS&risk_cd=AA&fromPage=/newbusiness/quotesearch/`;
-          //   await page.goto(url, { waitUntil: 'load' });
-          // } else {
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
           const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
           const name = `${populatedData[`DRV.0.drvr_lst_nam`].value}, ${populatedData[`DRV.0.drvr_frst_nam`].value}`;
+          let failed = true;
           for (let i = 0; i < tdText.length; i++) {
             if (tdText[i] === name) {
-              await page.evaluate((index) => {
+              failed = await page.evaluate((index) => {
                 const els = document.getElementsByClassName('insuredNameLink');
                 els[index].click();
+                return false;
               }, i);
             }
           }
-          // }
+          if (failed) {
+            await newQuoteStep();
+          }
           stepResult.existingQuote = true;
         } catch (error) {
           await exitFail(error, 'existingQuote');
@@ -1017,9 +999,7 @@ module.exports = {
         console.log('Progressive AL Named Insured Step.');
         try {
           await loadStep('NamedInsured', false);
-          await fillPageForm('Driver');
-          // await pageQuote.waitFor(500);
-          // await navigateMenu('Driver');
+          await fillPageForm2('Driver');
           stepResult.namedInsured = true;
         } catch (error) {
           await exitFail(error, 'namedInsured');
@@ -1055,26 +1035,8 @@ module.exports = {
               }, populatedData, j)
               await pageQuote.waitFor(1000);
             }
-            // Delete a vehicle code
-            // for (let j=0;j<10;j++) {
-            //   if (bodyData.vehicles && bodyData.vehicles.length) {
-            //     const k = +bodyData.vehicles.length -1;
-            //     if (j > k) {
-            //       const deleteElement = await pageQuote.$(`[id="VEH.${j}.delete"]`);
-            //       if (deleteElement) {
-            //         await deleteElement.click();
-            //         await pageQuote.waitFor(1000);
-            //         await pageQuote.on('dialog', async (dialog) => {
-            //           console.log('DIALOG HIT');
-            //           await dialog.accept();
-            //         });
-            //         await pageQuote.waitFor(1000);
-            //       }
-            //     }
-            //   }
-            // }
           }
-          await fillPageForm(null, beforeCode, afterCode);
+          await fillPageForm2(null, beforeCode, afterCode, 2000);
           stepResult.vehicles = true;
         } catch (error) {
           await exitFail(error, 'vehicles');
@@ -1106,7 +1068,7 @@ module.exports = {
               let bmi = +findBestMatch(populatedData[`DRV.${i}.drvr_empl_stat`].value, occupations).bestMatchIndex;
               let value = bmi ? codes[bmi] : 'AC';
 
-              await pageQuote.select(`DRV.${i}.drvr_stat_dsply`, value);
+              await pageQuote.select(`#DRV.${i}.drvr_stat_dsply`, value);
               await pageQuote.waitFor(500);
               await pageQuote.evaluate(() => {
                 const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
@@ -1114,15 +1076,10 @@ module.exports = {
                 FldOnChange(rObj, true);
               }, i);
               await pageQuote.waitFor(500);
-              // await pageQuote.evaluate(() => {
-              //   const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
-              //   FldOnChange(rObj, true);
-              //   FldOnChange(obj, true);
-              // }, i);
               await pageQuote.waitFor(1000);
               if (value !== '01' && value !== '02' && value !== '03' && value !== '04') {
                 let otherValue = value + 'Z';
-                await pageQuote.select(`DRV.${i}.drvr_occup_lvl`, otherValue);
+                await pageQuote.select(`#DRV.${i}.drvr_occup_lvl`, otherValue);
                 await pageQuote.waitFor(500);
               }
               await pageQuote.waitFor(10000);
@@ -1192,7 +1149,7 @@ module.exports = {
               return true;
             }
           };
-          await fillPageForm('Violations', customCode, afterCode, 1000);
+          await fillPageForm('Violations', customCode, null, 1000);
           stepResult.drivers = true;
         } catch (error) {
           await exitFail(error, 'drivers');
@@ -1225,7 +1182,7 @@ module.exports = {
 
       async function errorStep() {
         try {
-          await fillPageForm();
+          await fillPageForm2();
           await pageQuote.waitFor(500);
           const navPageNeeded = await pageQuote.evaluate(() => {
             const driverEl = document.querySelector('[source="Driver"]') ? document.querySelector('[source="Driver"]') : null;
@@ -1242,7 +1199,26 @@ module.exports = {
           });
           if (navPageNeeded) {
             await pageQuote.waitFor(1000);
-            await fillPageForm();
+            if (navPageNeeded === 'vehicle') {
+              const afterCode = async function () {
+                for (let j in bodyData.vehicles) {
+                  await pageQuote.evaluate(async (data, i) => {
+                    const vinEl = document.getElementById(`VEH.${i}.veh_vin`);
+                    const vinBtn = document.getElementById(`VinVerifyButton_${i}`);
+                    if (vinEl) {
+                      vinEl.value = data[`VEH.${i}.veh_vin`].value;
+                      vinBtn.click();
+                    }
+                  }, populatedData, j)
+                  await pageQuote.waitFor(1000);
+                }
+              }
+              await fillPageForm2(null, null, afterCode, 3000);
+            } else if (navPageNeeded === 'driver'){
+              await fillPageForm();
+            } else {
+              await fillPageForm2();
+            }
             await pageQuote.waitFor(1000);
           }
           await coveragesStep();
@@ -1277,56 +1253,38 @@ module.exports = {
           await pageQuote.waitFor(500);
           dismissDialog(pageQuote);
           await pageQuote.waitFor(500);
-          stepResult.coverage = true;
-        } catch (error) {
-          await exitFail(error, 'coverages');
-        }
-      }
-
-      async function summaryStep() {
-        try {
-          await loadStep('BillPlans', true);
-          dismissDialog(pageQuote);
-          await pageQuote.waitFor(2000);
-          dismissDialog(pageQuote);
-          const premiumDetails = await pageQuote.evaluate(() => {
-            const Elements = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.querySelectorAll('td');
-            const ress = {};
-            ress.totalPremium = Elements[2].textContent.replace(/\n/g, '').trim();
-            ress.downPaymentAmount = Elements[3].textContent.replace(/\n/g, '').trim();
-            ress.paymentAmount = Elements[4].textContent.replace(/\n/g, '').trim();
-            ress.term = Elements[1].textContent.replace(/\n/g, '').trim();
-
-            let previousElement = document.querySelector('td>input[type="radio"]:checked').parentNode.parentNode.previousElementSibling;
-            while (true) {
-              if (previousElement.querySelector('th')) {
-                ress.plan = previousElement.querySelector('th').textContent.replace(/\n/g, '').trim();
-                break;
-              }
-              if (previousElement.previousElementSibling.tagName === 'TR') {
-                previousElement = previousElement.previousElementSibling;
-              } else {
-                break;
-              }
-            }
-            return ress;
+          await fillPageForm2(null);
+          await pageQuote.evaluate(() => {
+            RecalculateRates();
           });
-
-          await pageQuote.click('#ctl00_ContentPlaceHolder1_InsuredRemindersDialog_InsuredReminders_btnOK');
-          stepResult.summary = true;
+          await pageQuote.waitFor(2000);
+          await pageQuote.waitForSelector('#tot_pol_prem');
+          const payDetails = await pageQuote.evaluate(() => {
+            let el = document.getElementById('tot_pol_prem');
+            let el2 = document.getElementById('down_pmt_amt');
+            const premium = el.getAttribute('value');
+            const downPayment = el2.getAttribute('value');
+            
+            const term = 6;
+            const payments = ((+premium - +downPayment)/+term);
+            const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
+            return details;
+          });
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
-            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
-            months: premiumDetails.plan ? premiumDetails.plan.replace(/\D/g, '') : null,
-            downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
+            totalPremium: (payDetails && payDetails.premium) ? payDetails.premium : null,
+            months: (payDetails && payDetails.term) ? payDetails.term : null,
+            downPayment: (payDetails && payDetails.downPayment) ? payDetails.downPayment : null,
             stepResult,
           };
-          await saveStep();
+          stepResult.coverage = true;
+          stepResult.summary = true;
+          // await saveStep();
           browser.close();
           return next();
         } catch (error) {
-          await exitFail(error, 'summary');
+          await exitFail(error, 'coverages');
         }
       }
 
@@ -1415,6 +1373,11 @@ module.exports = {
           }
           const qO = await pageQuote.evaluate(async (data) => {
             const form = document.aspnetForm;
+            for (let ele of form.elements) {
+              if (ele.disabled) {
+                ele.disabled = false;
+              }
+            }
             const formD = new FormData(form);
             let quoteObj = {};
             for (const pair of formD.entries()) {
@@ -1432,32 +1395,39 @@ module.exports = {
               if (key && value) {
                 const els = document.getElementsByName(key);
                 const el = (els && els[0]) ? els[0] : null;
-                const obj = el ? GetObj(el.id) : null;
-                if (obj) {
-                  if (obj.type === 'text') {
-                    SetFieldValue(obj, value);
-                  } else if (obj.type === 'select-one' && obj.options && obj.options.length && obj.options.length > 0) {
-                    let bestValue = await getBestValue(value, obj.options);
-                    SetFieldValue(obj, bestValue);
-                    // if (obj.id.includes('drvr_empl_stat')) {
-                    //   const index = obj.id.replace( /^\D+/g, '')[0];
-                    //   const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj(`DRV.0.drvr_occup_lvl`);
-                    //   const rObj = index ? GetObj(`DRV.${index}.drvr_stat_dsply`) : GetObj(`DRV.0.drvr_stat_dsply`);
-                    //   const letter = bestValue[bestValue.length -1];
-                    //   const value = `A${letter}Z`;
-                    //   FldOnChange(rObj, true);
-                    //   FldOnChange(obj, true);
-                    //   setTimeout(async() => {
-                    //     SetFieldValue(occObj, value);
-                    //   }, 1000);
-                    // }
-                  } else if (obj.type === 'radio' || obj.type === 'checkbox') {
-                    obj.checked = (value && value === true) ? true : false;
+                const name = el.name;
+                const id = el.id;
+                const type = el.type;
+                const input = document.createElement('input');
+                let bestValue = value;
+
+                input.setAttribute('name', name);
+                input.setAttribute('id', id);
+                input.setAttribute('type', 'hidden');
+
+                if (type === 'select-one') {
+                  if (id.includes('drvr_empl_stat')) {
+                    const occupations = [
+                      {text: 'Homemaker (full-time)', value: '01'},{text: 'Retired (full-time)', value: '02'},{text: 'Unemployed', value: '03'},{text: 'Student (full-time)', value: '04'},{text: 'Agriculture/Forestry/Fishing', value: 'AA'},{text: 'Art/Design/Media', value: 'AB'},{text: 'Banking/Finance/Real Estate', value: 'AC'},{text: 'Business/Sales/Office', value: 'AD'},{text: 'Construction / Energy / Mining', value: 'AE'},{text: 'Education/Library', value: 'AF'},{text: 'Engineer/Architect/Science/Math', value: 'AG'},{text: 'Food Service / Hotel Services', value: 'AH'},{text: 'Government/Military', value: 'AJ'},{text: 'Information Technology', value: 'AK'},{text: 'Insurance', value: 'AL'},{text: 'Legal/Law Enforcement/Security', value: 'AM'},{text: 'Medical/Social Services/Religion', value: 'AN'},{text: 'Personal Care/Service', value: 'AP'},{text: 'Production / Manufacturing', value: 'AQ'},{text: 'Repair / Maintenance / Grounds', value: 'AR'},{text: 'Sports/Recreation', value: 'AS'},{text: 'Travel / Transportation / Storage', value: 'AT'},
+                    ];
+                    bestValue = await getBestValue(value, occupations);
+                  } else if (id.includes('drvr_occup_lvl')) {
+                    const occupations = [{text: 'Homemaker (full-time)', value: '01'},{text: 'Retired (full-time)', value: '02'},{text: 'Unemployed', value: '03'},{text: 'Student (full-time)', value: '04'},{text: 'Agriculture/Forestry/Fishing', value: 'AA'},{text: 'Art/Design/Media', value: 'AB'},{text: 'Banking/Finance/Real Estate', value: 'AC'},{text: 'Business/Sales/Office', value: 'AD'},{text: 'Construction / Energy / Mining', value: 'AE'},{text: 'Education/Library', value: 'AF'},{text: 'Engineer/Architect/Science/Math', value: 'AG'},{text: 'Food Service / Hotel Services', value: 'AH'},{text: 'Government/Military', value: 'AJ'},{text: 'Information Technology', value: 'AK'},{text: 'Insurance', value: 'AL'},{text: 'Legal/Law Enforcement/Security', value: 'AM'},{text: 'Medical/Social Services/Religion', value: 'AN'},{text: 'Personal Care/Service', value: 'AP'},{text: 'Production / Manufacturing', value: 'AQ'},{text: 'Repair / Maintenance / Grounds', value: 'AR'},{text: 'Sports/Recreation', value: 'AS'},{text: 'Travel / Transportation / Storage', value: 'AT'}];
+                    const index = id.replace( /^\D+/g, '')[0];
+                    const emplValue = data[`DRV.${index}.drvr_empl_stat`].value;
+                    bestValue = await getBestValue(emplValue, occupations);
+                    bestValue += 'Z';
+                  } else {
+                    bestValue = await getBestValue(value, el.options);
                   }
+                  input.setAttribute('value', bestValue);
+                } else if (type === 'radio' || type === 'checkbox') {
+                  input.checked = (value && value === true) ? true : false;
+                } else {
+                  input.setAttribute('value', value);
                 }
-                // if (obj && obj.onchange && !obj.id.includes('drvr_empl_stat')) {
-                //   obj.onchange = null;
-                // }
+                el.remove();
+                form.append(input);
               }
             }
             return quoteObj;
@@ -1514,6 +1484,167 @@ module.exports = {
 
 
               const bestMatch = ratings[bestMatchIndex]
+
+              return { ratings, bestMatch, bestMatchIndex };
+            }
+            function areArgsValid(mainString, targetStrings) {
+              if (typeof mainString !== 'string') return false;
+              if (!Array.isArray(targetStrings)) return false;
+              if (!targetStrings.length) return false;
+              if (targetStrings.find(s => typeof s !== 'string')) return false;
+              return true;
+            }
+
+            async function getBestValue(value, data) {
+              try {
+                const optionsArray = [...data];
+                const nArr = optionsArray.map(entry => entry.text.toLowerCase());
+                const vArr = optionsArray.map(entry => entry.value.toLowerCase());
+                if (value && value.length && value.length > 0 && value.length < 2) {
+                  if (vArr.indexOf(value.toLowerCase()) !== -1) {
+                    return value;
+                  }
+                } else if (value && value.length > 1) {
+                  const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
+                  const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+                  let i = 0;
+                  if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+                    i = nBestMatch.bestMatchIndex;
+                  } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+                    i = vBestMatch.bestMatchIndex;
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                    i = nBestMatch.bestMatchIndex;
+                  }
+                  const bestValue = optionsArray[i].value;
+                  return bestValue;
+                } else if (value) {
+                  return value || '';
+                } else {
+                  return '';
+                }
+              } catch (error) {
+                console.log(`Error: ${error}`);
+              }
+            }
+          }, populatedData);
+          if (qO) {
+            quoteObj = qO;
+          }
+          if (afterCustomCode) {
+            await afterCustomCode();
+          }
+          if (nextStep) {
+            await navigateMenu(nextStep);
+          }
+          if (delayAfter) {
+            await pageQuote.waitFor(delayAfter);
+          } else {
+            await pageQuote.waitFor(1000);
+          }
+        } catch (error) {
+          console.log(error);
+          await exitFail(error, 'FillPage');
+        }
+      }
+
+      async function fillPageForm2(nextStep, beforeCustomCode, afterCustomCode, delayAfter) {
+        try {
+          pageQuote.on('console', msg => {
+            for (let i = 0; i < msg.args().length; ++i)
+              console.log(`${msg.args()[i]}`);
+          });
+          if (beforeCustomCode) {
+            await beforeCustomCode();
+          }
+          const qO = await pageQuote.evaluate(async (data) => {
+            const form = document.aspnetForm;
+            const formD = new FormData(form);
+            let quoteObj = {};
+            for (const pair of formD.entries()) {
+              const key = (pair && pair[0]) ? pair[0] : null;
+              const value = (data && key && data[key] && data[key].value) ? data[key].value : null;
+              if (key === 'prod_cd') {
+                quoteObj['prodCd'] = pair[1];
+              } else if (key === 'insd_st_cd') {
+                quoteObj['stateCd'] = pair[1];
+              } else if (key === 'ctl00$qtNbr') {
+                quoteObj['quoteNumber'] = pair[1];
+              } else if (key === 'ctl00$qtKey') {
+                quoteObj['quoteKey'] = pair[1];
+              }
+              if (key && value) {
+                const els = document.getElementsByName(key);
+                const el = (els && els[0]) ? els[0] : null;
+                const obj = el ? GetObj(el.id) : null;
+                if (obj) {
+                  if (obj.type === 'text') {
+                    SetFieldValue(obj, value);
+                  } else if (obj.type === 'select-one' && obj.options && obj.options.length && obj.options.length > 0) {
+                    let bestValue = await getBestValue(value, obj.options);
+                    SetFieldValue(obj, bestValue);
+                  } else if (obj.type === 'radio' || obj.type === 'checkbox') {
+                    obj.checked = (value && value === true) ? true : false;
+                  }
+                }
+                if (obj && obj.onchange && !obj.id.includes('drvr_empl_stat')) {
+                  obj.onchange = null;
+                }
+              }
+            }
+            return quoteObj;
+
+            function compareTwoStrings(first, second) {
+              first = first.replace(/\s+/g, '')
+              second = second.replace(/\s+/g, '')
+
+              if (!first.length && !second.length) return 1;                   // if both are empty strings
+              if (!first.length || !second.length) return 0;                   // if only one is empty string
+              if (first === second) return 1;       							 // identical
+              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+
+              let firstBigrams = new Map();
+              for (let i = 0; i < first.length - 1; i++) {
+                const bigram = first.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram) + 1
+                  : 1;
+
+                firstBigrams.set(bigram, count);
+              };
+
+              let intersectionSize = 0;
+              for (let i = 0; i < second.length - 1; i++) {
+                const bigram = second.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram)
+                  : 0;
+
+                if (count > 0) {
+                  firstBigrams.set(bigram, count - 1);
+                  intersectionSize++;
+                }
+              }
+
+              return (2.0 * intersectionSize) / (first.length + second.length - 2);
+            }
+            function findBestMatch(mainString, targetStrings) {
+              if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+              const ratings = [];
+              let bestMatchIndex = 0;
+
+              for (let i = 0; i < targetStrings.length; i++) {
+                const currentTargetString = targetStrings[i];
+                const currentRating = compareTwoStrings(mainString, currentTargetString);
+                ratings.push({ target: currentTargetString, rating: currentRating });
+                if (currentRating > ratings[bestMatchIndex].rating) {
+                  bestMatchIndex = i;
+                }
+              }
+
+
+              const bestMatch = ratings[bestMatchIndex];
 
               return { ratings, bestMatch, bestMatchIndex };
             }
@@ -1637,7 +1768,7 @@ module.exports = {
 
         dataObj['DRV.0.VIO.0.drvr_viol_cd'] = { type: 'select-one', value: staticDetailsObj.priorIncident, name: 'DRV.0.VIO.0.drvr_viol_cd' };
         dataObj['DRV.0.VIO.0.drvr_viol_dt_dsply'] = { type: 'text', value: staticDetailsObj.priorIncidentDate, name: 'DRV.0.VIO.0.drvr_viol_dt_dsply' };
-        dataObj[`pol_eff_dt`] = { type: 'text', value: '07/04/2019', name: 'pol_eff_dt' };
+        dataObj[`pol_eff_dt`] = { type: 'text', value: '07/30/2019', name: 'pol_eff_dt' };
         dataObj[`nam_opr`] = { type: 'select-one', value: 'N', name: 'nam_opr' };
         dataObj[`DRV.0.drvr_frst_nam`] = { type: 'text', value: bodyData.firstName || staticDetailsObj.firstName, name: 'DRV.0.drvr_frst_nam' };
         dataObj[`DRV.0.drvr_mid_nam`] = { type: 'text', value: '', name: 'DRV.0.drvr_mid_nam' };
@@ -1673,102 +1804,6 @@ module.exports = {
         return dataObj;
       }
 
-      async function returnBestValue(valueT, dataT) {
-        function compareTwoStrings(first, second) {
-          first = first.replace(/\s+/g, '')
-          second = second.replace(/\s+/g, '')
-
-          if (!first.length && !second.length) return 1;                   // if both are empty strings
-          if (!first.length || !second.length) return 0;                   // if only one is empty string
-          if (first === second) return 1;       							 // identical
-          if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-          if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
-
-          let firstBigrams = new Map();
-          for (let i = 0; i < first.length - 1; i++) {
-            const bigram = first.substring(i, i + 2);
-            const count = firstBigrams.has(bigram)
-              ? firstBigrams.get(bigram) + 1
-              : 1;
-
-            firstBigrams.set(bigram, count);
-          };
-
-          let intersectionSize = 0;
-          for (let i = 0; i < second.length - 1; i++) {
-            const bigram = second.substring(i, i + 2);
-            const count = firstBigrams.has(bigram)
-              ? firstBigrams.get(bigram)
-              : 0;
-
-            if (count > 0) {
-              firstBigrams.set(bigram, count - 1);
-              intersectionSize++;
-            }
-          }
-
-          return (2.0 * intersectionSize) / (first.length + second.length - 2);
-        }
-        function findBestMatch(mainString, targetStrings) {
-          if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
-
-          const ratings = [];
-          let bestMatchIndex = 0;
-
-          for (let i = 0; i < targetStrings.length; i++) {
-            const currentTargetString = targetStrings[i];
-            const currentRating = compareTwoStrings(mainString, currentTargetString)
-            ratings.push({ target: currentTargetString, rating: currentRating })
-            if (currentRating > ratings[bestMatchIndex].rating) {
-              bestMatchIndex = i;
-            }
-          }
-
-          const bestMatch = ratings[bestMatchIndex];
-          return { ratings, bestMatch, bestMatchIndex };
-        }
-        function areArgsValid(mainString, targetStrings) {
-          if (typeof mainString !== 'string') return false;
-          if (!Array.isArray(targetStrings)) return false;
-          if (!targetStrings.length) return false;
-          if (targetStrings.find(s => typeof s !== 'string')) return false;
-          return true;
-        }
-
-        async function getBestValue(value, data) {
-          try {
-            const optionsArray = [...data];
-            const nArr = optionsArray.map(entry => entry.text.toLowerCase());
-            const vArr = optionsArray.map(entry => entry.value.toLowerCase());
-            if (value && value.length && value.length > 0 && value.length < 2) {
-              if (vArr.indexOf(value.toLowerCase()) !== -1) {
-                return value;
-              }
-            } else if (value && value.length > 1) {
-              const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
-              const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
-              let i = 0;
-              if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
-                i = nBestMatch.bestMatchIndex;
-              } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
-                i = vBestMatch.bestMatchIndex;
-              } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
-                i = nBestMatch.bestMatchIndex;
-              }
-              const bestValue = optionsArray[i].value;
-              return bestValue;
-            } else if (value) {
-              return value || '';
-            } else {
-              return '';
-            }
-          } catch (error) {
-            console.log(`Error: ${error}`);
-          }
-        }
-        const bestValue = await getBestValue(valueT, dataT);
-        return bestValue;
-      }
     } catch (error) {
       console.log('Error at Progressive AL :', error);
       return next(Boom.badRequest('Failed to retrieved progressive AL rate.'));
