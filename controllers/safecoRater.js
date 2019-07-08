@@ -127,24 +127,6 @@ module.exports = {
           const quoteId = `${bodyData.lastName}, ${bodyData.firstName}`;
           exitSuccess('Named Insured', quoteId);
         }
-        if (params.stepName === 'garagedInfo' && raterStore) {
-          await GaragedInfoStep();
-          if (params.sendSummary && params.sendSummary === 'true') {
-            await finalSteps();
-          } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
-            exitSuccess('Garaged Info', quoteId);
-          }
-        }
-        if (params.stepName === 'houseHold' && raterStore) {
-          await houseHoldStep();
-          if (params.sendSummary && params.sendSummary === 'true') {
-            await finalSteps();
-          } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
-            exitSuccess('House Hold', quoteId);
-          }
-        }
         if (params.stepName === 'drivers' && raterStore) {
           await driversStep();
           if (params.sendSummary && params.sendSummary === 'true') {
@@ -196,14 +178,7 @@ module.exports = {
           await page.waitFor(2000);
           stepResult.existingQuote = true;
         } catch (err) {
-          console.log('Error at Safeco AL Existing Quote Step:', err);
-          stepResult.existingQuote = false;
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at existing Quote Step',
-            stepResult,
-          };
+          await exitFail(error, 'Existing Quote');
           browser.close();
           return next();
         }
