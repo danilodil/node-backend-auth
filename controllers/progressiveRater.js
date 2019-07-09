@@ -863,6 +863,7 @@ module.exports = {
         if (params.stepName === 'vehicles' && raterStore) {
           await vehicleStep();
           await underwritingStep();
+          await coveragesStep();
         }
         if (params.stepName === 'drivers' && raterStore) {
           await driverStep();
