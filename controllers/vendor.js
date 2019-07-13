@@ -45,16 +45,16 @@ module.exports = {
       return next(Boom.badRequest('Error creating vendor!'));
     }
   },
-  update: async (req, res, next) => {
+  upsert: async (req, res, next) => {
     try {
       const params = req.body;
-      if (!params.companyId || !params.username || !params.password) {
+      if (!params.companyId || !params.username) {
         return next(Boom.badRequest('Invalid data!'));
       }
 
       const findObject = {
         where: {
-          vendorName: req.params.vendorName,
+          vendorName: params.vendorName,
           companyId: params.companyId,
         },
       };
@@ -62,7 +62,22 @@ module.exports = {
       const vendor = await vendorModel.findOne(findObject);
 
       if (!vendor) {
-        return next(Boom.badRequest('Vendor does not exists!'));
+        const newVendor = await vendorModel.create({
+          vendorName: params.vendorName,
+          username: params.username,
+          password: params.password,
+          companyId: params.companyId,
+          salesforceAT: params.salesforceAT || '',
+          state: params.state,
+          carrier: params.carrier,
+        });
+  
+        req.session.data = {
+          status:'create',
+          message: 'New vendor created successfully',
+          newVendorID: newVendor.id,
+        };
+        return next();
       }
 
       const updateVendor = await vendor.update({
@@ -76,8 +91,9 @@ module.exports = {
       });
 
       req.session.data = {
+        status:'update',
         message: 'Vendor updated successfully',
-        updateVendorID: updateVendor,
+        newVendorID: updateVendor.id
       };
       return next();
     } catch (error) {
