@@ -36,9 +36,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
-        browserParams = { headless: false };
-      }
+      // if (ENVIRONMENT.ENV === 'local') {
+      //   browserParams = { headless: false };
+      // }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
@@ -310,6 +310,7 @@ module.exports = {
           let retried = false;
           if (!retried) {
             retried = true;
+            await page.waitFor(1000);
             await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
             await page.waitFor(5000);
             quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
