@@ -57,6 +57,8 @@ exports.safecoAlRater = {
   LOGIN_URL: 'http://www.safeconow.com/',
   NEW_QUOTE_START_URL: 'https://now.agent.safeco.com/start/',
   NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
+  NEW_QUOTE_START_AUTO_URL: 'https://safesite.safeco.com/personal/auto/policyinfo.aspx',
+  EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
 };
 
 exports.vendorNames = {

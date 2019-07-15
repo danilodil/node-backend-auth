@@ -34,6 +34,9 @@ const Rater = sequelize.define('Rater', {
   stepResult: {
     type: DataTypes.JSON,
   },
+  quoteIds: {
+    type: DataTypes.JSON,
+  },
 });
 
 module.exports = Rater;
