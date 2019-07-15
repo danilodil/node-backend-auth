@@ -1212,6 +1212,7 @@ module.exports = {
             const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
             return details;
           });
+          console.log('PAYMENT DETAILS ###: ', payDetails);
           stepResult.coverage = true;
           req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
@@ -1222,6 +1223,7 @@ module.exports = {
             stepResult,
             quoteIds: quoteObj,
           };
+          console.log('STORED PAY DATA ###: ', req.session.data);
           browser.close();
           return next();
         } catch (error) {
