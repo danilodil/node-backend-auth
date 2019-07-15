@@ -1184,7 +1184,9 @@ module.exports = {
             await errorStep();
           }
           pageQuote.on('dialog', async (dialog) => {
-            await dialog.dismiss();
+            if (dialog) {
+              await dialog.dismiss();
+            }
           });
           await pageQuote.evaluate(() => {
             const el = document.getElementById('ctl00_pageMessage');
@@ -1192,8 +1194,6 @@ module.exports = {
               el.value = '';
             }
           });
-          await pageQuote.waitFor(500);
-          dismissDialog(pageQuote);
           await pageQuote.waitFor(500);
           await fillPageForm2(null);
           await pageQuote.evaluate(() => {
@@ -1212,9 +1212,8 @@ module.exports = {
             const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
             return details;
           });
-          console.log('PAYMENT DETAILS ###: ', payDetails);
           stepResult.coverage = true;
-          req.session.data = {
+          req.session.payment = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
             totalPremium: (payDetails && payDetails.premium) ? payDetails.premium : null,
@@ -1223,7 +1222,6 @@ module.exports = {
             stepResult,
             quoteIds: quoteObj,
           };
-          console.log('STORED PAY DATA ###: ', req.session.data);
           browser.close();
           return next();
         } catch (error) {
