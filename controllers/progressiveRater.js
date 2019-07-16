@@ -9,6 +9,7 @@ const ENVIRONMENT = require('./../constants/environment');
 const SS = require('string-similarity');
 const { formatDate } = require('../lib/utils');
 const tomorrowDate = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+const Rater = require('../models/rater');
 
 module.exports = {
   rateDelaware: async (req, res, next) => {
@@ -920,20 +921,29 @@ module.exports = {
         console.log('Progressive AL Existing Quote Step');
         try {
           await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
-          const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
-          const name = `${populatedData[`DRV.0.drvr_lst_nam`].value}, ${populatedData[`DRV.0.drvr_frst_nam`].value}`;
-          let failed = true;
-          for (let i = 0; i < tdText.length; i++) {
-            if (tdText[i] === name) {
-              failed = await page.evaluate((index) => {
-                const els = document.getElementsByClassName('insuredNameLink');
-                els[index].click();
-                return false;
-              }, i);
+          if (raterStore.quoteIds && raterStore.quoteIds.quoteNumber && raterStore.quoteIds.quoteNumber !== '') {
+            await page.evaluate((quoteIds) => {
+              const quoteKey = quoteIds.quoteKey;
+              const quoteNumber = quoteIds.quoteNumber;
+              const prodCd = quoteIds.prodCd;
+              quoteSearchOpenQuote(`/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quoteKey}&quoteNumber=${quoteNumber}&quoteActivityId=&st_cd=AL&prod_cd=AU&qt_src=DQS&risk_cd=AA`,"AU")
+            }, raterStore.quoteIds)
+          } else {
+            const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
+            const name = `${populatedData[`DRV.0.drvr_lst_nam`].value}, ${populatedData[`DRV.0.drvr_frst_nam`].value}`;
+            let failed = true;
+            for (let i = 0; i < tdText.length; i++) {
+              if (tdText[i] === name) {
+                failed = await page.evaluate((index) => {
+                  const els = document.getElementsByClassName('insuredNameLink');
+                  els[index].click();
+                  return false;
+                }, i);
+              }
             }
-          }
-          if (failed) {
-            await newQuoteStep();
+            if (failed) {
+              await newQuoteStep();
+            }
           }
           stepResult.existingQuote = true;
         } catch (error) {
@@ -1222,6 +1232,30 @@ module.exports = {
             stepResult,
             quoteIds: quoteObj,
           };
+
+          const existRater = {
+            where: {
+              companyId,
+              clientId,
+              vendorName: req.body.vendorName,
+            },
+          };
+      
+          const raterData = await Rater.findOne(existRater);
+
+          const updateObj = {
+            stepResult: stepResult,
+          };
+          if (raterData && data.totalPremium && data.status) {
+            updateObj.totalPremium = (payDetails && payDetails.premium) ? payDetails.premium : null;
+            updateObj.months = (payDetails && payDetails.term) ? payDetails.term : null;
+            updateObj.downPayment = (payDetails && payDetails.downPayment) ? payDetails.downPayment : null;
+            updateObj.succeeded = true;
+            updateObj.error = null;
+            await raterData.update(updateObj);
+            console.log(`${req.body.vendorName} Rater Updated`);
+          }
+
           browser.close();
           return next();
         } catch (error) {
