@@ -1233,6 +1233,16 @@ module.exports = {
             quoteIds: quoteObj,
           };
 
+          const currentUser = req.body.decoded_user;
+          if (currentUser.user) {
+            companyId = currentUser.user.companyUserId;
+            clientId = currentUser.user.id;
+          }
+          if (currentUser.client) {
+            companyId = currentUser.client.companyClientId;
+            clientId = currentUser.client.id;
+          }
+
           const existRater = {
             where: {
               companyId,
