@@ -1,12 +1,12 @@
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, consistent-return  */
+ no-param-reassign, no-plusplus, no-shadow, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, consistent-return  */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
+const SS = require('string-similarity');
 const { nationalGeneralAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('../constants/environment');
-const SS = require('string-similarity');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
 module.exports = {
   nationalGeneralAl: async (req, res, next) => {
@@ -36,9 +36,9 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      // if (ENVIRONMENT.ENV === 'local') {
-      //   browserParams = { headless: false };
-      // }
+      if (ENVIRONMENT.nodeEnv === 'local') {
+        browserParams = { headless: false };
+      }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
@@ -283,9 +283,9 @@ module.exports = {
           await page.select(populatedData.emailOption.element, populatedData.emailOption.value);
           await page.evaluate((email) => { document.querySelector(email.element).value = email.value; }, populatedData.email);
           await page.evaluate((dateOfBirth) => { document.querySelector(dateOfBirth.element).value = dateOfBirth.value; }, populatedData.dateOfBirth);
-          //await page.evaluate((security1) => { document.querySelector(security1.element).value = security1.value; }, populatedData.security1);
-          //await page.evaluate((security2) => { document.querySelector(security2.element).value = security2.value; }, populatedData.security2);
-          //await page.evaluate((security3) => { document.querySelector(security3.element).value = security3.value; }, populatedData.security3);
+          // await page.evaluate((security1) => { document.querySelector(security1.element).value = security1.value; }, populatedData.security1);
+          // await page.evaluate((security2) => { document.querySelector(security2.element).value = security2.value; }, populatedData.security2);
+          // await page.evaluate((security3) => { document.querySelector(security3.element).value = security3.value; }, populatedData.security3);
           await page.evaluate((mailingAddress) => { document.querySelector(mailingAddress.element).value = mailingAddress.value; }, populatedData.mailingAddress);
           await page.evaluate((city) => { document.querySelector(city.element).value = city.value; }, populatedData.city);
           await page.select(populatedData.state.element, populatedData.state.value);
@@ -327,7 +327,7 @@ module.exports = {
         try {
           await page.waitFor(1000);
           await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
-          for (let j in bodyData.drivers) {
+          for (const j in bodyData.drivers) {
             if (j < bodyData.drivers.length - 1) {
               const addElement = await page.$('[id="ctl00_MainContent_InsuredDriverLabel1_btnAddDriver"]');
               await addElement.click();
@@ -343,8 +343,8 @@ module.exports = {
           // await page.waitFor(600);
           // await page.select('#ctl00_MainContent_Driver1_ddlMaritalStatus', '-1');
 
-          for (let j in bodyData.drivers) {
-            let k = parseInt(j) + 1;
+          for (const j in bodyData.drivers) {
+            const k = parseInt(j) + 1;
             await page.waitFor(600);
             await page.waitForSelector(populatedData[`driverFirstName${k}`].element);
             await page.evaluate((firstName) => {
@@ -396,8 +396,8 @@ module.exports = {
           let retried = false;
           if (!retried) {
             retried = true;
-            for (let j in bodyData.drivers) {
-              let k = parseInt(j) + 1;
+            for (const j in bodyData.drivers) {
+              const k = parseInt(j) + 1;
               await page.waitFor(600);
               await page.waitForSelector(populatedData[`driverFirstName${k}`].element);
               await page.evaluate((firstName) => {
@@ -450,9 +450,9 @@ module.exports = {
           await page.goto(nationalGeneralAlRater.VEHICLES_URL, { waitUntil: 'load' });
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
-          for (let j in bodyData.vehicles) {
+          for (const j in bodyData.vehicles) {
             if (j < bodyData.vehicles.length) {
-              const vI = +j+1;
+              const vI = +j + 1;
               const el = await page.$(`[id="ctl00_MainContent_AutoControl${vI}_lblUnitNum"]`);
               if (!el) {
                 const addElement = await page.$('[id="ctl00_MainContent_InsuredAutoLabel1_btnAddAuto"]');
@@ -462,10 +462,10 @@ module.exports = {
             }
           }
 
-          for (let j=0;j<10;j++) {
+          for (let j = 0; j < 10; j++) {
             if (bodyData.vehicles && bodyData.vehicles.length) {
-              const k = +bodyData.vehicles.length -1;
-              const vI = +j+1;
+              const k = +bodyData.vehicles.length - 1;
+              const vI = +j + 1;
               if (j > k) {
                 const deleteElement = await page.$(`[id="ctl00_MainContent_AutoControl${vI}_btnDelete"]`);
                 if (deleteElement) {
@@ -478,7 +478,7 @@ module.exports = {
           await page.waitFor(1000);
           await page.waitForSelector('#ctl00_MainContent_AutoControl1_txtZip');
           await clearInputText('#ctl00_MainContent_AutoControl1_txtZip');
-          for (let j in bodyData.vehicles) {
+          for (const j in bodyData.vehicles) {
             await page.waitFor(600);
             await page.waitForSelector(populatedData[`vehicleVin${j}`].element);
             await page.evaluate((vehicleVinInput) => {
@@ -501,8 +501,8 @@ module.exports = {
             }, populatedData[`garagingzipCode${j}`]);
             await page.type(populatedData[`ownOrLeaseVehicle${j}`].elementId, populatedData[`ownOrLeaseVehicle${j}`].value);
           }
-          //ctl00_MainContent_AutoControl1_ddlNotFoundVehDescription, Midsize Car
-          //ctl00_MainContent_AutoControl1_pnlOriginalCostsNew, 10000
+          // ctl00_MainContent_AutoControl1_ddlNotFoundVehDescription, Midsize Car
+          // ctl00_MainContent_AutoControl1_pnlOriginalCostsNew, 10000
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           stepResult.vehicles = true;
           await page.waitFor(1000);
@@ -646,7 +646,7 @@ module.exports = {
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPayment ? premiumDetails.downPayment.replace(/,/g, '') : null,
-            quoteId: quoteId,
+            quoteId,
             stepResult,
           };
           browser.close();
@@ -715,11 +715,11 @@ module.exports = {
           },
           phone1: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone1\']',
-            value: bodyData.phone ? bodyData.phone.slice(0,3) : staticDataObj.phone1,
+            value: bodyData.phone ? bodyData.phone.slice(0, 3) : staticDataObj.phone1,
           },
           phone2: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone2\']',
-            value: bodyData.phone ? bodyData.phone.slice(3,6) : staticDataObj.phone2,
+            value: bodyData.phone ? bodyData.phone.slice(3, 6) : staticDataObj.phone2,
           },
           phone3: {
             element: 'input[name=\'ctl00$MainContent$InsuredNamed1$ucPhones$PhoneNumber1$txtPhone3\']',
@@ -800,7 +800,7 @@ module.exports = {
         };
 
         if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
-          for (let j in bodyData.drivers) {
+          for (const j in bodyData.drivers) {
             const i = parseInt(j) + 1;
             clientInputSelect[`driverFirstName${i}`] = {
               elementId: `ctl00_MainContent_Driver${i}_txtFirstName`,
@@ -857,7 +857,7 @@ module.exports = {
         }
 
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
-          for (let j in bodyData.vehicles) {
+          for (const j in bodyData.vehicles) {
             const i = parseInt(j) + 1;
             clientInputSelect[`vehicleVin${j}`] = {
               buttonId: `#ctl00_MainContent_AutoControl${i}_btnVerifyVIN`,
