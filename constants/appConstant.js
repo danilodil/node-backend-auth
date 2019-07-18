@@ -1,13 +1,12 @@
-const ENVIRONMENT = require('./environment');
+const ENVIRONMENT = require('./configConstants').CONFIG;
 
-const nodeEnv = ENVIRONMENT.ENV;
-if (nodeEnv === 'local') {
+if (ENVIRONMENT.nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
-if (nodeEnv === 'development') {
+if (ENVIRONMENT.nodeEnv === 'development') {
   exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
-if (nodeEnv === 'production') {
+if (ENVIRONMENT.nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
 }
 

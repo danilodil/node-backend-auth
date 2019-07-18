@@ -74,10 +74,10 @@ module.exports = {
 
       const returnNewDate = async (date, daysAfter) => {
         try {
-          if (typeof daysAfter == 'undefined' || !daysAfter) {
+          if (typeof daysAfter === 'undefined' || !daysAfter) {
             daysAfter = 0;
           }
-          let newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset()*60000));
+          const newDate = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000));
           const dd = (newDate.getDate() + daysAfter).toString().padStart(2, 0);
           const mm = (newDate.getMonth() + 1).toString().padStart(2, 0);
           const y = newDate.getFullYear();
@@ -131,23 +131,23 @@ module.exports = {
                 },
               ],
             };
-            if (!driverObj.children['Accident'] && (driver.children['Accident'])) {
-              driverObj.children['Accident'] = {
-                  ...(await returnValue(driver.children.Accident.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Accident.Date))) }),
-                  ...(await returnValue(driver.children.Accident.accidentType) !== '' && { accidentType: await returnValue(driver.children.Accident.accidentType) })
+            if (!driverObj.children.Accident && (driver.children.Accident)) {
+              driverObj.children.Accident = {
+                ...(await returnValue(driver.children.Accident.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Accident.Date))) }),
+                ...(await returnValue(driver.children.Accident.accidentType) !== '' && { accidentType: await returnValue(driver.children.Accident.accidentType) }),
               };
             }
-            if (!driverObj.children['Violation'] && (driver.children['Violation'])) {
-                driverObj.children['Violation'] = {
-                  ...(await returnValue(driver.children.Violation.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Violation.Date))) }),
-                  ...(await returnValue(driver.children.Violation.violationType) !== '' && { violationType: await returnValue(driver.children.Violation.violationType) })
-                };
+            if (!driverObj.children.Violation && (driver.children.Violation)) {
+              driverObj.children.Violation = {
+                ...(await returnValue(driver.children.Violation.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.Violation.Date))) }),
+                ...(await returnValue(driver.children.Violation.violationType) !== '' && { violationType: await returnValue(driver.children.Violation.violationType) }),
+              };
             }
-            if (!driverObj.children['CompLoss'] && (driver.children['CompLoss'])) {
-                driverObj.children['CompLoss'] = {
-                  ...(await returnValue(driver.children.CompLoss.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.CompLoss.Date))) }),
-                  ...(await returnValue(driver.children.CompLoss.Description) !== '' && { Description: await returnValue(driver.children.CompLoss.Description) })
-                };
+            if (!driverObj.children.CompLoss && (driver.children.CompLoss)) {
+              driverObj.children.CompLoss = {
+                ...(await returnValue(driver.children.CompLoss.Date) !== '' && { Date: await returnNewDate(new Date(await returnValue(driver.children.CompLoss.Date))) }),
+                ...(await returnValue(driver.children.CompLoss.Description) !== '' && { Description: await returnValue(driver.children.CompLoss.Description) }),
+              };
             }
             driversObj.push(driverObj);
             if (!req.body.Contact.Drivers[+i + 1]) {
@@ -295,34 +295,34 @@ module.exports = {
           }),
         },
         PriorPolicyInfo: {
-           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
-           ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)))}),
-           YearsWithPriorCarrier: {
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
-           },
-           YearsWithContinuousCoverage: {
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years)}),
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months)}),
-           },
-           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit) !== '' && {PriorLiabilityLimit: await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit)}),
+          ...(await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && { PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) }),
+          ...(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && { Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration))) }),
+          YearsWithPriorCarrier: {
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && { Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) }),
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && { Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) }),
+          },
+          YearsWithContinuousCoverage: {
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && { Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) }),
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && { Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) }),
+          },
+          ...(await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit) !== '' && { PriorLiabilityLimit: await returnValue(req.body.Contact.PriorPolicyInfo.PriorLiabilityLimit) }),
         },
         PolicyInfo: {
-           PolicyTerm: '6 Month',
-           Package: 'No',
-           Effective: await returnNewDate(new Date(), 0),
-           CreditCheckAuth: 'Yes'
+          PolicyTerm: '6 Month',
+          Package: 'No',
+          Effective: await returnNewDate(new Date(), 0),
+          CreditCheckAuth: 'Yes',
         },
         ...((await returnValue(req.body.Contact.Applicant.ResidenceInfo) !== '' && await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) !== '') && {
           ResidenceInfo: {
             CurrentAddress: {
-                ...(await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) !== '' && {Ownership: await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership)}),
-            }
-          }
+              ...(await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) !== '' && { Ownership: await returnValue(req.body.Contact.Applicant.CurrentAddress.Ownership) }),
+            },
+          },
         }),
         ...((await returnValue(req.body.Contact.Drivers) !== '' && await returnValue(req.body.Contact.Drivers[0].children.Name) !== '') && { Drivers: await returnDrivers() }),
         ...((await returnValue(req.body.Contact.Vehicles) !== '' && await returnValue(req.body.Contact.Vehicles[0].children.Model) !== '') && { Vehicles: await returnVehicles() }),
-        ... ((await returnValue(req.body.Contact.VehiclesUse) !== '' && await returnValue(req.body.Contact.VehiclesUse[0].children.Useage) !== '') && {VehiclesUse: await returnVehiclesUse()}),
+        ...((await returnValue(req.body.Contact.VehiclesUse) !== '' && await returnValue(req.body.Contact.VehiclesUse[0].children.Useage) !== '') && { VehiclesUse: await returnVehiclesUse() }),
         ...((await returnValue(req.body.Contact.GeneralInfo) !== '' && await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '') && {
           GeneralInfo: {
             ...(await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '' && { RatingStateCode: await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) }),
@@ -347,8 +347,8 @@ module.exports = {
                 ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.City) !== '' && { City: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.City) }),
                 ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.StateCode) !== '' && { StateCode: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.StateCode) }),
                 ...(await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Zip5) !== '' && { Zip5: await returnValue(req.body.Contact.Applicant.AltDwelling.Address.Zip5) }),
-                Validation: 'Valid'
-              }
+                Validation: 'Valid',
+              },
             },
           }),
           PersonalInfo: {
@@ -385,27 +385,27 @@ module.exports = {
                 },
               }),
               ...(await returnValue(req.body.Contact.Applicant.Address.Email) !== '' && { Email: await returnValue(req.body.Contact.Applicant.Address.Email) }),
-              Validation: 'Valid'
+              Validation: 'Valid',
             },
           }),
         },
         PriorPolicyInfo: {
-           ... (await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && {PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier)}),
-           ... (await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && {Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration)))}),
-           YearsWithPriorCarrier: {
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years)}),
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months)})
-           },
-           YearsWithContinuousCoverage: {
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && {Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years)}),
-              ... (await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && {Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months)}),
-           },
+          ...(await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) !== '' && { PriorCarrier: await returnValue(req.body.Contact.PriorPolicyInfo.PriorCarrier) }),
+          ...(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration) !== '' && { Expiration: await returnNewDate(new Date(await returnValue(req.body.Contact.PriorPolicyInfo.Expiration))) }),
+          YearsWithPriorCarrier: {
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) !== '' && { Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Years) }),
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) !== '' && { Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithPriorCarrier.Months) }),
+          },
+          YearsWithContinuousCoverage: {
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) !== '' && { Years: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Years) }),
+            ...(await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) !== '' && { Months: await returnValue(req.body.Contact.PriorPolicyInfo.YearsWithContinuousCoverage.Months) }),
+          },
         },
         PolicyInfo: {
-           PolicyTerm: '12 Month',
-           Package: 'No',
-           Effective: await returnNewDate(new Date(), 0),
-           CreditCheckAuth: 'Yes'
+          PolicyTerm: '12 Month',
+          Package: 'No',
+          Effective: await returnNewDate(new Date(), 0),
+          CreditCheckAuth: 'Yes',
         },
         ...((await returnValue(req.body.Contact.RatingInfo) !== '' && await returnValue(req.body.Contact.RatingInfo.SquareFootage) !== '') && {
           RatingInfo: {
@@ -429,7 +429,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.RatingInfo.HeatingType) !== '' && { HeatingType: await returnValue(req.body.Contact.RatingInfo.HeatingType) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WoodBurningStove) !== '' && { WoodBurningStove: await returnValue(req.body.Contact.RatingInfo.WoodBurningStove) }),
             ...(await returnValue(req.body.Contact.RatingInfo.NumberOfWoodBurningStoves) !== '' && { NumberOfWoodBurningStoves: await returnValue(req.body.Contact.RatingInfo.NumberOfWoodBurningStoves) }),
-            ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) !== '' && { RoofingUpdate: 'COMPLETE UPDATE'}),
+            ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) !== '' && { RoofingUpdate: 'COMPLETE UPDATE' }),
             ...(await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) !== '' && { RoofingUpdateYear: await returnValue(req.body.Contact.RatingInfo.RoofingUpdateYear) }),
             ...(await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) !== '' && { ElectricalUpdate: 'COMPLETE UPDATE' }),
             ...(await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) !== '' && { ElectricalUpdateYear: await returnValue(req.body.Contact.RatingInfo.ElectricalUpdateYear) }),
@@ -459,7 +459,7 @@ module.exports = {
             //         }),
             //       },
             //     }),
-            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations) !== '' && 
+            //     ...((await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations) !== '' &&
             //           await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations[await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)])) !== '' && {
             //       Foundations: {
             //         ...(await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations[await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)]) !== '' && { [await returnValue(req.body.Contact.RatingInfo.ReplacementCostExtended.Foundations.FoundationsType)]: 100 }),
@@ -495,7 +495,7 @@ module.exports = {
             ...(await returnValue(req.body.Contact.RatingInfo.RoofShape) !== '' && { RoofShape: await returnValue(req.body.Contact.RatingInfo.RoofShape) }),
             ...(await returnValue(req.body.Contact.RatingInfo.WindSpeed) !== '' && { WindSpeed: await returnValue(req.body.Contact.RatingInfo.WindSpeed) }),
             ...(await returnValue(req.body.Contact.RatingInfo.Foundation) !== '' && { Foundation: await returnValue(req.body.Contact.RatingInfo.Foundation) }),
-          }
+          },
         }),
         ...((await returnValue(req.body.Contact.GeneralInfo) !== '' && await returnValue(req.body.Contact.GeneralInfo.RatingStateCode) !== '') && {
           GeneralInfo: {
@@ -580,6 +580,5 @@ module.exports = {
     } catch (error) {
       return next(Boom.badRequest('Error creating contact'));
     }
-  
   },
 };

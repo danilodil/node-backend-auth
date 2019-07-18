@@ -10,7 +10,7 @@ const Rater = sequelize.define('Rater', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  quoteId : {
+  quoteId: {
     type: DataTypes.STRING,
   },
   vendorName: {
