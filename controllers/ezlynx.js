@@ -578,6 +578,7 @@ module.exports = {
       };
       return next();
     } catch (error) {
+      console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
