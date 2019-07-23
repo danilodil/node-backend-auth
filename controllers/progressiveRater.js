@@ -1,13 +1,14 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,no-nested-ternary,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition */
+
+/* eslint-disable no-plusplus, no-mixed-operators, object-shorthand, no-shadow, curly, prefer-const, no-else-return, no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,no-nested-ternary,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, dot-notation, quotes, func-names, consistent-return, indent, no-unneeded-ternary, nonblock-statement-body-position, no-floating-decimal, arrow-parens */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { progressiveRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
-const SS = require('string-similarity');
+const { progressiveRater } = require('../constants/appConstant');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
+
 const tomorrowDate = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
 const Rater = require('../models/rater');
 
@@ -40,7 +41,7 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
@@ -246,7 +247,7 @@ module.exports = {
           dismissDialog(pageQuote);
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
           const beforeCode = async function () {
-            for (let j in bodyData.vehicles) {
+            for (const j in bodyData.vehicles) {
               await pageQuote.evaluate((i) => {
                 const el = document.getElementById(`VEH.${i}.veh_vin`);
                 if (!el) {
@@ -256,9 +257,9 @@ module.exports = {
               }, j);
               await pageQuote.waitFor(1000);
             }
-          }
+          };
           const afterCode = async function () {
-            for (let j in bodyData.vehicles) {
+            for (const j in bodyData.vehicles) {
               await pageQuote.evaluate(async (data, i) => {
                 const vinEl = document.getElementById(`VEH.${i}.veh_vin`);
                 const vinBtn = document.getElementById(`VinVerifyButton_${i}`);
@@ -266,10 +267,10 @@ module.exports = {
                   vinEl.value = data[`VEH.${i}.veh_vin`].value;
                   vinBtn.click();
                 }
-              }, populatedData, j)
+              }, populatedData, j);
               await pageQuote.waitFor(1000);
             }
-          }
+          };
           await fillPageForm(null, beforeCode, afterCode);
           stepResult.vehicles = true;
         } catch (error) {
@@ -283,7 +284,7 @@ module.exports = {
           await loadStep('Driver', true);
           const customCode = async function () {
             await pageQuote.waitForSelector('img[id="DRV.0.add"]');
-            for (let j in bodyData.drivers) {
+            for (const j in bodyData.drivers) {
               await pageQuote.evaluate((i) => {
                 const el = document.getElementById(`DRV.${i}.drvr_frst_nam`);
                 if (!el) {
@@ -293,7 +294,7 @@ module.exports = {
               }, j);
               await pageQuote.waitFor(1000);
             }
-          }
+          };
           await fillPageForm('Vehicles', customCode, null, 3000);
           await saveStep();
           stepResult.drivers = true;
@@ -309,7 +310,7 @@ module.exports = {
           await pageQuote.waitForSelector(populatedData.priorIncident0.element);
           const drvrViolCdS = await pageQuote.evaluate(getSelectValues, `${populatedData.priorIncident0.element}>option`);
           const drvrViolCd = await pageQuote.evaluate(getValToSelect, drvrViolCdS, populatedData.priorIncident0.value);
-          for (let j in bodyData.drivers) {
+          for (const j in bodyData.drivers) {
             if (await pageQuote.$(populatedData[`priorIncident${j}`].element) !== null) {
               await pageQuote.select(populatedData[`priorIncident${j}`].element, drvrViolCd);
               await pageQuote.click(populatedData[`priorIncidentDate${j}`].element);
@@ -397,14 +398,18 @@ module.exports = {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#tot_pol_prem');
           const payDetails = await pageQuote.evaluate(() => {
-            let el = document.getElementById('tot_pol_prem');
-            let el2 = document.getElementById('down_pmt_amt');
+            const el = document.getElementById('tot_pol_prem');
+            const el2 = document.getElementById('down_pmt_amt');
             const premium = el.getAttribute('value');
             const downPayment = el2.getAttribute('value');
-            
             const term = 6;
-            const payments = ((+premium - +downPayment)/+term);
-            const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
+            const payments = ((+premium - +downPayment) / +term);
+            const details = {
+              premium: premium,
+              downPayment: downPayment,
+              term: term,
+              payments: payments,
+            };
             return details;
           });
           req.session.data = {
@@ -461,7 +466,7 @@ module.exports = {
             quoteIds: quoteObj,
             stepResult,
           };
-          // browser.close();
+          browser.close();
           return next();
         } catch (error) {
           await exitFail(error, 'exitSuccess');
@@ -536,7 +541,7 @@ module.exports = {
                     SetFieldValue(obj, bestValue);
                     if (obj.id.includes('drvr_empl_stat')) {
                       const index = obj.id.replace(/^\D+/g, '');
-                      const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj(`DRV.0.drvr_occup_lvl`);
+                      const occObj = index ? GetObj(`DRV.${index}.drvr_occup_lvl`) : GetObj('DRV.0.drvr_occup_lvl');
                       const occValue = (data && data[occObj.id]) ? data[occObj.id] : 'Other';
                       obj.onchange = async function () {
                         setTimeout(async () => {
@@ -544,7 +549,7 @@ module.exports = {
                           console.log(`Occupation for Driver ${occObj.id}| value:${occValue} bestValue:${occBestValue} option0:${(occObj.options && occObj.options[0]) ? occObj.options[0].value : 'No 0th options'} option2:${(occObj.options && occObj.options[2]) ? occObj.options[2].value : 'No 2nd options'} `);
                           SetFieldValue(occObj, bestValue);
                         }, 500);
-                      }
+                      };
                       FldOnChange(obj, true);
                     }
                   } else if (obj.type === 'radio' || obj.type === 'checkbox') {
@@ -559,14 +564,14 @@ module.exports = {
             return quoteObj;
 
             function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
 
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+              if (!first.length && !second.length) return 1;// if both are empty strings
+              if (!first.length || !second.length) return 0;// if only one is empty string
+              if (first === second) return 1;// identical
+              if (first.length === 1 && second.length === 1) return 0;// both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0;// if either is a 1-letter string
 
               let firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
@@ -574,9 +579,8 @@ module.exports = {
                 const count = firstBigrams.has(bigram)
                   ? firstBigrams.get(bigram) + 1
                   : 1;
-
                 firstBigrams.set(bigram, count);
-              };
+              }
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -748,15 +752,15 @@ module.exports = {
         dataObj[`pol_term_cnt`] = { type: 'select-one', value: '6', name: 'pol_term_cnt' };
         dataObj[`eft_ind`] = { type: 'select-one', value: 'Y', name: 'eft_ind' };
         dataObj[`ctl00_pageMessage`] = { type: 'hidden', value: '', name: 'ctl00$pageMessage' };
-        dataObj[`prir_ins_cd_insd`] = { type: 'select-one', value: bodyData.priorInsurance || staticDetailsObj.priorInsurance, name: `prir_ins_cd_insd` };
-        dataObj[`curr_ins_co_cd_dsply`] = { type: 'select-one', value: bodyData.priorInsuranceCarrier || staticDetailsObj.priorInsuranceCarrier, name: `curr_ins_co_cd_dsply` };
-        dataObj[`prir_bi_lim`] = { type: 'select-one', value: bodyData.priorBodilyInjuryLimits || '3', name: `prir_bi_lim` };
-        dataObj[`pop_len_most_recent_carr_insd`] = { type: 'select-one', value: bodyData.yearsWithPriorInsurance || staticDetailsObj.yearsWithPriorInsurance, name: `pop_len_most_recent_carr_insd` };
+        dataObj[`prir_ins_cd_insd`] = { type: 'select-one', value: bodyData.priorInsurance || staticDetailsObj.priorInsurance, name: 'prir_ins_cd_insd' };
+        dataObj[`curr_ins_co_cd_dsply`] = { type: 'select-one', value: bodyData.priorInsuranceCarrier || staticDetailsObj.priorInsuranceCarrier, name: 'curr_ins_co_cd_dsply' };
+        dataObj[`prir_bi_lim`] = { type: 'select-one', value: bodyData.priorBodilyInjuryLimits || '3', name: 'prir_bi_lim' };
+        dataObj[`pop_len_most_recent_carr_insd`] = { type: 'select-one', value: bodyData.yearsWithPriorInsurance || staticDetailsObj.yearsWithPriorInsurance, name: 'pop_len_most_recent_carr_insd' };
         // dataObj[`spinoff_code`] =  {type: 'select-one', value: '', name: `spinoff_code`};
         dataObj[`prls_ind`] = { type: 'select-one', value: 'Y', name: 'prls_ind' };
-        dataObj[`excess_res_nbr`] = { type: 'select-one', value: bodyData.numberOfResidentsInHome || '3', name: `excess_res_nbr` };
-        dataObj[`hm_own_ind`] = { type: 'select-one', value: bodyData.ownOrRentPrimaryResidence || staticDetailsObj.ownOrRentPrimaryResidence, name: `hm_own_ind` };
-        dataObj[`pol_renters_prir_bi_lim_code`] = { type: 'select-one', value: bodyData.rentersLimits || staticDetailsObj.rentersLimits, name: `pol_renters_prir_bi_lim_code` };
+        dataObj[`excess_res_nbr`] = { type: 'select-one', value: bodyData.numberOfResidentsInHome || '3', name: 'excess_res_nbr' };
+        dataObj[`hm_own_ind`] = { type: 'select-one', value: bodyData.ownOrRentPrimaryResidence || staticDetailsObj.ownOrRentPrimaryResidence, name: 'hm_own_ind' };
+        dataObj[`pol_renters_prir_bi_lim_code`] = { type: 'select-one', value: bodyData.rentersLimits || staticDetailsObj.rentersLimits, name: 'pol_renters_prir_bi_lim_code' };
         dataObj[`multi_pol_ind`] = { type: 'select-one', value: 'N', name: 'multi_pol_ind' };
         return dataObj;
       }
@@ -794,7 +798,7 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
@@ -925,12 +929,12 @@ module.exports = {
             await page.evaluate((quoteIds) => {
               const quoteKey = quoteIds.quoteKey;
               const quoteNumber = quoteIds.quoteNumber;
-              const prodCd = quoteIds.prodCd;
-              quoteSearchOpenQuote(`/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quoteKey}&quoteNumber=${quoteNumber}&quoteActivityId=&st_cd=AL&prod_cd=AU&qt_src=DQS&risk_cd=AA`,"AU")
-            }, raterStore.quoteIds)
+              // const prodCd = quoteIds.prodCd;
+              quoteSearchOpenQuote(`/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quoteKey}&quoteNumber=${quoteNumber}&quoteActivityId=&st_cd=AL&prod_cd=AU&qt_src=DQS&risk_cd=AA`, 'AU');
+            }, raterStore.quoteIds);
           } else {
             const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
-            const name = `${populatedData[`DRV.0.drvr_lst_nam`].value}, ${populatedData[`DRV.0.drvr_frst_nam`].value}`;
+            const name = `${populatedData['DRV.0.drvr_lst_nam'].value}, ${populatedData['DRV.0.drvr_frst_nam'].value}`;
             let failed = true;
             for (let i = 0; i < tdText.length; i++) {
               if (tdText[i] === name) {
@@ -967,7 +971,7 @@ module.exports = {
           dismissDialog(pageQuote);
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
           const beforeCode = async function () {
-            for (let j in bodyData.vehicles) {
+            for (const j in bodyData.vehicles) {
               await pageQuote.evaluate((i) => {
                 const el = document.getElementById(`VEH.${i}.veh_vin`);
                 if (!el) {
@@ -977,9 +981,9 @@ module.exports = {
               }, j);
               await pageQuote.waitFor(1000);
             }
-          }
+          };
           const afterCode = async function () {
-            for (let j in bodyData.vehicles) {
+            for (const j in bodyData.vehicles) {
               await pageQuote.evaluate(async (data, i) => {
                 const vinEl = document.getElementById(`VEH.${i}.veh_vin`);
                 const vinBtn = document.getElementById(`VinVerifyButton_${i}`);
@@ -987,10 +991,10 @@ module.exports = {
                   vinEl.value = data[`VEH.${i}.veh_vin`].value;
                   vinBtn.click();
                 }
-              }, populatedData, j)
+              }, populatedData, j);
               await pageQuote.waitFor(1000);
             }
-          }
+          };
           await fillPageForm2(null, beforeCode, afterCode, 2000);
           stepResult.vehicles = true;
         } catch (error) {
@@ -1013,96 +1017,95 @@ module.exports = {
               }, j);
               await pageQuote.waitFor(1000);
             }
-          }
-          const afterCode = async function() {
-            const occupations = ['Homemaker (full-time)','Retired (full-time)','Unemployed','Student (full-time)','Agriculture/Forestry/Fishing','Art/Design/Media','Banking/Finance/Real Estate','Business/Sales/Office','Construction / Energy / Mining','Education/Library','Engineer/Architect/Science/Math','Food Service / Hotel Services','Government/Military','Information Technology','Insurance','Legal/Law Enforcement/Security','Medical/Social Services/Religion','Personal Care/Service','Production / Manufacturing','Repair / Maintenance / Grounds','Sports/Recreation','Travel / Transportation / Storage'];
-            const codes = ['01','02','03','04','AA','AB','AC','AD','AE','AF','AG','AH','AJ','AK','AL','AM','AN','AP','AQ','AR','AS','AT'];
-            for (let i=0;i<bodyData.drivers.length;i++) {
-              console.log(i);
-              let bmi = +findBestMatch(populatedData[`DRV.${i}.drvr_empl_stat`].value, occupations).bestMatchIndex;
-              let value = bmi ? codes[bmi] : 'AC';
-
-              await pageQuote.select(`#DRV.${i}.drvr_stat_dsply`, value);
-              await pageQuote.waitFor(500);
-              await pageQuote.evaluate(() => {
-                const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
-                SetFieldValue(rObj, 'R');
-                FldOnChange(rObj, true);
-              }, i);
-              await pageQuote.waitFor(500);
-              await pageQuote.waitFor(1000);
-              if (value !== '01' && value !== '02' && value !== '03' && value !== '04') {
-                let otherValue = value + 'Z';
-                await pageQuote.select(`#DRV.${i}.drvr_occup_lvl`, otherValue);
-                await pageQuote.waitFor(500);
-              }
-              await pageQuote.waitFor(10000);
-            }
-
-
-            function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
-
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
-
-              let firstBigrams = new Map();
-              for (let i = 0; i < first.length - 1; i++) {
-                const bigram = first.substring(i, i + 2);
-                const count = firstBigrams.has(bigram)
-                  ? firstBigrams.get(bigram) + 1
-                  : 1;
-
-                firstBigrams.set(bigram, count);
-              };
-
-              let intersectionSize = 0;
-              for (let i = 0; i < second.length - 1; i++) {
-                const bigram = second.substring(i, i + 2);
-                const count = firstBigrams.has(bigram)
-                  ? firstBigrams.get(bigram)
-                  : 0;
-
-                if (count > 0) {
-                  firstBigrams.set(bigram, count - 1);
-                  intersectionSize++;
-                }
-              }
-
-              return (2.0 * intersectionSize) / (first.length + second.length - 2);
-            }
-            function findBestMatch(mainString, targetStrings) {
-              if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
-
-              const ratings = [];
-              let bestMatchIndex = 0;
-
-              for (let i = 0; i < targetStrings.length; i++) {
-                const currentTargetString = targetStrings[i];
-                const currentRating = compareTwoStrings(mainString, currentTargetString)
-                ratings.push({ target: currentTargetString, rating: currentRating })
-                if (currentRating > ratings[bestMatchIndex].rating) {
-                  bestMatchIndex = i
-                }
-              }
-
-
-              const bestMatch = ratings[bestMatchIndex]
-
-              return { ratings, bestMatch, bestMatchIndex };
-            }
-            function areArgsValid(mainString, targetStrings) {
-              if (typeof mainString !== 'string') return false;
-              if (!Array.isArray(targetStrings)) return false;
-              if (!targetStrings.length) return false;
-              if (targetStrings.find(s => typeof s !== 'string')) return false;
-              return true;
-            }
           };
+          // const afterCode = async function() {
+          //   const occupations = ['Homemaker (full-time)','Retired (full-time)','Unemployed','Student (full-time)','Agriculture/Forestry/Fishing','Art/Design/Media','Banking/Finance/Real Estate','Business/Sales/Office','Construction / Energy / Mining','Education/Library','Engineer/Architect/Science/Math','Food Service / Hotel Services','Government/Military','Information Technology','Insurance','Legal/Law Enforcement/Security','Medical/Social Services/Religion','Personal Care/Service','Production / Manufacturing','Repair / Maintenance / Grounds','Sports/Recreation','Travel / Transportation / Storage'];
+          //   const codes = ['01','02','03','04','AA','AB','AC','AD','AE','AF','AG','AH','AJ','AK','AL','AM','AN','AP','AQ','AR','AS','AT'];
+          //   for (let i=0;i<bodyData.drivers.length;i++) {
+          //     console.log(i);
+          //     let bmi = +findBestMatch(populatedData[`DRV.${i}.drvr_empl_stat`].value, occupations).bestMatchIndex;
+          //     let value = bmi ? codes[bmi] : 'AC';
+
+          //     await pageQuote.select(`#DRV.${i}.drvr_stat_dsply`, value);
+          //     await pageQuote.waitFor(500);
+          //     await pageQuote.evaluate(() => {
+          //       const rObj = GetObj(`DRV.${i}.drvr_stat_dsply`);
+          //       SetFieldValue(rObj, 'R');
+          //       FldOnChange(rObj, true);
+          //     }, i);
+          //     await pageQuote.waitFor(500);
+          //     await pageQuote.waitFor(1000);
+          //     if (value !== '01' && value !== '02' && value !== '03' && value !== '04') {
+          //       let otherValue = value + 'Z';
+          //       await pageQuote.select(`#DRV.${i}.drvr_occup_lvl`, otherValue);
+          //       await pageQuote.waitFor(500);
+          //     }
+          //     await pageQuote.waitFor(10000);
+          //   }
+
+          //   function compareTwoStrings(first, second) {
+          //     first = first.replace(/\s+/g, '')
+          //     second = second.replace(/\s+/g, '')
+
+          //     if (!first.length && !second.length) return 1;                   // if both are empty strings
+          //     if (!first.length || !second.length) return 0;                   // if only one is empty string
+          //     if (first === second) return 1; // identical
+          //     if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
+          //     if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
+
+          //     let firstBigrams = new Map();
+          //     for (let i = 0; i < first.length - 1; i++) {
+          //       const bigram = first.substring(i, i + 2);
+          //       const count = firstBigrams.has(bigram)
+          //         ? firstBigrams.get(bigram) + 1
+          //         : 1;
+
+          //       firstBigrams.set(bigram, count);
+          //     };
+
+          //     let intersectionSize = 0;
+          //     for (let i = 0; i < second.length - 1; i++) {
+          //       const bigram = second.substring(i, i + 2);
+          //       const count = firstBigrams.has(bigram)
+          //         ? firstBigrams.get(bigram)
+          //         : 0;
+
+          //       if (count > 0) {
+          //         firstBigrams.set(bigram, count - 1);
+          //         intersectionSize++;
+          //       }
+          //     }
+
+          //     return (2.0 * intersectionSize) / (first.length + second.length - 2);
+          //   }
+          //   function findBestMatch(mainString, targetStrings) {
+          //     if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+          //     const ratings = [];
+          //     let bestMatchIndex = 0;
+
+          //     for (let i = 0; i < targetStrings.length; i++) {
+          //       const currentTargetString = targetStrings[i];
+          //       const currentRating = compareTwoStrings(mainString, currentTargetString)
+          //       ratings.push({ target: currentTargetString, rating: currentRating })
+          //       if (currentRating > ratings[bestMatchIndex].rating) {
+          //         bestMatchIndex = i
+          //       }
+          //     }
+
+
+          //     const bestMatch = ratings[bestMatchIndex]
+
+          //     return { ratings, bestMatch, bestMatchIndex };
+          //   }
+          //   function areArgsValid(mainString, targetStrings) {
+          //     if (typeof mainString !== 'string') return false;
+          //     if (!Array.isArray(targetStrings)) return false;
+          //     if (!targetStrings.length) return false;
+          //     if (targetStrings.find(s => typeof s !== 'string')) return false;
+          //     return true;
+          //   }
+          // };
           await fillPageForm('Violations', customCode, null, 1000);
           stepResult.drivers = true;
         } catch (error) {
@@ -1161,12 +1164,12 @@ module.exports = {
                       vinEl.value = data[`VEH.${i}.veh_vin`].value;
                       vinBtn.click();
                     }
-                  }, populatedData, j)
+                  }, populatedData, j);
                   await pageQuote.waitFor(1000);
                 }
-              }
+              };
               await fillPageForm2(null, null, afterCode, 3000);
-            } else if (navPageNeeded === 'driver'){
+            } else if (navPageNeeded === 'driver') {
               await fillPageForm();
             } else {
               await fillPageForm2();
@@ -1212,14 +1215,19 @@ module.exports = {
           await pageQuote.waitFor(2000);
           await pageQuote.waitForSelector('#tot_pol_prem');
           const payDetails = await pageQuote.evaluate(() => {
-            let el = document.getElementById('tot_pol_prem');
-            let el2 = document.getElementById('down_pmt_amt');
+            const el = document.getElementById('tot_pol_prem');
+            const el2 = document.getElementById('down_pmt_amt');
             const premium = el.getAttribute('value');
             const downPayment = el2.getAttribute('value');
-            
+
             const term = 6;
-            const payments = ((+premium - +downPayment)/+term);
-            const details = {premium: premium, downPayment: downPayment, term: term, payments: payments};
+            const payments = ((+premium - +downPayment) / +term);
+            const details = {
+              premium: premium,
+              downPayment: downPayment,
+              term: term,
+              payments: payments,
+            };
             return details;
           });
           stepResult.coverage = true;
@@ -1233,6 +1241,16 @@ module.exports = {
             quoteIds: quoteObj,
           };
 
+          const currentUser = req.body.decoded_user;
+          if (currentUser.user) {
+            companyId = currentUser.user.companyUserId;
+            clientId = currentUser.user.id;
+          }
+          if (currentUser.client) {
+            companyId = currentUser.client.companyClientId;
+            clientId = currentUser.client.id;
+          }
+
           const existRater = {
             where: {
               companyId,
@@ -1240,7 +1258,7 @@ module.exports = {
               vendorName: req.body.vendorName,
             },
           };
-      
+
           const raterData = await Rater.findOne(existRater);
 
           const updateObj = {
@@ -1266,7 +1284,7 @@ module.exports = {
       async function exitFail(error, step) {
         console.log(`Error during Progressive AL ${step} step:`, error);
         if (req && req.session && req.session.data) {
-          req.session.data = {
+          req.session.payment = {
             title: 'Failed to retrieve Progressive AL rate',
             status: false,
             error: `There was an error at ${step} step`,
@@ -1325,7 +1343,7 @@ module.exports = {
       async function fillPageForm(nextStep, beforeCustomCode, afterCustomCode, delayAfter) {
         try {
           pageQuote.on('console', msg => {
-            for (let i = 0; i < msg.args().length; ++i)
+          for (let i = 0; i < msg.args().length; ++i)
               console.log(`${msg.args()[i]}`);
           });
           if (beforeCustomCode) {
@@ -1333,7 +1351,7 @@ module.exports = {
           }
           const qO = await pageQuote.evaluate(async (data) => {
             const form = document.aspnetForm;
-            for (let ele of form.elements) {
+            for (const ele of form.elements) {
               if (ele.disabled) {
                 ele.disabled = false;
               }
@@ -1368,12 +1386,12 @@ module.exports = {
                 if (type === 'select-one') {
                   if (id.includes('drvr_empl_stat')) {
                     const occupations = [
-                      {text: 'Homemaker (full-time)', value: '01'},{text: 'Retired (full-time)', value: '02'},{text: 'Unemployed', value: '03'},{text: 'Student (full-time)', value: '04'},{text: 'Agriculture/Forestry/Fishing', value: 'AA'},{text: 'Art/Design/Media', value: 'AB'},{text: 'Banking/Finance/Real Estate', value: 'AC'},{text: 'Business/Sales/Office', value: 'AD'},{text: 'Construction / Energy / Mining', value: 'AE'},{text: 'Education/Library', value: 'AF'},{text: 'Engineer/Architect/Science/Math', value: 'AG'},{text: 'Food Service / Hotel Services', value: 'AH'},{text: 'Government/Military', value: 'AJ'},{text: 'Information Technology', value: 'AK'},{text: 'Insurance', value: 'AL'},{text: 'Legal/Law Enforcement/Security', value: 'AM'},{text: 'Medical/Social Services/Religion', value: 'AN'},{text: 'Personal Care/Service', value: 'AP'},{text: 'Production / Manufacturing', value: 'AQ'},{text: 'Repair / Maintenance / Grounds', value: 'AR'},{text: 'Sports/Recreation', value: 'AS'},{text: 'Travel / Transportation / Storage', value: 'AT'},
+                      { text: 'Homemaker (full-time)', value: '01' }, { text: 'Retired (full-time)', value: '02' }, { text: 'Unemployed', value: '03' }, { text: 'Student (full-time)', value: '04' }, { text: 'Agriculture/Forestry/Fishing', value: 'AA' }, { text: 'Art/Design/Media', value: 'AB' }, { text: 'Banking/Finance/Real Estate', value: 'AC' }, { text: 'Business/Sales/Office', value: 'AD' }, { text: 'Construction / Energy / Mining', value: 'AE' }, { text: 'Education/Library', value: 'AF' }, { text: 'Engineer/Architect/Science/Math', value: 'AG' }, { text: 'Food Service / Hotel Services', value: 'AH' }, { text: 'Government/Military', value: 'AJ' }, { text: 'Information Technology', value: 'AK' }, { text: 'Insurance', value: 'AL' }, { text: 'Legal/Law Enforcement/Security', value: 'AM' }, { text: 'Medical/Social Services/Religion', value: 'AN' }, { text: 'Personal Care/Service', value: 'AP' }, { text: 'Production / Manufacturing', value: 'AQ' }, { text: 'Repair / Maintenance / Grounds', value: 'AR' }, { text: 'Sports/Recreation', value: 'AS' }, { text: 'Travel / Transportation / Storage', value: 'AT' },
                     ];
                     bestValue = await getBestValue(value, occupations);
                   } else if (id.includes('drvr_occup_lvl')) {
-                    const occupations = [{text: 'Homemaker (full-time)', value: '01'},{text: 'Retired (full-time)', value: '02'},{text: 'Unemployed', value: '03'},{text: 'Student (full-time)', value: '04'},{text: 'Agriculture/Forestry/Fishing', value: 'AA'},{text: 'Art/Design/Media', value: 'AB'},{text: 'Banking/Finance/Real Estate', value: 'AC'},{text: 'Business/Sales/Office', value: 'AD'},{text: 'Construction / Energy / Mining', value: 'AE'},{text: 'Education/Library', value: 'AF'},{text: 'Engineer/Architect/Science/Math', value: 'AG'},{text: 'Food Service / Hotel Services', value: 'AH'},{text: 'Government/Military', value: 'AJ'},{text: 'Information Technology', value: 'AK'},{text: 'Insurance', value: 'AL'},{text: 'Legal/Law Enforcement/Security', value: 'AM'},{text: 'Medical/Social Services/Religion', value: 'AN'},{text: 'Personal Care/Service', value: 'AP'},{text: 'Production / Manufacturing', value: 'AQ'},{text: 'Repair / Maintenance / Grounds', value: 'AR'},{text: 'Sports/Recreation', value: 'AS'},{text: 'Travel / Transportation / Storage', value: 'AT'}];
-                    const index = id.replace( /^\D+/g, '')[0];
+                    const occupations = [{ text: 'Homemaker (full-time)', value: '01' }, { text: 'Retired (full-time)', value: '02' }, { text: 'Unemployed', value: '03' }, { text: 'Student (full-time)', value: '04' }, { text: 'Agriculture/Forestry/Fishing', value: 'AA' }, { text: 'Art/Design/Media', value: 'AB' }, { text: 'Banking/Finance/Real Estate', value: 'AC' }, { text: 'Business/Sales/Office', value: 'AD' }, { text: 'Construction / Energy / Mining', value: 'AE' }, { text: 'Education/Library', value: 'AF' }, { text: 'Engineer/Architect/Science/Math', value: 'AG' }, { text: 'Food Service / Hotel Services', value: 'AH' }, { text: 'Government/Military', value: 'AJ' }, { text: 'Information Technology', value: 'AK' }, { text: 'Insurance', value: 'AL' }, { text: 'Legal/Law Enforcement/Security', value: 'AM' }, { text: 'Medical/Social Services/Religion', value: 'AN' }, { text: 'Personal Care/Service', value: 'AP' }, { text: 'Production / Manufacturing', value: 'AQ' }, { text: 'Repair / Maintenance / Grounds', value: 'AR' }, { text: 'Sports/Recreation', value: 'AS' }, { text: 'Travel / Transportation / Storage', value: 'AT' }];
+                    const index = id.replace(/^\D+/g, '')[0];
                     const emplValue = data[`DRV.${index}.drvr_empl_stat`].value;
                     bestValue = await getBestValue(emplValue, occupations);
                     bestValue += 'Z';
@@ -1393,14 +1411,14 @@ module.exports = {
             return quoteObj;
 
             function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
 
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+              if (!first.length && !second.length) return 1;// if both are empty strings
+              if (!first.length || !second.length) return 0;// if only one is empty string
+              if (first === second) return 1;// identical
+              if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
               let firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
@@ -1408,9 +1426,8 @@ module.exports = {
                 const count = firstBigrams.has(bigram)
                   ? firstBigrams.get(bigram) + 1
                   : 1;
-
                 firstBigrams.set(bigram, count);
-              };
+              }
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -1435,15 +1452,15 @@ module.exports = {
 
               for (let i = 0; i < targetStrings.length; i++) {
                 const currentTargetString = targetStrings[i];
-                const currentRating = compareTwoStrings(mainString, currentTargetString)
-                ratings.push({ target: currentTargetString, rating: currentRating })
+                const currentRating = compareTwoStrings(mainString, currentTargetString);
+                ratings.push({ target: currentTargetString, rating: currentRating });
                 if (currentRating > ratings[bestMatchIndex].rating) {
-                  bestMatchIndex = i
+                  bestMatchIndex = i;
                 }
               }
 
 
-              const bestMatch = ratings[bestMatchIndex]
+              const bestMatch = ratings[bestMatchIndex];
 
               return { ratings, bestMatch, bestMatchIndex };
             }
@@ -1554,14 +1571,14 @@ module.exports = {
             return quoteObj;
 
             function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
 
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+              if (!first.length && !second.length) return 1; // if both are empty strings
+              if (!first.length || !second.length) return 0; // if only one is empty string
+              if (first === second) return 1; // identical
+              if (first.length === 1 && second.length === 1) return 0;// both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0;// if either is a 1-letter string
 
               let firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
@@ -1571,7 +1588,7 @@ module.exports = {
                   : 1;
 
                 firstBigrams.set(bigram, count);
-              };
+              }
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -1669,7 +1686,6 @@ module.exports = {
       }
 
       function populateData() {
-
         const staticDetailsObj = {
           firstName: 'Test',
           lastName: 'User',
@@ -1740,7 +1756,7 @@ module.exports = {
             dataObj[`VEH.${j}.veh_trnspr_ntwk_co_cd`] = { type: 'select-one', value: 'N', name: `VEH.${j}.veh_trnspr_ntwk_co_cd` };
             dataObj[`VEH.${j}.veh_use_dlvry`] = { type: 'select-one', value: 'N', name: `VEH.${j}.veh_use_dlvry` };
             dataObj[`prompt_sl_cross_sell`] = { type: 'select-one', value: 'N', name: 'prompt_sl_cross_sell' };
-            //dataObj[`VEH.${j}.veh_typ_cd`] = {type: 'select-one', value: '', name: `VEH.${j}.veh_typ_cd`};
+            // dataObj[`VEH.${j}.veh_typ_cd`] = {type: 'select-one', value: '', name: `VEH.${j}.veh_typ_cd`};
             dataObj[`VEH.${j}.veh_use_ubi`] = { type: 'select-one', value: 'Y', name: `VEH.${j}.veh_use_ubi` };
             dataObj[`VEH.${j}.veh_liab`] = { type: 'select-one', value: element.Liability, name: `VEH.${j}.veh_liab` };
             dataObj[`VEH.${j}.BIPD`] = { type: 'select-one', value: element.BIPD, name: `VEH.${j}.BIPD` };
@@ -1808,16 +1824,15 @@ module.exports = {
         dataObj[`prir_ins_cd_insd`] = { type: 'select-one', value: bodyData.priorInsurance || staticDetailsObj.priorInsurance, name: 'prir_ins_cd_insd' };
         dataObj[`curr_ins_co_cd_dsply`] = { type: 'select-one', value: bodyData.priorInsuranceCarrier || staticDetailsObj.priorInsuranceCarrier, name: 'curr_ins_co_cd_dsply' };
         dataObj[`prir_bi_lim`] = { type: 'select-one', value: bodyData.priorBodilyInjuryLimits || '3', name: 'prir_bi_lim' };
-        dataObj[`pop_len_most_recent_carr_insd`] = { type: 'select-one', value: bodyData.yearsWithPriorInsurance || staticDetailsObj.yearsWithPriorInsurance, name: `pop_len_most_recent_carr_insd` };
-        dataObj[`spinoff_code`] = { type: 'select-one', value: '', name: `spinoff_code` };
+        dataObj[`pop_len_most_recent_carr_insd`] = { type: 'select-one', value: bodyData.yearsWithPriorInsurance || staticDetailsObj.yearsWithPriorInsurance, name: 'pop_len_most_recent_carr_insd' };
+        dataObj[`spinoff_code`] = { type: 'select-one', value: '', name: 'spinoff_code' };
         dataObj[`prls_ind`] = { type: 'select-one', value: 'Y', name: 'prls_ind' };
-        dataObj[`excess_res_nbr`] = { type: 'select-one', value: bodyData.numberOfResidentsInHome || '3', name: `excess_res_nbr` };
-        dataObj[`hm_own_ind`] = { type: 'select-one', value: bodyData.ownOrRentPrimaryResidence || staticDetailsObj.ownOrRentPrimaryResidence, name: `hm_own_ind` };
-        dataObj[`pol_renters_prir_bi_lim_code`] = { type: 'select-one', value: bodyData.rentersLimits || staticDetailsObj.rentersLimits, name: `pol_renters_prir_bi_lim_code` };
-        dataObj[`multi_pol_ind`] = { type: 'select-one', value: 'N', name: `multi_pol_ind` };
+        dataObj[`excess_res_nbr`] = { type: 'select-one', value: bodyData.numberOfResidentsInHome || '3', name: 'excess_res_nbr' };
+        dataObj[`hm_own_ind`] = { type: 'select-one', value: bodyData.ownOrRentPrimaryResidence || staticDetailsObj.ownOrRentPrimaryResidence, name: 'hm_own_ind' };
+        dataObj[`pol_renters_prir_bi_lim_code`] = { type: 'select-one', value: bodyData.rentersLimits || staticDetailsObj.rentersLimits, name: 'pol_renters_prir_bi_lim_code' };
+        dataObj[`multi_pol_ind`] = { type: 'select-one', value: 'N', name: 'multi_pol_ind' };
         return dataObj;
       }
-
     } catch (error) {
       console.log('Error at Progressive AL :', error);
       return next(Boom.badRequest('Failed to retrieved progressive AL rate.'));

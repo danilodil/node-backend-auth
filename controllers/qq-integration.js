@@ -1,4 +1,4 @@
-/* eslint-disable consistent-return */
+/* eslint-disable consistent-return, no-console */
 
 const ClientOAuth2 = require('client-oauth2');
 const request = require('request-promise');

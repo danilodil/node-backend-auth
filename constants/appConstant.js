@@ -1,13 +1,12 @@
-const ENVIRONMENT = require('./environment');
+const ENVIRONMENT = require('./configConstants').CONFIG;
 
-const nodeEnv = ENVIRONMENT.ENV;
-if (nodeEnv === 'local') {
+if (ENVIRONMENT.nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
-if (nodeEnv === 'development') {
+if (ENVIRONMENT.nodeEnv === 'development') {
   exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
-if (nodeEnv === 'production') {
+if (ENVIRONMENT.nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
 }
 
@@ -59,6 +58,10 @@ exports.safecoAlRater = {
   NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
   NEW_QUOTE_START_AUTO_URL: 'https://safesite.safeco.com/personal/auto/policyinfo.aspx',
   EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
+};
+
+exports.allStateRater = {
+  LOGIN_URL: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
 };
 
 exports.vendorNames = {

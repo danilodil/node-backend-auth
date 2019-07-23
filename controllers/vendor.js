@@ -71,9 +71,9 @@ module.exports = {
           state: params.state,
           carrier: params.carrier,
         });
-  
+
         req.session.data = {
-          status:'create',
+          status: 'create',
           message: 'New vendor created successfully',
           newVendorID: newVendor.id,
         };
@@ -91,9 +91,9 @@ module.exports = {
       });
 
       req.session.data = {
-        status:'update',
+        status: 'update',
         message: 'Vendor updated successfully',
-        newVendorID: updateVendor.id
+        newVendorID: updateVendor.id,
       };
       return next();
     } catch (error) {

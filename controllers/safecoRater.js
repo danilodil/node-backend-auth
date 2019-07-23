@@ -1,11 +1,11 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition */
+/* eslint-disable no-console, dot-notation, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, func-names, no-plusplus, consistent-return */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('../constants/environment');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
 
@@ -19,11 +19,11 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      let page = await browser.newPage();
+      const page = await browser.newPage();
 
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
@@ -180,7 +180,7 @@ module.exports = {
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            error: error,
+            error,
             stepResult,
           };
           browser.close();
@@ -192,11 +192,11 @@ module.exports = {
         try {
           await loadStep('driver', true);
           const afterCustomCode = async function () {
-            for (let j in bodyData.drivers) {
-              await page.evaluate(async (data, i) => {
+            for (const j in bodyData.drivers) {
+              await page.evaluate(async () => {
                 const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
-                const PolicyDriverSR22FilingYN2N = document.getElementById(`PolicyDriverSR22FilingYN2N`);
-                const LicenseSuspendedRevokedYNNexist = document.getElementById(`PolicyDriverLicenseSuspendedRevokedYNN`);
+                const PolicyDriverSR22FilingYN2N = document.getElementById('PolicyDriverSR22FilingYN2N');
+                const LicenseSuspendedRevokedYNNexist = document.getElementById('PolicyDriverLicenseSuspendedRevokedYNN');
                 if (PolicyDriverSR22FilingYNN) {
                   PolicyDriverSR22FilingYNN.click();
                   PolicyDriverSR22FilingYN2N.click();
@@ -205,7 +205,7 @@ module.exports = {
               }, populatedData, j);
               await page.waitFor(1000);
             }
-          }
+          };
           await fillPageForm(null, afterCustomCode);
           await saveStep();
           stepResult.drivers = true;
@@ -218,20 +218,20 @@ module.exports = {
         try {
           await loadStep('vehicle', true);
           const afterCustomCode = async function () {
-            for (let j in bodyData.vehicles) {
-              await page.evaluate(async (data, i) => {
+            for (const j in bodyData.vehicles) {
+              await page.evaluate(async () => {
                 const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
-                const vinEl = document.getElementById(`PolicyVehicleVIN`);
-                const vinBtn = document.getElementById(`imgVINLookUp`);
+                const vinEl = document.getElementById('PolicyVehicleVIN');
+                const vinBtn = document.getElementById('imgVINLookUp');
                 if (vinEl) {
                   vinExist.click();
-                  vinEl.value = data[`PolicyVehicleVIN`].value;
+                  vinEl.value = data.PolicyVehicleVIN.value;
                   vinBtn.click();
                 }
-              }, populatedData, j)
+              }, populatedData, j);
               await page.waitFor(1000);
             }
-          }
+          };
 
           await fillPageForm(null, afterCustomCode);
           await page.waitFor(2000);
@@ -298,7 +298,7 @@ module.exports = {
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
             stepResult,
           };
-          console.log(' req.session.data',  req.session.data);
+          console.log(' req.session.data', req.session.data);
           browser.close();
           return next();
         } catch (err) {
@@ -308,9 +308,8 @@ module.exports = {
 
       async function fillPageForm(beforeCustomCode, afterCustomCode, delayAfter) {
         try {
-          page.on('console', msg => {
-            for (let i = 0; i < msg.args().length; ++i)
-              console.log(`${msg.args()[i]}`);
+          page.on('console', (msg) => {
+            for (let i = 0; i < msg.args().length; ++i) console.log(`${msg.args()[i]}`);
           });
           if (beforeCustomCode) {
             await beforeCustomCode();
@@ -326,8 +325,8 @@ module.exports = {
               ecfields.buildModalHtml = function () { };
             }
 
-            let list = data;
-            for (let fieldName in list) {
+            const list = data;
+            for (const fieldName in list) {
               const ecField = list[fieldName] ? list[fieldName] : null;
               const xField = data[fieldName] ? data[fieldName] : null;
               if (ecField) {
@@ -345,23 +344,23 @@ module.exports = {
                   } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
                     el.value = await getBestValue(xField.value, el.options);
                   } else if (el.type === 'radio' || el.type === 'checkbox') {
-                    el.checked = (xField.value && xField.value === true) ? true : false;
+                    el.checked = !!((xField.value && xField.value === true));
                   }
                 }
               }
             }
 
             function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
 
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+              if (!first.length && !second.length) return 1; // if both are empty strings
+              if (!first.length || !second.length) return 0; // if only one is empty string
+              if (first === second) return 1; // identical
+              if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
-              let firstBigrams = new Map();
+              const firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
                 const bigram = first.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
@@ -369,7 +368,7 @@ module.exports = {
                   : 1;
 
                 firstBigrams.set(bigram, count);
-              };
+              }
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -394,15 +393,15 @@ module.exports = {
 
               for (let i = 0; i < targetStrings.length; i++) {
                 const currentTargetString = targetStrings[i];
-                const currentRating = compareTwoStrings(mainString, currentTargetString)
-                ratings.push({ target: currentTargetString, rating: currentRating })
+                const currentRating = compareTwoStrings(mainString, currentTargetString);
+                ratings.push({ target: currentTargetString, rating: currentRating });
                 if (currentRating > ratings[bestMatchIndex].rating) {
-                  bestMatchIndex = i
+                  bestMatchIndex = i;
                 }
               }
 
 
-              const bestMatch = ratings[bestMatchIndex]
+              const bestMatch = ratings[bestMatchIndex];
 
               return { ratings, bestMatch, bestMatchIndex };
             }
@@ -431,7 +430,7 @@ module.exports = {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
@@ -471,7 +470,6 @@ module.exports = {
       }
 
       function populateData() {
-       
         const staticDataObj = {
           mailingAddress: '670 Park Avenue',
           city: 'Moody',
@@ -688,7 +686,6 @@ module.exports = {
           console.log('dialog close');
         }
       });
-
     } catch (error) {
       console.log('Error  at Safeco AL :', error);
       return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));

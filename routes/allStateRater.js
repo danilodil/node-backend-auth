@@ -1,13 +1,14 @@
 const express = require('express');
 
-const nationalRaterController = require('../controllers/nationalRater');
+const allStateController = require('../controllers/allStateRater');
 const raterController = require('../controllers/rater');
+
 
 const router = express.Router();
 
-router.put('/national/al', [
+router.put('/allState/', [
   raterController.getOneByName,
-  nationalRaterController.nationalGeneralAl,
+  allStateController.allState,
   raterController.saveRating,
 ]);
 
