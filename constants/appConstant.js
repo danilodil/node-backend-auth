@@ -60,6 +60,10 @@ exports.safecoAlRater = {
   EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
 };
 
+exports.allStateRater = {
+  LOGIN_URL: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
+};
+
 exports.vendorNames = {
   client: [
     'SF',
