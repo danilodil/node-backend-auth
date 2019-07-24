@@ -74,6 +74,7 @@ exports.vendorNames = {
     'QQ',
     'NATIONALGENERALALRATER',
     'SAFECOALRATER',
+    'ALLSTATERATER',
   ],
   user: [
     'QQ',
