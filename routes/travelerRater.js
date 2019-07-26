@@ -1,13 +1,14 @@
 const express = require('express');
 
-const progressiveRaterController = require('../controllers/progressiveRater');
+const travelerRater = require('../controllers/travelerRater');
 const raterController = require('../controllers/rater');
+
 
 const router = express.Router();
 
-router.put('/progressive', [
+router.put('/traveler/', [
   raterController.getOneByName,
-  progressiveRaterController.rate,
+  travelerRater.traveler,
   raterController.saveRating,
 ]);
 

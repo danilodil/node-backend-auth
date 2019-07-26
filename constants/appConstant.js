@@ -64,6 +64,10 @@ exports.allStateRater = {
   LOGIN_URL: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
 };
 
+exports.travelerRater = {
+  LOGIN_URL: 'https://www.travelers.com/foragents',
+};
+
 exports.vendorNames = {
   client: [
     'SF',
@@ -74,6 +78,8 @@ exports.vendorNames = {
     'QQ',
     'NATIONALGENERALALRATER',
     'SAFECOALRATER',
+    'ALLSTATERATER',
+    'TRAVELERRATER',
   ],
   user: [
     'QQ',
