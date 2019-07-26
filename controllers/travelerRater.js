@@ -1,5 +1,4 @@
-/* eslint-disable no-console, dot-notation, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, func-names, no-plusplus, consistent-return */
+/* eslint-disable no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -15,9 +14,12 @@ module.exports = {
       const { username, password } = req.body.decoded_vendor;
       const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
       const params = req.body;
+      const bodyData = await utils.cleanObj(req.body.data);
+      bodyData.drivers.splice(10, bodyData.drivers.length);
+
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        slowMo: 200,
+        slowMo: 250,
       };
       if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
@@ -29,6 +31,8 @@ module.exports = {
 
       await loginStep();
       await searchStep();
+      await addCustomerStep();
+      await policyStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -48,29 +52,76 @@ module.exports = {
       async function searchStep() {
         console.log('Traveler Search Step');
         try {
-          // const searchUrl = `https://foragents.travelers.com/Personal/BillingAndPolicyServices/CustomerSearch?lastName=${populatedData.lastName.value}&stateCode=${populatedData.state.value}&zip=${populatedData.zipcode.value}&searchType=name`;
-          // await page.goto(searchUrl, { waitUntil: 'networkidle0' }); // waitUntil: 'networkidle0',
-          // await page.waitFor(4000);
           await page.type('#PiSearchNewFields > div:nth-child(1) > div > div > input', populatedData.lastName.value);
           await page.waitFor(1000);
-          await page.waitForSelector(populatedData.state.element);
-          await page.select('select[name="state"]', populatedData.state.value);
+          await page.waitForSelector(populatedData.searchState.element);
+          await page.select('select[name="state"]', populatedData.searchState.value);
           await page.click('#search-button');
+          await page.waitFor(5000);
+          const redirectUrl = `https://plagt.travelers.com/AGENTHQPortalMain.asp?AppCN=PLAGTPROD&StartPage=enteserv/ENTESERVAccountSearch.aspx&QueryString=NOFOCUS=Y|searchType=01|searchParms=txtName^${populatedData.lastName.value}~ddlState^${populatedData.state.value}~txtZipCode^~txtZipExt^|submitType=2|agenthq=y`;
+          await page.goto(redirectUrl, { waitUntil: 'networkidle0' });
           await page.waitFor(8000);
-          // const elementHandle = await page.$('iframe[class="customer-search__iframe"]');
-          // const frame = await elementHandle.contentFrame();
-          // const btn = await frame.$('input#btnAddCust');
-          // btn.click();
-          //   await page.waitForSelector('#ttAddCustomer');
-          //   await page.evaluate(() => {
-          //     document.getElementById('ttAddCustomer').click();
-          //   });
-          //   await waitForSelector('#btnAddCust');
-          //   const addCutBtn = await document.querySelector('#btnAddCust');
-          //   addCutBtn.click();
-          // });
+          await page.evaluate(async () => {
+            const iframe = document.getElementsByTagName('frameset')[1];
+            await iframe.getElementsByTagName('frame')[1];
+            const childFrames = iframe.lastElementChild.contentDocument.documentElement;
+            if (childFrames) {
+              const addCustomerButton = await childFrames.querySelector('#btnAddCust');
+              addCustomerButton.click();
+            }
+          });
         } catch (error) {
           await exitFail(error, 'Search');
+        }
+      }
+
+      async function addCustomerStep() {
+        console.log('Traveler Add Customer Step');
+        try {
+          await page.waitFor(6000);
+          await page.evaluate(async (firstName, lastName, mailingAddress, city, state, zipCode) => {
+            const iframe = document.querySelector('#Parent').getElementsByTagName('frame')[2].contentDocument;
+            const childFrames = iframe.documentElement;
+            if (childFrames) {
+              childFrames.querySelector(`#${firstName.element}`).value = firstName.value;
+              childFrames.querySelector(`#${lastName.element}`).value = lastName.value;
+              childFrames.querySelector(`#${mailingAddress.element}`).value = mailingAddress.value;
+              childFrames.querySelector(`#${city.element}`).value = city.value;
+              childFrames.querySelector(`#${state.element}`).value = state.value;
+              childFrames.querySelector(`#${zipCode.element}`).value = zipCode.value;
+              const processQuote = await childFrames.querySelector('#process');
+              processQuote.removeAttribute('disabled');
+              processQuote.click();
+            }
+          }, populatedData.firstName, populatedData.lastName, populatedData.mailingAddress, populatedData.city, populatedData.state, populatedData.zipcode);
+        } catch (error) {
+          await exitFail(error, 'Add Customer');
+        }
+      }
+
+      async function policyStep() {
+        console.log('Traveler Policy Step');
+        try {
+          await page.goto('https://plagt.travelers.com/ASRVPortalMain.asp?StartPage=/ENTESERV/ENTESERVServerLaunch.aspx?RowNum=1|ROUTER&SubPortal=True&InstanceID=1', { waitUntil: 'networkidle2' });
+          await page.waitFor(5000);
+          await page.evaluate(async (businessType, effectiveDate) => {
+            const iframe = document.querySelector('#Parent').getElementsByTagName('frame')[2].contentDocument;
+            const childFrames = await iframe.documentElement;
+            if (childFrames) {
+              const getContent = await childFrames.querySelector('#PageTitle');
+              if (getContent) {
+                const BusinessType = await childFrames.querySelector(`#${businessType.element}`);
+                BusinessType.value = businessType.value;
+                const EffectiveDate = await childFrames.querySelector(`#${effectiveDate.element}`);
+                EffectiveDate.value = effectiveDate.value;
+                const continueButton = await childFrames.querySelector('#btnSubmit');
+                continueButton.removeAttribute('disabled');
+                continueButton.click();
+              }
+            }
+          }, populatedData.businessType, populatedData.effectiveDate);
+        } catch (error) {
+          await exitFail(error, 'Policy Step');
         }
       }
 
@@ -81,10 +132,10 @@ module.exports = {
             title: 'Failed to retrieve Traveler rate',
             status: false,
             error: `There was an error at ${step} step`,
-            stepResult,
           };
         }
         browser.close();
+        return next();
       }
 
       function populateData() {
@@ -151,9 +202,16 @@ module.exports = {
         };
 
         const dataObj = {};
-        dataObj.lastName = { element: '#txtName', value: staticDataObj.lastName };
-        dataObj.state = { element: 'select[name="state"]', value: staticDataObj.state };
-        dataObj.zipcode = { element: '#txtZipCode', value: staticDataObj.zipCode };
+        dataObj.firstName = { element: 'txtFirstName', value: bodyData.firstName || staticDataObj.firstName };
+        dataObj.lastName = { element: 'txtLastName', value: bodyData.lastName || staticDataObj.lastName };
+        dataObj.mailingAddress = { element: 'txtStreet', value: bodyData.mailingAddress || staticDataObj.mailingAddress };
+        dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
+        dataObj.searchState = { element: 'select[name="state"]', value: bodyData.state || staticDataObj.state };
+        dataObj.state = { element: 'ddState', value: bodyData.state || staticDataObj.state };
+        dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
+        dataObj.businessType = { element: 'LineOfBusinessValue', value: 'AUTO' };
+        dataObj.effectiveDate = { element: 'EffectiveDate', value: '07/26/2019' };
+
         return dataObj;
       }
     } catch (error) {
