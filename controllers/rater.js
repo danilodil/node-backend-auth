@@ -1,4 +1,4 @@
-/* eslint-disable radix, no-param-reassign */
+/* eslint-disable radix, no-param-reassign, no-console */
 
 const Boom = require('boom');
 const Rater = require('../models/rater');
@@ -10,7 +10,6 @@ module.exports = {
         return next();
       }
       console.log(`${req.body.vendorName}: Saving Rate`);
-  
       let companyId = null;
       let clientId = null;
       const currentUser = req.body.decoded_user;
@@ -25,7 +24,7 @@ module.exports = {
       if (!companyId && !clientId) {
         return next(Boom.badRequest('Invalid Data'));
       }
-  
+
       const existRater = {
         where: {
           companyId,
@@ -33,10 +32,10 @@ module.exports = {
           vendorName: req.body.vendorName,
         },
       };
-  
+
       const raterData = await Rater.findOne(existRater);
       /* create new rater result */
-      const isSucceeded = (req.session && req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
+      const isSucceeded = !!((req.session && req.session.data && req.session.data.status && req.session.data.totalPremium));
       if (!raterData) {
         const newRater = {
           companyId,
@@ -54,10 +53,10 @@ module.exports = {
         await Rater.create(newRater);
         console.log(`${req.body.vendorName} Rater Created`);
       }
-  
+
       const data = !req.session.payment ? req.session.data : req.session.payment;
-      const isPayment = !req.session.payment ? false : true;
-  
+      const isPayment = !!req.session.payment;
+
       /* update rater result */
       const updateObj = {
         stepResult: data.stepResult || null,
@@ -76,16 +75,14 @@ module.exports = {
         await raterData.update(updateObj);
         console.log(`${req.body.vendorName} Rater Updated`);
       }
-  
+
       console.log(req.session);
-  
+
       if (isPayment) {
         req.session.data = req.session.payment;
       }
-  
-  
       return next();
-    } catch(error) {
+    } catch (error) {
       console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName} Error Saving Rate: `, error));
     }
@@ -185,7 +182,7 @@ module.exports = {
 
   getOneByNameData: async (req, res, next) => {
     console.log('Inside getOneByNameData');
-    const raterStore = req.session.raterStore;
+    const { raterStore } = req.session;
     if (!raterStore) {
       return next(Boom.badRequest('Error retrieving rate'));
     }

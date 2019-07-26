@@ -1,11 +1,11 @@
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations, consistent-return,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow */
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, no-plusplus */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { cseRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
 module.exports = {
   cseRating: async (req, res, next) => {
@@ -35,7 +35,7 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
@@ -873,11 +873,11 @@ module.exports = {
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
-  
+
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
-  
+
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
@@ -902,7 +902,7 @@ module.exports = {
             stepResult,
           };
           browser.close();
-          return next();  
+          return next();
         } catch (err) {
           console.log('Error at CSE CA summaryStep:', err);
           stepResult.summary = false;

@@ -12,6 +12,8 @@ const vendor = require('./vendor');
 const nationalRater = require('./nationalRater');
 const rater = require('./rater');
 const safecoRater = require('./safecoRater');
+const allStateRater = require('./allStateRater');
+const travelerRater = require('./travelerRater');
 
 router.use('/ezlynx', [passport], ezlynxIntegration);
 router.use('/qq', [passport], qqIntegration);
@@ -22,5 +24,7 @@ router.use('/vendor', vendor);
 router.use('/nationalRater', [passport], nationalRater);
 router.use('/rate', [passport], rater);
 router.use('/safecoRater', [passport], safecoRater);
+router.use('/allStateRater', [passport], allStateRater);
+router.use('/travelerRater', [passport], travelerRater);
 
 module.exports = router;
