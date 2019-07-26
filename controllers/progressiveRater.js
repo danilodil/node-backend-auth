@@ -46,43 +46,36 @@ module.exports = {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      const page = await browser.newPage();
-
-      function dismissDialog(errorPage) {
-        try {
-          errorPage.on('dialog', async (dialog) => {
-            await dialog.dismiss();
-          });
-        } catch (e) {
-          console.log('e', e);
-        }
-      }
-
+      let pages = await browser.pages();
+      const page = pages[0];
       const populatedData = await populateData();
 
       let pageQuote = '';
       await loginStep();
+
       if (raterStore) {
         await existingQuote();
-        while (true) {
-          await page.waitFor(500);
-          pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
-            break;
-          }
-        }
       } else {
         await newQuoteStep();
-        while (true) {
-          await page.waitFor(1000);
-          pageQuote = await browser.pages();
-          if (pageQuote.length > 2) {
-            pageQuote = pageQuote[2];
-            break;
-          }
+      }
+      while (true) {
+        await page.waitFor(500);
+        pageQuote = await browser.pages();
+        if (pageQuote.length > 1) {
+          pageQuote = pageQuote[1];
+          break;
         }
       }
+
+      pageQuote.on('console', msg => {
+        for (let i = 0; i < msg.args().length; ++i)
+            console.log(`${msg.args()[i]}`);
+      });
+      pageQuote.on('dialog', async (dialog) => {
+        if (dialog) {
+          await dialog.dismiss();
+        }
+      });
 
       if (!params.stepName) {
         await namedInsuredStep();
@@ -108,7 +101,7 @@ module.exports = {
             await namedInsuredStep();
           }
           await underwritingStep();
-          await exitSuccess('namedInsured & underwriting');
+          await exitSuccess('namedInsured & underwriting', false);
         }
         if (params.stepName === 'vehicles' && raterStore) {
           await vehicleStep();
@@ -116,7 +109,7 @@ module.exports = {
         }
         if (params.stepName === 'drivers' && raterStore) {
           await driverStep();
-          await exitSuccess('drivers');
+          await exitSuccess('drivers', true);
         }
         if (params.stepName === 'violations' && raterStore) {
           await violationStep();
@@ -213,7 +206,7 @@ module.exports = {
       async function vehicleStep() {
         try {
           await loadStep('Vehicles', true);
-          dismissDialog(pageQuote);
+          // dismissDialog(pageQuote);
           await pageQuote.waitForSelector('img[id="VEH.0.add"]');
           const beforeCode = async function () {
             for (const j in bodyData.vehicles) {
@@ -283,8 +276,10 @@ module.exports = {
 
       async function underwritingStep() {
         try {
-          await fillPageForm('Drivers', null, null, null, 1);
-          await pageQuote.waitFor(500);
+          await fillPageForm('Driver', null, null, null, 1);
+          await pageQuote.waitFor(1000);
+          await navigateMenu('Underwriting');
+          await pageQuote.waitFor(1000);
           stepResult.underWriting = true;
         } catch (error) {
           await exitFail(error, 'underwriting');
@@ -330,10 +325,6 @@ module.exports = {
           console.log('Progressive Vehicles Error Step');
           const afterCode = async function () {
             const data = populatedData;
-            pageQuote.on('console', msg => {
-              for (let i = 0; i < msg.args().length; ++i)
-                  console.log(`${msg.args()[i]}`);
-            });
             for (let j in bodyData.vehicles) {
               let key = `VEH.${j}.veh_mdl_yr`;
               const yearValue = (data[key] && data[key].value) ? data[key].value : null;
@@ -447,13 +438,9 @@ module.exports = {
               }
               async function getBestValue(value, array) {
                 try {
-                  console.log('BEST VALUE RAN ### ', value);
-                  console.log('ARRAY ### ', array);
                   const optionsArray = [...array];
                   const nArr = optionsArray.map(entry => entry.text.toLowerCase());
                   const vArr = optionsArray.map(entry => entry.value.toLowerCase());
-                  console.log('TEXT ARRAY: ', nArr);
-                  console.log('VALUE ARRAY: ', vArr);
                   if (value && value.length && value.length > 0 && value.length < 2) {
                     if (vArr.indexOf(value.toLowerCase()) !== -1) {
                       return value;
@@ -490,7 +477,7 @@ module.exports = {
 
       async function coveragesStep() {
         try {
-          // await loadStep('Coverages', true);
+          await loadStep('Coverages', true);
           await pageQuote.waitFor(500);
           const pg = await pageQuote.evaluate(() => {
             const errMess = document.getElementById('V_GET_ERROR_MESSAGE');
@@ -501,13 +488,8 @@ module.exports = {
             }
           });
           if (pg === 'error') {
-            await errorStep();
+            return errorStep();
           }
-          pageQuote.on('dialog', async (dialog) => {
-            if (dialog) {
-              await dialog.dismiss();
-            }
-          });
           await pageQuote.evaluate(() => {
             const el = document.getElementById('ctl00_pageMessage');
             if (el) {
@@ -524,8 +506,11 @@ module.exports = {
           const payDetails = await pageQuote.evaluate(() => {
             const el = document.getElementById('tot_pol_prem');
             const el2 = document.getElementById('down_pmt_amt');
-            const premium = el.getAttribute('value');
-            const downPayment = el2.getAttribute('value');
+            let premium = el.getAttribute('value');
+            let downPayment = el2.getAttribute('value');
+            if (+downPayment === +premium) {
+              downPayment = +downPayment * .2;
+            }
 
             const term = 6;
             const payments = ((+premium - +downPayment) / +term);
@@ -538,7 +523,7 @@ module.exports = {
             return details;
           });
           stepResult.coverage = true;
-          await exitSuccessFinal();
+          await exitSuccessFinal(payDetails);
         } catch (error) {
           await exitFail(error, 'coverages');
         }
@@ -558,41 +543,48 @@ module.exports = {
         return next();
       }
 
-      async function exitSuccess(step) {
+      async function exitSuccess(step, save) {
         try {
+          console.log('Hit');
           req.session.data = {
             title: `Successfully finished Progressive ${step} Step`,
             status: true,
             quoteIds: quoteObj,
             stepResult,
           };
-          await saveStep();
+          await saveStep(save);
         } catch (error) {
           await exitFail(error, 'exitSuccess');
         }
       }
 
-      async function saveStep() {
+      async function saveStep(save) {
         console.log('Progressive Save Step');
         try {
-          await pageQuote.evaluate(() => {
-            let btn = document.getElementById('ctl00_HeaderLinksControl_SaveLink');
-            if (!btn) {
-              btn = document.getElementById('ctl00_HeaderLinksControl_SaveLink');
+          if (save) {
+
+            await pageQuote.evaluate(() => {
+              let btn = document.getElementById('ctl00_HeaderLinksControl_SaveLink');
               if (!btn) {
-                NavigateLinks('SaveLink');
+                btn = document.getElementById('ctl00_HeaderLinksControl_SaveLink');
+                if (!btn) {
+                  NavigateLinks('SaveLink');
+                }
               }
-            }
-            btn.click();
-          });
-          await browser.close();
-          return next();
+              btn.click();
+            });
+            await browser.close();
+            return next();
+          } else {
+            await browser.close();
+            return next();
+          }
         } catch(error) {
           await exitFail(error);
         }
       }
 
-      async function exitSuccessFinal(step) {
+      async function exitSuccessFinal(payDetails) {
         try {
           req.session.payment = {
             title: 'Successfully retrieved progressive AL rate.',
@@ -636,7 +628,7 @@ module.exports = {
             await raterData.update(updateObj);
             console.log(`${req.body.vendorName} Rater Updated`);
           }
-          await saveStep();
+          await saveStep(true);
         } catch (error) {
           await exitFail(error, 'exitSuccessFinal');
         }
@@ -658,15 +650,30 @@ module.exports = {
 
       async function navigateMenu(step) {
         try {
+          console.log(`Progressive Navigate Step: ${step}`);
           await pageQuote.waitFor(1000);
           await pageQuote.waitForSelector('#aspnetForm');
           await pageQuote.waitForSelector('#ctl00_MenuPlaceholder_ctl00_menuItemValue');
           await pageQuote.waitForSelector('#ctl00_MenuPlaceholder_ctl00_navigateMenuButton');
           await pageQuote.evaluate((nStep) => {
-            GetObj('ctl00_MenuPlaceholder_ctl00_menuItemValue').value = nStep;
-            GetObj('ctl00_MenuPlaceholder_ctl00_navigateMenuButton').click();
+            let menuId = '0';
+            if (nStep === 'Vehicles') {
+              menuId = '1';
+            } else if (nStep === 'Driver') {
+              menuId = '2';
+            } else if (nStep === 'Violations') {
+              menuId = '3';
+            } else if (nStep === 'Underwriting') {
+              menuId = '4';
+            } else if (nStep === 'Coverages') {
+              menuId = '5';
+            }
+            const id = `ctl00_MenuPlaceholder_ctl00_mainMenun${menuId}`;
+            const el = document.getElementById(id);
+            const link = el.getElementsByTagName('a')[0];
+            link.click();
           }, step);
-          await pageQuote.waitForSelector('#aspnetForm');
+          await pageQuote.waitFor(1000);
         } catch (error) {
           await exitFail(error, 'NavigateMenu');
         }
@@ -674,10 +681,6 @@ module.exports = {
 
       async function fillPageForm(nextStep, beforeCustomCode, afterCustomCode, delayAfter, version) {
         try {
-          pageQuote.on('console', msg => {
-            for (let i = 0; i < msg.args().length; ++i)
-                console.log(`${msg.args()[i]}`);
-          });
           if (beforeCustomCode) {
             await beforeCustomCode();
           }
