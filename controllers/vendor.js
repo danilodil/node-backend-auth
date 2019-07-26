@@ -14,11 +14,8 @@ module.exports = {
 
       findObject.where.companyId = params.companyId;
       findObject.where.vendorName = params.vendorName;
-
-      if (params.vendorName === 'PROGRESSIVEDERATER' || params.vendorName === 'PROGRESSIVEALRATER') {
-        findObject.where.state = params.state;
-        findObject.where.carrier = params.carrier;
-      }
+      findObject.where.state = params.state;
+      findObject.where.carrier = params.carrier;
 
       const vendor = await vendorModel.findOne(findObject);
 
