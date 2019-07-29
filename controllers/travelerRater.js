@@ -7,7 +7,6 @@ const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
-
 module.exports = {
   traveler: async (req, res, next) => {
     try {
@@ -25,7 +24,7 @@ module.exports = {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      const page = await browser.newPage();
+      let page = await browser.newPage();
 
       const populatedData = await populateData();
 
@@ -33,6 +32,7 @@ module.exports = {
       await searchStep();
       await addCustomerStep();
       await policyStep();
+      await customerInfoStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -94,6 +94,17 @@ module.exports = {
               processQuote.click();
             }
           }, populatedData.firstName, populatedData.lastName, populatedData.mailingAddress, populatedData.city, populatedData.state, populatedData.zipcode);
+          await page.waitFor(4000);
+          await page.waitFor(5000);
+          while (true) {
+            await page.waitFor(1000);
+            const pageQuote = await browser.pages();
+            console.log('pageQuote', pageQuote.length);
+            if (pageQuote.length > 2) {
+              page = pageQuote[2];
+              break;
+            }
+          }
         } catch (error) {
           await exitFail(error, 'Add Customer');
         }
@@ -102,26 +113,31 @@ module.exports = {
       async function policyStep() {
         console.log('Traveler Policy Step');
         try {
-          await page.goto('https://plagt.travelers.com/ASRVPortalMain.asp?StartPage=/ENTESERV/ENTESERVServerLaunch.aspx?RowNum=1|ROUTER&SubPortal=True&InstanceID=1', { waitUntil: 'networkidle2' });
-          await page.waitFor(5000);
-          await page.evaluate(async (businessType, effectiveDate) => {
-            const iframe = document.querySelector('#Parent').getElementsByTagName('frame')[2].contentDocument;
-            const childFrames = await iframe.documentElement;
-            if (childFrames) {
-              const getContent = await childFrames.querySelector('#PageTitle');
-              if (getContent) {
-                const BusinessType = await childFrames.querySelector(`#${businessType.element}`);
-                BusinessType.value = businessType.value;
-                const EffectiveDate = await childFrames.querySelector(`#${effectiveDate.element}`);
-                EffectiveDate.value = effectiveDate.value;
-                const continueButton = await childFrames.querySelector('#btnSubmit');
-                continueButton.removeAttribute('disabled');
-                continueButton.click();
-              }
-            }
-          }, populatedData.businessType, populatedData.effectiveDate);
+          await page.waitFor(4000);
+          const elementHandle = await page.$('#NavMain > frame:nth-child(2)');
+          const frame = await elementHandle.contentFrame();
+          await frame.waitForSelector(`#${populatedData.businessType.element}`);
+          await frame.type(`#${populatedData.businessType.element}`, populatedData.businessType.value);
+          await frame.waitForSelector(`#${populatedData.effectiveDate.element}`);
+          await frame.type(`#${populatedData.effectiveDate.element}`, populatedData.effectiveDate.value);
+          await frame.waitForSelector('#btnSubmit');
+          await frame.click('#btnSubmit');
         } catch (error) {
-          await exitFail(error, 'Policy Step');
+          await exitFail(error, 'Policy');
+        }
+      }
+
+      async function customerInfoStep() {
+        try {
+          await page.waitFor(5000);
+          await page.waitForSelector(populatedData.phone.element);
+          await page.focus(populatedData.phone.element);
+          await page.$eval('input[data-label="Home Phone"]', el => el.value = '(999)999-9999');
+          await page.$eval('input[data-label="Date of Birth"]', el => el.value = '12/12/1997');
+          await page.waitFor(2000);
+          await page.$eval('#dynamicContinueButton', el => el.click());
+        } catch (error) {
+          await exitFail(error, 'Customer Info');
         }
       }
 
@@ -149,10 +165,6 @@ module.exports = {
           garagedAddress: 'Howard Lake Park',
           garagedZipcode: '36016',
           garagedCity: 'Hoover',
-          peopleInhouseHold1: 'U',
-          peopleInhouseHold2: 'U',
-          peopleInhouseHold3: 'U',
-          peopleInhouseHold4: 'U',
           policyCurrentInsuranceValue: 'DW',
           policyDataResidenceType: 'H',
           policyDataPackageSelection: 'B',
@@ -211,7 +223,6 @@ module.exports = {
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
         dataObj.businessType = { element: 'LineOfBusinessValue', value: 'AUTO' };
         dataObj.effectiveDate = { element: 'EffectiveDate', value: '07/26/2019' };
-
         return dataObj;
       }
     } catch (error) {
