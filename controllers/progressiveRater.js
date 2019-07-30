@@ -78,12 +78,7 @@ module.exports = {
       });
 
       if (!params.stepName) {
-        await namedInsuredStep();
-        await vehicleStep();
-        await driverStep();
-        await violationStep();
-        await underwritingStep();
-        await coveragesStep();
+
       } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
@@ -104,8 +99,7 @@ module.exports = {
           await exitSuccess('namedInsured & underwriting', false);
         }
         if (params.stepName === 'vehicles' && raterStore) {
-          await vehicleStep();
-          await coveragesStep();
+          await allSteps();
         }
         if (params.stepName === 'drivers' && raterStore) {
           await driverStep();
@@ -121,6 +115,15 @@ module.exports = {
           await errorStep();
           await coveragesStep();
         }
+      }
+
+      async function allSteps() {
+        await namedInsuredStep();
+        await vehicleStep();
+        await driverStep();
+        // await violationStep();
+        await underwritingStep();
+        await coveragesStep();
       }
 
       async function loginStep() {
@@ -331,12 +334,9 @@ module.exports = {
               const year = await pageQuote.evaluate((i) => {
                 return document.getElementById(`VEH.${i}.veh_mdl_yr`);
               }, j);
-              console.log('YEAR ###: ', year);
               let bestValue = await getBestValue(yearValue, year.options);
-              console.log(key, yearValue, bestValue);
               await pageQuote.evaluate((value, i ) => {
                 const year = document.getElementById(`VEH.${i}.veh_mdl_yr`);
-                console.log(`YEAR: `, year, value);
                 SetFieldValue(year, value);
                 FldOnChange(year, true);
               }, (bestValue, j));
@@ -347,7 +347,6 @@ module.exports = {
               const make = await pageQuote.evaluate((i) => document.getElementById(`VEH.${i}.veh_make`), j);
               bestValue = await getBestValue(makeValue, make.options);
               await pageQuote.evaluate((make, value) => {
-                console.log(`MAKE: `, make, value);
                 SetFieldValue(make, value);
                 FldOnChange(make, true);
               }, (make, bestValue));
@@ -358,7 +357,6 @@ module.exports = {
               const model = await pageQuote.evaluate((i) => document.getElementById(`VEH.${i}.veh_mdl_nam`), j);
               bestValue = await getBestValue(modelValue, model.options);
               await pageQuote.evaluate((model, value) => {
-                console.log(`MODEL: `, model, value);
                 SetFieldValue(model, value);
                 FldOnChange(model, true);
               }, (model, bestValue));
@@ -369,7 +367,6 @@ module.exports = {
               const body = await pageQuote.evaluate((i) => document.getElementById(`VEH.${i}.veh_sym_sel`), j);
               bestValue = await getBestValue(bodyValue, body.options);
               await pageQuote.evaluate((body, value) => {
-                console.log(`BODY: `, body, value);
                 SetFieldValue(body, value);
                 FldOnChange(body, true);
               }, (body, bestValue));
