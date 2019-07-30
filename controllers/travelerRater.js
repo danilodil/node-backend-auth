@@ -25,7 +25,7 @@ module.exports = {
       }
       const browser = await puppeteer.launch(browserParams);
       let page = await browser.newPage();
-
+      const navigationPromise = page.waitForNavigation();
       const populatedData = await populateData();
 
       await loginStep();
@@ -33,6 +33,7 @@ module.exports = {
       await addCustomerStep();
       await policyStep();
       await customerInfoStep();
+      await vehicleStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -128,16 +129,58 @@ module.exports = {
       }
 
       async function customerInfoStep() {
+        console.log('Traveler Customer Info Step');
         try {
-          await page.waitFor(5000);
+          await navigationPromise;
+          await page.waitFor(15000);
           await page.waitForSelector(populatedData.phone.element);
           await page.focus(populatedData.phone.element);
-          await page.$eval('input[data-label="Home Phone"]', el => el.value = '(999)999-9999');
-          await page.$eval('input[data-label="Date of Birth"]', el => el.value = '12/12/1997');
-          await page.waitFor(2000);
-          await page.$eval('#dynamicContinueButton', el => el.click());
+          await page.keyboard.type(populatedData.phone.value, { delay: 100 });
+
+          await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
+          await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.type('tbody > #G17 #\\32 770825218', 'DEKALB', { delay: 100 });
+          await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.waitFor(5000);
+          await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.evaluate(async () => {
+            const continueButton = document.getElementById('dynamicContinueButton');
+            await continueButton.removeAttribute('data-skipdisable');
+            await continueButton.click();
+          });
+          await page.waitFor(40000);
+          while (true) {
+            await page.waitFor(1000);
+            const pageQuote = await browser.pages();
+            if (pageQuote.length > 3) {
+              page = pageQuote[2];
+              break;
+            }
+          }
+          await page.waitForSelector('#\\33 022120615_0');
+          await page.evaluate(async () => {
+            const hasMovedWithin6Month = document.querySelector('#\\33 022120615_0');
+            await hasMovedWithin6Month.click();
+            const reviewdInfoByLaw = document.querySelector('#\\31 468764443_1');
+            await reviewdInfoByLaw.click();
+            const reportButton = document.querySelector('#overlayButton-reports-dynamicOrderReport');
+            reportButton.click();
+          });
         } catch (error) {
           await exitFail(error, 'Customer Info');
+        }
+      }
+
+      async function vehicleStep() {
+        console.log('Traveler vehicle Step');
+        try {
+          await page.waitForSelector(populatedData.vehicleVin.element);
+          await page.focus(populatedData.vehicleVin.element);
+          await page.keyboard.type(populatedData.vehicleVin.value, { delay: 100 });
+        } catch (error) {
+          await exitFail(error, 'vehicle');
         }
       }
 
@@ -185,7 +228,7 @@ module.exports = {
           principalOperator: '1',
           territory: '460',
           vehicleVin: 'KMHDH6AE1DU001708',
-          vehicleUse: '8',
+          vehicleUse: 'BU',
           yearsVehicleOwned: '5',
           vehicles: [
             {
@@ -223,6 +266,13 @@ module.exports = {
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
         dataObj.businessType = { element: 'LineOfBusinessValue', value: 'AUTO' };
         dataObj.effectiveDate = { element: 'EffectiveDate', value: '07/26/2019' };
+        dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: '(999)999-7777' };
+        dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: '12/12/2001' };
+        dataObj.vehicleVin = { element: '#\\38 9978918', value: staticDataObj.vehicleVin };
+        dataObj.primaryUse = { element: '#\\31 201129486', value: staticDataObj.vehicleUse };
+        dataObj.annualMilege = { element: '#\\32 192958255', value: '500' };
+        dataObj.ownerShip = { element: '#\\34 046590134', value: 'L' };
+
         return dataObj;
       }
     } catch (error) {
