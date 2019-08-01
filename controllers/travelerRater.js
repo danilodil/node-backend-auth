@@ -1,4 +1,4 @@
-/* eslint-disable no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
+/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -34,6 +34,8 @@ module.exports = {
       await policyStep();
       await customerInfoStep();
       await vehicleStep();
+      await driverStep();
+      // await underwritingStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -96,11 +98,9 @@ module.exports = {
             }
           }, populatedData.firstName, populatedData.lastName, populatedData.mailingAddress, populatedData.city, populatedData.state, populatedData.zipcode);
           await page.waitFor(4000);
-          await page.waitFor(5000);
           while (true) {
             await page.waitFor(1000);
             const pageQuote = await browser.pages();
-            console.log('pageQuote', pageQuote.length);
             if (pageQuote.length > 2) {
               page = pageQuote[2];
               break;
@@ -150,15 +150,7 @@ module.exports = {
             await continueButton.removeAttribute('data-skipdisable');
             await continueButton.click();
           });
-          await page.waitFor(40000);
-          while (true) {
-            await page.waitFor(1000);
-            const pageQuote = await browser.pages();
-            if (pageQuote.length > 3) {
-              page = pageQuote[2];
-              break;
-            }
-          }
+          await page.waitFor(20000);
           await page.waitForSelector('#\\33 022120615_0');
           await page.evaluate(async () => {
             const hasMovedWithin6Month = document.querySelector('#\\33 022120615_0');
@@ -176,11 +168,66 @@ module.exports = {
       async function vehicleStep() {
         console.log('Traveler vehicle Step');
         try {
+          await page.evaluate(() => {
+            const freezeScreen = document.getElementById('loaderContainer');
+            if (freezeScreen) {
+              document.getElementById('loaderContainer').outerHTML = '';
+            }
+          });
           await page.waitForSelector(populatedData.vehicleVin.element);
           await page.focus(populatedData.vehicleVin.element);
-          await page.keyboard.type(populatedData.vehicleVin.value, { delay: 100 });
+          await page.evaluate((vehicleVin) => {
+            document.querySelector(vehicleVin.element).value = vehicleVin.value;
+          }, populatedData.vehicleVin);
+          await page.waitForSelector(populatedData.primaryUse.element);
+          await page.evaluate((primaryUse, annualMilege, ownerShip) => {
+            document.querySelector(primaryUse.element).value = primaryUse.value;
+            document.querySelector(annualMilege.element).value = annualMilege.value;
+            document.querySelector(ownerShip.element).value = ownerShip.value;
+            document.querySelector('#dynamicContinueButton').click();
+          }, populatedData.primaryUse, populatedData.annualMilege, populatedData.ownerShip);
+          await page.waitFor(2000);
         } catch (error) {
           await exitFail(error, 'vehicle');
+        }
+      }
+
+      async function driverStep() {
+        console.log('Traveler Driver Step');
+        try {
+          await page.waitForSelector('input[value="M"]');
+          await page.evaluate(() => {
+            document.querySelector('input[value="M"]').click();
+          });
+          await page.waitForSelector('select[data-label="Marital Status"]');
+          await page.select(populatedData.maritalStatus.element, populatedData.maritalStatus.value);
+          await page.type(populatedData.relationship.element, populatedData.relationship.value);
+          await page.type(populatedData.ageWhen1stLicensed.element, populatedData.ageWhen1stLicensed.value);
+          await page.type(populatedData.dateWhenLicensed.element, populatedData.dateWhenLicensed.value, { delay: 100 });
+          await page.evaluate(() => {
+            document.querySelector('input[value="E"').click(); // IntelliDrive
+          });
+          await page.focus('#dynamicContinueButton');
+          await page.evaluate(() => {
+            document.querySelector('#dynamicContinueButton').click();
+          });
+        } catch (error) {
+          await exitFail(error, 'driver');
+        }
+      }
+
+      async function underwritingStep() {
+        console.log('Traveler underwriting Step');
+        try {
+          await page.waitForSelector('#dynamicContinueButton');
+          await page.focus('#dynamicContinueButton');
+          await page.evaluate(async () => {
+            const continueButton = document.getElementById('dynamicContinueButton');
+            await continueButton.click();
+          });
+          await page.waitFor(2000);
+        } catch (error) {
+          await exitFail(error, 'underwriting');
         }
       }
 
@@ -199,15 +246,11 @@ module.exports = {
 
       function populateData() {
         const staticDataObj = {
+          businessType: 'AUTO',
           mailingAddress: '670 Park Avenue',
           city: 'Moody',
           state: 'AL',
           zipCode: '36140',
-          socialSecurityStatus: 'R',
-          reasonForPolicy: 'N',
-          garagedAddress: 'Howard Lake Park',
-          garagedZipcode: '36016',
-          garagedCity: 'Hoover',
           policyCurrentInsuranceValue: 'DW',
           policyDataResidenceType: 'H',
           policyDataPackageSelection: 'B',
@@ -218,10 +261,8 @@ module.exports = {
           birthDate: '12/16/1993',
           gender: 'Male',
           email: 'test@gmail.com',
-          maritalStatus: 'Married',
-          relationship: 'L',
-          licenseState: 'AL',
-          ageWhen1stLicensed: '21',
+          phone: '9999997777',
+          ageWhen1stLicensed: '18',
           commonOccupation: 'Manager',
           education: 'BS',
           garagedLocation: '2',
@@ -251,7 +292,6 @@ module.exports = {
               relationship: 'L',
               licenseState: 'AL',
               ageWhen1stLicensed: '21',
-              commonOccupation: 'Manager',
             },
           ],
         };
@@ -264,15 +304,22 @@ module.exports = {
         dataObj.searchState = { element: 'select[name="state"]', value: bodyData.state || staticDataObj.state };
         dataObj.state = { element: 'ddState', value: bodyData.state || staticDataObj.state };
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
-        dataObj.businessType = { element: 'LineOfBusinessValue', value: 'AUTO' };
-        dataObj.effectiveDate = { element: 'EffectiveDate', value: '07/26/2019' };
-        dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: '(999)999-7777' };
-        dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: '12/12/2001' };
-        dataObj.vehicleVin = { element: '#\\38 9978918', value: staticDataObj.vehicleVin };
-        dataObj.primaryUse = { element: '#\\31 201129486', value: staticDataObj.vehicleUse };
-        dataObj.annualMilege = { element: '#\\32 192958255', value: '500' };
-        dataObj.ownerShip = { element: '#\\34 046590134', value: 'L' };
-
+        dataObj.businessType = { element: 'LineOfBusinessValue', value: staticDataObj.businessType };
+        dataObj.effectiveDate = { element: 'EffectiveDate', value: tomorrow };
+        dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: staticDataObj.phone };
+        dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: '12/12/1997' };
+        // vehicle
+        dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: staticDataObj.vehicleVin };
+        dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicleUse };
+        dataObj.annualMilege = { element: 'input[data-label="Annual Mileage"]', value: '500' };
+        dataObj.ownerShip = { element: 'select[data-label="Ownership Status"]', value: 'L' };
+        // driver
+        dataObj.maritalStatus = { element: 'select[data-label="Marital Status"]', value: 'S' };
+        dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: 'OT' };
+        dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: '18' };
+        dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: '12/12/2015' };
+        dataObj.insuranceStatus = { element: 'input[data-label="Insurance Status"]', value: 'NOPRIOR' };
+        dataObj.primaryResidence = { element: 'input[data-label="Primary Residence"]', value: 'OTH' };
         return dataObj;
       }
     } catch (error) {
