@@ -35,7 +35,7 @@ module.exports = {
       await customerInfoStep();
       await vehicleStep();
       await driverStep();
-      // await underwritingStep();
+      await underwritingStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -136,7 +136,6 @@ module.exports = {
           await page.waitForSelector(populatedData.phone.element);
           await page.focus(populatedData.phone.element);
           await page.keyboard.type(populatedData.phone.value, { delay: 100 });
-
           await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
@@ -153,7 +152,7 @@ module.exports = {
           await page.waitFor(20000);
           await page.waitForSelector('#\\33 022120615_0');
           await page.evaluate(async () => {
-            const hasMovedWithin6Month = document.querySelector('#\\33 022120615_0');
+            const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2];
             await hasMovedWithin6Month.click();
             const reviewdInfoByLaw = document.querySelector('#\\31 468764443_1');
             await reviewdInfoByLaw.click();
@@ -174,19 +173,32 @@ module.exports = {
               document.getElementById('loaderContainer').outerHTML = '';
             }
           });
+          await page.waitForXPath('//span[contains(text(), "VEHICLES")]', 5000);
+          const [vehicle] = await page.$x('//span[contains(text(), "VEHICLES")]');
+          if (vehicle) vehicle.click();
+          await page.waitForSelector('select[data-label="Vehicle Type"]');
+          await page.evaluate(() => {
+            document.querySelector('select[data-label="Vehicle Type"]').value = 'PP';
+          });
           await page.waitForSelector(populatedData.vehicleVin.element);
           await page.focus(populatedData.vehicleVin.element);
-          await page.evaluate((vehicleVin) => {
-            document.querySelector(vehicleVin.element).value = vehicleVin.value;
-          }, populatedData.vehicleVin);
+          await page.type(populatedData.vehicleVin.element, populatedData.vehicleVin.value, { delay: 30 });
           await page.waitForSelector(populatedData.primaryUse.element);
-          await page.evaluate((primaryUse, annualMilege, ownerShip) => {
-            document.querySelector(primaryUse.element).value = primaryUse.value;
-            document.querySelector(annualMilege.element).value = annualMilege.value;
-            document.querySelector(ownerShip.element).value = ownerShip.value;
+          await page.focus(populatedData.primaryUse.element);
+          await page.type(populatedData.primaryUse.element, populatedData.primaryUse.value);
+          await page.focus(populatedData.annualMilege.element);
+          await page.type(populatedData.annualMilege.element, populatedData.annualMilege.value);
+          await page.focus(populatedData.ownerShip.element);
+          await page.select(populatedData.ownerShip.element, populatedData.ownerShip.value);
+          await page.focus('#dynamicContinueButton');
+          await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
-          }, populatedData.primaryUse, populatedData.annualMilege, populatedData.ownerShip);
+          });
+
           await page.waitFor(2000);
+          await page.evaluate(() => {
+            document.querySelector('#dynamicContinueButton').click();
+          });
         } catch (error) {
           await exitFail(error, 'vehicle');
         }
@@ -211,6 +223,32 @@ module.exports = {
           await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
           });
+
+          if (await page.$('span[data-label="Moved within the last 6 months?"]')) {
+            await page.waitFor(1000);
+            await page.evaluate(async () => {
+              document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2].click();
+            });
+          }
+
+          if (await page.$('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]')) {
+            await page.evaluate(() => {
+              document.querySelector('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]').children[0].click();
+            });
+          }
+
+          if (await page.$('#overlayButton-reports-dynamicContinue')) {
+            await page.evaluate(async () => {
+              const reportButton = document.querySelector('#overlayButton-reports-dynamicContinue');
+              await reportButton.click();
+            });
+          }
+
+          if (await page.$('#dynamicContinueButton')) {
+            await page.evaluate(() => {
+              document.querySelector('#dynamicContinueButton').click();
+            });
+          }
         } catch (error) {
           await exitFail(error, 'driver');
         }
@@ -219,11 +257,38 @@ module.exports = {
       async function underwritingStep() {
         console.log('Traveler underwriting Step');
         try {
+          await page.waitFor(5000);
           await page.waitForSelector('#dynamicContinueButton');
           await page.focus('#dynamicContinueButton');
           await page.evaluate(async () => {
-            const continueButton = document.getElementById('dynamicContinueButton');
-            await continueButton.click();
+            document.getElementById('dynamicContinueButton').click();
+          });
+
+          await page.waitFor(2000);
+          await page.waitForSelector(populatedData.insuranceStatus.element);
+          await page.select(populatedData.insuranceStatus.element, populatedData.insuranceStatus.value);
+
+          await page.evaluate(() => {
+            const anyVehicleWithoutRegister = document.querySelector('span[data-label="Are any vehicles not registered to the Named Insured, resident parents, or resident child <26 of the Named Insured?"]').children[2];
+            anyVehicleWithoutRegister.click();
+          });
+
+          await page.evaluate(() => {
+            const anyPersonWithoutLicense = document.querySelector('span[data-label="Is any driver in the household currently without a valid drivers license?"]').children[2];
+            anyPersonWithoutLicense.click();
+          });
+
+          await page.evaluate(() => {
+            const policyDeclined = document.querySelector('span[data-label="Has any company declined, cancelled or refused to renew your auto insurance policy for you or any listed driver in the last 3 years?"]').children[2];
+            policyDeclined.click();
+          });
+
+          await page.evaluate((primaryResidence) => {
+            document.querySelector(primaryResidence.element).value = primaryResidence.value;
+          }, populatedData.primaryResidence);
+
+          await page.evaluate(() => {
+            document.querySelector('#dynamicContinueButton').click();
           });
           await page.waitFor(2000);
         } catch (error) {
@@ -318,8 +383,9 @@ module.exports = {
         dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: 'OT' };
         dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: '18' };
         dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: '12/12/2015' };
-        dataObj.insuranceStatus = { element: 'input[data-label="Insurance Status"]', value: 'NOPRIOR' };
-        dataObj.primaryResidence = { element: 'input[data-label="Primary Residence"]', value: 'OTH' };
+
+        dataObj.insuranceStatus = { element: 'select[data-label="Insurance Status"]', value: 'NOPRIOR' };
+        dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: 'OTH' };
         return dataObj;
       }
     } catch (error) {
