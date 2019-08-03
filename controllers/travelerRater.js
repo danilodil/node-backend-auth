@@ -16,6 +16,17 @@ module.exports = {
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
 
+      let stepResult = {
+        login: false,
+        policy: false,
+        customerInfo: false,
+        vehicles: false,
+        drivers: false,
+        underWriting: false,
+        coverage: false,
+        summary: false,
+      };
+
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         slowMo: 250,
@@ -36,6 +47,8 @@ module.exports = {
       await vehicleStep();
       await driverStep();
       await underwritingStep();
+      await coverageStep();
+      await summaryStep();
 
       async function loginStep() {
         console.log('Traveler Login Step');
@@ -47,6 +60,7 @@ module.exports = {
           await page.type('#password', password);
           await page.click('#btn-trans-login');
           await page.waitForNavigation({ timeout: 0 });
+          stepResult.login = true;
         } catch (error) {
           await exitFail(error, 'login');
         }
@@ -123,6 +137,7 @@ module.exports = {
           await frame.type(`#${populatedData.effectiveDate.element}`, populatedData.effectiveDate.value);
           await frame.waitForSelector('#btnSubmit');
           await frame.click('#btnSubmit');
+          stepResult.policy = true;
         } catch (error) {
           await exitFail(error, 'Policy');
         }
@@ -132,7 +147,7 @@ module.exports = {
         console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
-          await page.waitFor(15000);
+          await page.waitFor(16000);
           await page.waitForSelector(populatedData.phone.element);
           await page.focus(populatedData.phone.element);
           await page.keyboard.type(populatedData.phone.value, { delay: 100 });
@@ -159,6 +174,7 @@ module.exports = {
             const reportButton = document.querySelector('#overlayButton-reports-dynamicOrderReport');
             reportButton.click();
           });
+          stepResult.customerInfo = true;
         } catch (error) {
           await exitFail(error, 'Customer Info');
         }
@@ -199,6 +215,7 @@ module.exports = {
           await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
           });
+          stepResult.vehicles = true;
         } catch (error) {
           await exitFail(error, 'vehicle');
         }
@@ -211,14 +228,15 @@ module.exports = {
           await page.evaluate(() => {
             document.querySelector('input[value="M"]').click();
           });
-          await page.waitForSelector('select[data-label="Marital Status"]');
+          await page.waitForSelector(populatedData.maritalStatus.element);
           await page.select(populatedData.maritalStatus.element, populatedData.maritalStatus.value);
-          await page.type(populatedData.relationship.element, populatedData.relationship.value);
-          await page.type(populatedData.ageWhen1stLicensed.element, populatedData.ageWhen1stLicensed.value);
+          await page.type(populatedData.relationship.element, populatedData.relationship.value, { delay: 20 });
+          await page.type(populatedData.ageWhen1stLicensed.element, populatedData.ageWhen1stLicensed.value, { delay: 20 });
           await page.type(populatedData.dateWhenLicensed.element, populatedData.dateWhenLicensed.value, { delay: 100 });
           await page.evaluate(() => {
-            document.querySelector('input[value="E"').click(); // IntelliDrive
+            document.querySelector('input[value="N"').click(); // IntelliDrive
           });
+          await page.waitFor(1000);
           await page.focus('#dynamicContinueButton');
           await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
@@ -267,6 +285,8 @@ module.exports = {
           await page.waitFor(2000);
           await page.waitForSelector(populatedData.insuranceStatus.element);
           await page.select(populatedData.insuranceStatus.element, populatedData.insuranceStatus.value);
+          await page.waitFor(1000);
+          await page.select('select[data-label="Reason for No Prior Insurance"]', 'NOPRIOR');
 
           await page.evaluate(() => {
             const anyVehicleWithoutRegister = document.querySelector('span[data-label="Are any vehicles not registered to the Named Insured, resident parents, or resident child <26 of the Named Insured?"]').children[2];
@@ -283,16 +303,93 @@ module.exports = {
             policyDeclined.click();
           });
 
-          await page.evaluate((primaryResidence) => {
-            document.querySelector(primaryResidence.element).value = primaryResidence.value;
-          }, populatedData.primaryResidence);
+          await page.select(populatedData.primaryResidence.element, populatedData.primaryResidence.value);
 
           await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
           });
           await page.waitFor(2000);
+          stepResult.underWriting = true;
         } catch (error) {
           await exitFail(error, 'underwriting');
+        }
+      }
+
+      async function coverageStep() {
+        console.log('Traveler Coverage Step');
+        try {
+          await page.waitFor(2000);
+          await page.select('select[data-label="Responsible Driver Plan"]', 'F1');
+
+          await page.waitFor(5000);
+          await page.evaluate((liability) => {
+            document.querySelector(liability.element).value = liability.value;
+          }, populatedData.liability);
+
+          await page.evaluate((propertyDamage) => {
+            document.querySelector(propertyDamage.element).value = propertyDamage.value;
+          }, populatedData.propertyDamage);
+
+          await page.evaluate((motorist) => {
+            document.querySelector(motorist.element).value = motorist.value;
+          }, populatedData.motorist);
+
+          await page.evaluate((medicalPayment) => {
+            document.querySelector(medicalPayment.element).value = medicalPayment.value;
+          }, populatedData.medicalPayment);
+
+          await page.evaluate((comprehensive) => {
+            document.querySelector(comprehensive.element).value = comprehensive.value;
+          }, populatedData.comprehensive);
+
+          await page.evaluate((collision) => {
+            document.querySelector(collision.element).value = collision.value;
+          }, populatedData.collision);
+
+          await page.evaluate((roadAssistant) => {
+            document.querySelector(roadAssistant.element).value = roadAssistant.value;
+          }, populatedData.roadAssistant);
+
+          // await page.evaluate((rentalETE) => {
+          //   document.querySelector(rentalETE.element).value = rentalETE.value;
+          // }, populatedData.rentalETE);
+
+          await page.evaluate((equipment) => {
+            document.querySelector(equipment.element).value = equipment.value;
+          }, populatedData.equipment);
+
+          await page.waitFor(2000);
+          await page.evaluate(() => {
+            document.querySelector('#dynamicContinueButton').click();
+          });
+          stepResult.coverage = true;
+        } catch (error) {
+          await exitFail(error, 'coverage');
+        }
+      }
+
+      async function summaryStep() {
+        console.log('Traveler Rater Summary Step');
+        try {
+          await page.waitFor(2000);
+          let totalPremium;
+          let months;
+          await page.evaluate(() => {
+            totalPremium = document.querySelector('#quoteStatusPremiumContainer_coverage_Pkg1').firstChild.innerText;
+            months = document.querySelector('#quoteStatusMessageContainer_coverage_Pkg1 > table > tbody > tr:nth-child(3)').innerText;
+          });
+          stepResult.summary = true;
+          req.session.data = {
+            title: 'Successfully retrieved traveler rate.',
+            status: true,
+            totalPremium: totalPremium || null,
+            months: months || null,
+            stepResult,
+          };
+          browser.close();
+          return next();
+        } catch (error) {
+          await exitFail(error, 'summary');
         }
       }
 
@@ -386,6 +483,16 @@ module.exports = {
 
         dataObj.insuranceStatus = { element: 'select[data-label="Insurance Status"]', value: 'NOPRIOR' };
         dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: 'OTH' };
+
+        dataObj.liability = { element: 'select[data-label="Liability"]', value: '100000/300000' };
+        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: '100000' };
+        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: 'VAL:25000/50000,CD:UM,LMTCD:PERPERSON/PERACC' };
+        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: '5000' };
+        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: '1000' };
+        dataObj.collision = { element: 'select[data-label="Collision"]', value: '2500' };
+        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: 'RB' };
+        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: '30/900,CD:RREIM,LMTCD:PERDAY/PERACC' };
+        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: '2500' };
         return dataObj;
       }
     } catch (error) {
