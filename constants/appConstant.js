@@ -71,15 +71,15 @@ exports.travelerRater = {
 exports.vendorNames = {
   client: [
     'SF',
-    'PROGRESSIVEDERATER',
-    'PROGRESSIVEALRATER',
-    'CSECARATER',
+    'PROGRESSIVEDE',
+    'PROGRESSIVEAL',
+    'CSECA',
     'EZLYNX',
     'QQ',
-    'NATIONALGENERALALRATER',
-    'SAFECOALRATER',
-    'ALLSTATERATER',
-    'TRAVELERRATER',
+    'NATIONALGENERALAL',
+    'SAFECOAL',
+    'ALLSTATE',
+    'TRAVELER',
   ],
   user: [
     'QQ',
