@@ -67,22 +67,3 @@ exports.allStateRater = {
 exports.travelerRater = {
   LOGIN_URL: 'https://www.travelers.com/foragents',
 };
-
-exports.vendorNames = {
-  client: [
-    'SF',
-    'PROGRESSIVEDERATER',
-    'PROGRESSIVEALRATER',
-    'CSECARATER',
-    'EZLYNX',
-    'QQ',
-    'NATIONALGENERALALRATER',
-    'SAFECOALRATER',
-    'ALLSTATERATER',
-    'TRAVELERRATER',
-  ],
-  user: [
-    'QQ',
-    'EZLYNX',
-  ],
-};
