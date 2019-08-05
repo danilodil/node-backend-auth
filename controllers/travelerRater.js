@@ -5,9 +5,11 @@ const puppeteer = require('puppeteer');
 const { travelerRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
-const { formatDate } = require('../lib/utils');
+const { formatDate, ageCount } = require('../lib/utils');
+
 
 module.exports = {
+
   traveler: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
@@ -15,6 +17,7 @@ module.exports = {
       const params = req.body;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
+      bodyData.drivers[0].ageWhen1stLicensed = await ageCount(bodyData.drivers[0].applicantBirthDt, bodyData.drivers[0].licensedDate);
 
       let stepResult = {
         login: false,
@@ -96,21 +99,21 @@ module.exports = {
         console.log('Traveler Add Customer Step');
         try {
           await page.waitFor(6000);
-          await page.evaluate(async (firstName, lastName, mailingAddress, city, state, zipCode) => {
+          await page.evaluate(async (populatedDataObj) => {
             const iframe = document.querySelector('#Parent').getElementsByTagName('frame')[2].contentDocument;
             const childFrames = iframe.documentElement;
             if (childFrames) {
-              childFrames.querySelector(`#${firstName.element}`).value = firstName.value;
-              childFrames.querySelector(`#${lastName.element}`).value = lastName.value;
-              childFrames.querySelector(`#${mailingAddress.element}`).value = mailingAddress.value;
-              childFrames.querySelector(`#${city.element}`).value = city.value;
-              childFrames.querySelector(`#${state.element}`).value = state.value;
-              childFrames.querySelector(`#${zipCode.element}`).value = zipCode.value;
+              childFrames.querySelector(`#${populatedDataObj.firstName.element}`).value = populatedDataObj.firstName.value;
+              childFrames.querySelector(`#${populatedDataObj.lastName.element}`).value = populatedDataObj.lastName.value;
+              childFrames.querySelector(`#${populatedDataObj.mailingAddress.element}`).value = populatedDataObj.mailingAddress.value;
+              childFrames.querySelector(`#${populatedDataObj.city.element}`).value = populatedDataObj.city.value;
+              childFrames.querySelector(`#${populatedDataObj.state.element}`).value = populatedDataObj.state.value;
+              childFrames.querySelector(`#${populatedDataObj.zipcode.element}`).value = populatedDataObj.zipcode.value;
               const processQuote = await childFrames.querySelector('#process');
               processQuote.removeAttribute('disabled');
               processQuote.click();
             }
-          }, populatedData.firstName, populatedData.lastName, populatedData.mailingAddress, populatedData.city, populatedData.state, populatedData.zipcode);
+          }, populatedData);
           await page.waitFor(4000);
           while (true) {
             await page.waitFor(1000);
@@ -147,14 +150,14 @@ module.exports = {
         console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
-          await page.waitFor(16000);
+          await page.waitFor(25000);
           await page.waitForSelector(populatedData.phone.element);
           await page.focus(populatedData.phone.element);
-          await page.keyboard.type(populatedData.phone.value, { delay: 100 });
+          await page.keyboard.type(populatedData.phone.value, { delay: 80 });
           await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
-          await page.type('tbody > #G17 #\\32 770825218', 'DEKALB', { delay: 100 });
+          await page.type('tbody > #G17 #\\32 770825218', 'SHELBY', { delay: 100 });
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.waitFor(5000);
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
@@ -164,7 +167,7 @@ module.exports = {
             await continueButton.removeAttribute('data-skipdisable');
             await continueButton.click();
           });
-          await page.waitFor(20000);
+          await page.waitFor(30000);
           await page.waitForSelector('#\\33 022120615_0');
           await page.evaluate(async () => {
             const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2];
@@ -176,6 +179,7 @@ module.exports = {
           });
           stepResult.customerInfo = true;
         } catch (error) {
+          console.log('error', error);
           await exitFail(error, 'Customer Info');
         }
       }
@@ -192,10 +196,10 @@ module.exports = {
           await page.waitForXPath('//span[contains(text(), "VEHICLES")]', 5000);
           const [vehicle] = await page.$x('//span[contains(text(), "VEHICLES")]');
           if (vehicle) vehicle.click();
-          await page.waitForSelector('select[data-label="Vehicle Type"]');
-          await page.evaluate(() => {
-            document.querySelector('select[data-label="Vehicle Type"]').value = 'PP';
-          });
+          await page.waitForSelector(populatedData.vehicleType.element);
+          await page.evaluate((vehicleType) => {
+            document.querySelector(vehicleType.element).value = vehicleType.value;
+          }, populatedData.vehicleType);
           await page.waitForSelector(populatedData.vehicleVin.element);
           await page.focus(populatedData.vehicleVin.element);
           await page.type(populatedData.vehicleVin.element, populatedData.vehicleVin.value, { delay: 30 });
@@ -231,10 +235,10 @@ module.exports = {
           await page.waitForSelector(populatedData.maritalStatus.element);
           await page.select(populatedData.maritalStatus.element, populatedData.maritalStatus.value);
           await page.type(populatedData.relationship.element, populatedData.relationship.value, { delay: 20 });
-          await page.type(populatedData.ageWhen1stLicensed.element, populatedData.ageWhen1stLicensed.value, { delay: 20 });
+          await page.type(populatedData.ageWhen1stLicensed.element, populatedData.ageWhen1stLicensed.value.toString(), { delay: 20 });
           await page.type(populatedData.dateWhenLicensed.element, populatedData.dateWhenLicensed.value, { delay: 100 });
           await page.evaluate(() => {
-            document.querySelector('input[value="N"').click(); // IntelliDrive
+            document.querySelector('span[data-label="IntelliDrive®"]').children[2].click(); // IntelliDrive
           });
           await page.waitFor(1000);
           await page.focus('#dynamicContinueButton');
@@ -286,7 +290,6 @@ module.exports = {
           await page.waitForSelector(populatedData.insuranceStatus.element);
           await page.select(populatedData.insuranceStatus.element, populatedData.insuranceStatus.value);
           await page.waitFor(1000);
-          await page.select('select[data-label="Reason for No Prior Insurance"]', 'NOPRIOR');
 
           await page.evaluate(() => {
             const anyVehicleWithoutRegister = document.querySelector('span[data-label="Are any vehicles not registered to the Named Insured, resident parents, or resident child <26 of the Named Insured?"]').children[2];
@@ -319,7 +322,7 @@ module.exports = {
         console.log('Traveler Coverage Step');
         try {
           await page.waitFor(2000);
-          await page.select('select[data-label="Responsible Driver Plan"]', 'F1');
+          await page.select(populatedData.driverPlan.element, populatedData.driverPlan.value);
 
           await page.waitFor(5000);
           await page.evaluate((liability) => {
@@ -413,34 +416,31 @@ module.exports = {
           city: 'Moody',
           state: 'AL',
           zipCode: '36140',
-          policyCurrentInsuranceValue: 'DW',
-          policyDataResidenceType: 'H',
-          policyDataPackageSelection: 'B',
-          policyVehiclesTrackStatus: 'Not Participating',
-          policyVehiclesCoverage: '100',
+          primaryResidence: 'OTH',
+          reasonForPriorInsurance: 'NOPRIOR',
           firstName: 'Test',
           lastName: 'User',
-          birthDate: '12/16/1993',
+          birthDate: '12/16/1997',
           gender: 'Male',
           email: 'test@gmail.com',
           phone: '9999997777',
-          ageWhen1stLicensed: '18',
-          commonOccupation: 'Manager',
-          education: 'BS',
-          garagedLocation: '2',
-          principalOperator: '1',
-          territory: '460',
-          vehicleVin: 'KMHDH6AE1DU001708',
-          vehicleUse: 'BU',
-          yearsVehicleOwned: '5',
+          liability: '100000/300000',
+          propertyDamage: '100000',
+          motorist: 'VAL:25000/50000,CD:UM,LMTCD:PERPERSON/PERACC',
+          medicalPayment: '5000',
+          comprehensive: '1000',
+          roadAssistant: 'RB',
+          rentalETE: '30/900,CD:RREIM,LMTCD:PERDAY/PERACC',
+          equipment: '2500',
+          driverPlan: 'F1',
+          vehicleType: 'PP',
           vehicles: [
             {
-              vehicleVin: '1FTSF30L61EC23425',
-              vehicleUse: '8',
-              annualMiles: '50',
+              vehicleVin: 'KMHDH6AE1DU001708',
+              vehicleUse: 'BU',
+              annualMiles: '500',
               yearsVehicleOwned: '5',
-              garagedLocation: '2',
-              principalOperator: '1',
+              ownerShip: 'L',
               policyVehiclesTrackStatus: 'Not Participating',
             },
           ],
@@ -450,10 +450,11 @@ module.exports = {
               lastName: 'User',
               gender: 'Male',
               birthDate: '12/16/1993',
-              maritalStatus: 'Single',
-              relationship: 'L',
+              maritalStatus: 'S',
+              relationshipTonamedInsured: 'OT',
               licenseState: 'AL',
-              ageWhen1stLicensed: '21',
+              ageWhen1stLicensed: '17',
+              dateWhenLicensed: '12/12/2015',
             },
           ],
         };
@@ -468,31 +469,34 @@ module.exports = {
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
         dataObj.businessType = { element: 'LineOfBusinessValue', value: staticDataObj.businessType };
         dataObj.effectiveDate = { element: 'EffectiveDate', value: tomorrow };
-        dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: staticDataObj.phone };
-        dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: '12/12/1997' };
+        dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
+        dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: bodyData.birthDate || staticDataObj.birthDate };
+        dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
         // vehicle
-        dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: staticDataObj.vehicleVin };
-        dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicleUse };
-        dataObj.annualMilege = { element: 'input[data-label="Annual Mileage"]', value: '500' };
-        dataObj.ownerShip = { element: 'select[data-label="Ownership Status"]', value: 'L' };
+        dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: bodyData.vehicles[0].vehicleVin || staticDataObj.vehicles[0].vehicleVin };
+        dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicles[0].vehicleUse };
+        dataObj.annualMilege = { element: 'input[data-label="Annual Mileage"]', value: staticDataObj.vehicles[0].annualMiles };
+        dataObj.ownerShip = { element: 'select[data-label="Ownership Status"]', value: staticDataObj.vehicles[0].ownerShip };
         // driver
-        dataObj.maritalStatus = { element: 'select[data-label="Marital Status"]', value: 'S' };
-        dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: 'OT' };
-        dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: '18' };
-        dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: '12/12/2015' };
+        dataObj.maritalStatus = { element: 'select[data-label="Marital Status"]', value: staticDataObj.drivers[0].maritalStatus };
+        dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: staticDataObj.drivers[0].relationshipTonamedInsured };
+        dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: staticDataObj.drivers[0].ageWhen1stLicensed };
+        dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: bodyData.drivers[0].licensedDate || staticDataObj.drivers[0].dateWhenLicensed };
 
-        dataObj.insuranceStatus = { element: 'select[data-label="Insurance Status"]', value: 'NOPRIOR' };
-        dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: 'OTH' };
+        dataObj.insuranceStatus = { element: 'select[data-label="Reason for No Prior Insurance"]', value: staticDataObj.reasonForPriorInsurance };
+        dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: staticDataObj.primaryResidence };
 
-        dataObj.liability = { element: 'select[data-label="Liability"]', value: '100000/300000' };
-        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: '100000' };
-        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: 'VAL:25000/50000,CD:UM,LMTCD:PERPERSON/PERACC' };
-        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: '5000' };
-        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: '1000' };
-        dataObj.collision = { element: 'select[data-label="Collision"]', value: '2500' };
-        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: 'RB' };
-        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: '30/900,CD:RREIM,LMTCD:PERDAY/PERACC' };
-        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: '2500' };
+        dataObj.liability = { element: 'select[data-label="Liability"]', value: staticDataObj.liability };
+        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: staticDataObj.propertyDamage };
+        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: staticDataObj.motorist };
+        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: staticDataObj.medicalPayment };
+        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: staticDataObj.comprehensive };
+        dataObj.collision = { element: 'select[data-label="Collision"]', value: staticDataObj.collision };
+        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: staticDataObj.roadAssistant };
+        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: staticDataObj.rentalETE };
+        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: staticDataObj.equipment };
+        dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: staticDataObj.driverPlan };
+
         return dataObj;
       }
     } catch (error) {
