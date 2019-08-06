@@ -2,11 +2,11 @@
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
+const moment = require('moment');
 const { travelerRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate, ageCount } = require('../lib/utils');
-
 
 module.exports = {
 
@@ -14,10 +14,11 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
-      const params = req.body;
+      const yeasterDay = formatDate(moment(new Date()).subtract(1, 'days'));
+
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
-      bodyData.drivers[0].ageWhen1stLicensed = await ageCount(bodyData.drivers[0].applicantBirthDt, bodyData.drivers[0].licensedDate);
+      bodyData.drivers[0].ageWhen1stLicensed = await ageCount(bodyData.drivers[0].applicantBirthDt);
 
       let stepResult = {
         login: false,
@@ -150,17 +151,20 @@ module.exports = {
         console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
-          await page.waitFor(25000);
+          await page.waitFor(20000);
           await page.waitForSelector(populatedData.phone.element);
           await page.focus(populatedData.phone.element);
           await page.keyboard.type(populatedData.phone.value, { delay: 80 });
           await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
-          await page.type('tbody > #G17 #\\32 770825218', 'SHELBY', { delay: 100 });
+          await page.waitFor(2000);
+          const countryName = await page.evaluate(element => document.querySelector(element).innerText, 'select[data-label=County] > option:nth-child(2)');
+          await page.select('select[data-label=County]', countryName);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.waitFor(5000);
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
+          await page.waitFor(5000);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.evaluate(async () => {
             const continueButton = document.getElementById('dynamicContinueButton');
@@ -271,6 +275,7 @@ module.exports = {
               document.querySelector('#dynamicContinueButton').click();
             });
           }
+          stepResult.drivers = true;
         } catch (error) {
           await exitFail(error, 'driver');
         }
@@ -286,11 +291,32 @@ module.exports = {
             document.getElementById('dynamicContinueButton').click();
           });
 
-          await page.waitFor(2000);
+          await page.waitFor(5000);
+
+          if (await page.$('span[data-label="Moved within the last 6 months?"]')) {
+            await page.waitFor(1000);
+            await page.evaluate(async () => {
+              document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2].click();
+            });
+          }
+
+          if (await page.$('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]')) {
+            await page.evaluate(() => {
+              document.querySelector('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]').children[0].click();
+            });
+          }
+
+          if (await page.$('#overlayButton-reports-dynamicContinue')) {
+            await page.evaluate(async () => {
+              const reportButton = document.querySelector('#overlayButton-reports-dynamicContinue');
+              await reportButton.click();
+            });
+          }
+
           await page.waitForSelector(populatedData.insuranceStatus.element);
           await page.select(populatedData.insuranceStatus.element, populatedData.insuranceStatus.value);
           await page.waitFor(1000);
-
+          await page.select(populatedData.ReasonForinsurance.element, populatedData.ReasonForinsurance.value);
           await page.evaluate(() => {
             const anyVehicleWithoutRegister = document.querySelector('span[data-label="Are any vehicles not registered to the Named Insured, resident parents, or resident child <26 of the Named Insured?"]').children[2];
             anyVehicleWithoutRegister.click();
@@ -311,7 +337,12 @@ module.exports = {
           await page.evaluate(() => {
             document.querySelector('#dynamicContinueButton').click();
           });
-          await page.waitFor(2000);
+          await page.waitFor(10000);
+          if (await page.$('#dynamicContinueButton')) {
+            await page.evaluate(() => {
+              document.querySelector('#dynamicContinueButton').click();
+            });
+          }
           stepResult.underWriting = true;
         } catch (error) {
           await exitFail(error, 'underwriting');
@@ -323,43 +354,34 @@ module.exports = {
         try {
           await page.waitFor(2000);
           await page.select(populatedData.driverPlan.element, populatedData.driverPlan.value);
+          await page.waitFor(10000);
+          await page.waitFor(populatedData.liability.element);
+          await page.select(populatedData.liability.element, populatedData.liability.value);
 
-          await page.waitFor(5000);
-          await page.evaluate((liability) => {
-            document.querySelector(liability.element).value = liability.value;
-          }, populatedData.liability);
+          await page.waitFor(10000);
+          await page.focus(populatedData.propertyDamage.element);
+          await page.select(populatedData.propertyDamage.element, populatedData.propertyDamage.value);
 
-          await page.evaluate((propertyDamage) => {
-            document.querySelector(propertyDamage.element).value = propertyDamage.value;
-          }, populatedData.propertyDamage);
 
-          await page.evaluate((motorist) => {
-            document.querySelector(motorist.element).value = motorist.value;
-          }, populatedData.motorist);
+          await page.focus(populatedData.motorist.element);
+          await page.select(populatedData.motorist.element, populatedData.motorist.value);
 
-          await page.evaluate((medicalPayment) => {
-            document.querySelector(medicalPayment.element).value = medicalPayment.value;
-          }, populatedData.medicalPayment);
+          await page.focus(populatedData.medicalPayment.element);
+          await page.select(populatedData.medicalPayment.element, populatedData.medicalPayment.value);
 
-          await page.evaluate((comprehensive) => {
-            document.querySelector(comprehensive.element).value = comprehensive.value;
-          }, populatedData.comprehensive);
+          await page.focus(populatedData.comprehensive.element);
+          await page.select(populatedData.comprehensive.element, populatedData.comprehensive.value);
 
-          await page.evaluate((collision) => {
-            document.querySelector(collision.element).value = collision.value;
-          }, populatedData.collision);
+          await page.select('select[data-label="Glass Deductible"]', '50');
 
-          await page.evaluate((roadAssistant) => {
-            document.querySelector(roadAssistant.element).value = roadAssistant.value;
-          }, populatedData.roadAssistant);
+          await page.focus(populatedData.collision.element);
+          await page.select(populatedData.collision.element, '500');
 
-          // await page.evaluate((rentalETE) => {
-          //   document.querySelector(rentalETE.element).value = rentalETE.value;
-          // }, populatedData.rentalETE);
+          await page.focus(populatedData.roadAssistant.element);
+          await page.select(populatedData.roadAssistant.element, populatedData.roadAssistant.value);
 
-          await page.evaluate((equipment) => {
-            document.querySelector(equipment.element).value = equipment.value;
-          }, populatedData.equipment);
+          await page.focus(populatedData.equipment.element);
+          await page.select(populatedData.equipment.element, populatedData.equipment.value);
 
           await page.waitFor(2000);
           await page.evaluate(() => {
@@ -381,6 +403,7 @@ module.exports = {
             totalPremium = document.querySelector('#quoteStatusPremiumContainer_coverage_Pkg1').firstChild.innerText;
             months = document.querySelector('#quoteStatusMessageContainer_coverage_Pkg1 > table > tbody > tr:nth-child(3)').innerText;
           });
+          console.log('Premium###', totalPremium);
           stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved traveler rate.',
@@ -451,10 +474,10 @@ module.exports = {
               gender: 'Male',
               birthDate: '12/16/1993',
               maritalStatus: 'S',
-              relationshipTonamedInsured: 'OT',
+              relationshipTonamedInsured: 'IN',
               licenseState: 'AL',
               ageWhen1stLicensed: '17',
-              dateWhenLicensed: '12/12/2015',
+              dateWhenLicensed: yeasterDay,
             },
           ],
         };
@@ -478,24 +501,26 @@ module.exports = {
         dataObj.annualMilege = { element: 'input[data-label="Annual Mileage"]', value: staticDataObj.vehicles[0].annualMiles };
         dataObj.ownerShip = { element: 'select[data-label="Ownership Status"]', value: staticDataObj.vehicles[0].ownerShip };
         // driver
+        console.log('bodyData.drivers[0].ageWhen1stLicensed', bodyData.drivers[0].ageWhen1stLicensed);
         dataObj.maritalStatus = { element: 'select[data-label="Marital Status"]', value: staticDataObj.drivers[0].maritalStatus };
         dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: staticDataObj.drivers[0].relationshipTonamedInsured };
-        dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: staticDataObj.drivers[0].ageWhen1stLicensed };
+        dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: bodyData.drivers[0].ageWhen1stLicensed || staticDataObj.drivers[0].ageWhen1stLicensed };
         dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: bodyData.drivers[0].licensedDate || staticDataObj.drivers[0].dateWhenLicensed };
 
-        dataObj.insuranceStatus = { element: 'select[data-label="Reason for No Prior Insurance"]', value: staticDataObj.reasonForPriorInsurance };
+        dataObj.insuranceStatus = { element: 'select[data-label="Insurance Status"]', value: staticDataObj.reasonForPriorInsurance };
+        dataObj.ReasonForinsurance = { element: 'select[data-label="Reason for No Prior Insurance"]', value: staticDataObj.reasonForPriorInsurance || 'FIRSTCAR' };
         dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: staticDataObj.primaryResidence };
 
-        dataObj.liability = { element: 'select[data-label="Liability"]', value: staticDataObj.liability };
-        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: staticDataObj.propertyDamage };
-        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: staticDataObj.motorist };
-        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: staticDataObj.medicalPayment };
-        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: staticDataObj.comprehensive };
-        dataObj.collision = { element: 'select[data-label="Collision"]', value: staticDataObj.collision };
-        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: staticDataObj.roadAssistant };
-        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: staticDataObj.rentalETE };
-        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: staticDataObj.equipment };
-        dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: staticDataObj.driverPlan };
+        dataObj.liability = { element: 'select[data-label="Liability"]', value: bodyData.coverage[0].liability || staticDataObj.liability };
+        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: bodyData.coverage[0].propertyDamage || staticDataObj.propertyDamage };
+        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: bodyData.coverage[0].motorist || staticDataObj.motorist };
+        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: bodyData.coverage[0].medicalPayment || staticDataObj.medicalPayment };
+        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: bodyData.coverage[0].comprehensive || staticDataObj.comprehensive };
+        dataObj.collision = { element: 'select[data-label="Collision"]', value: bodyData.coverage[0].collision || staticDataObj.collision };
+        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0].roadAssistant || staticDataObj.roadAssistant };
+        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: bodyData.coverage[0].rentalETE || staticDataObj.rentalETE };
+        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0].equipment || staticDataObj.equipment };
+        dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: bodyData.coverage[0].driverPlan || staticDataObj.driverPlan };
 
         return dataObj;
       }
