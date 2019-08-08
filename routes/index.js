@@ -14,6 +14,7 @@ const rater = require('./rater');
 const safecoRater = require('./safecoRater');
 const allStateRater = require('./allStateRater');
 const travelerRater = require('./travelerRater');
+const erieRater = require('./erieRater');
 
 router.use('/ezlynx', [passport], ezlynxIntegration);
 router.use('/qq', [passport], qqIntegration);
@@ -26,5 +27,6 @@ router.use('/rate', [passport], rater);
 router.use('/safecoRater', [passport], safecoRater);
 router.use('/allStateRater', [passport], allStateRater);
 router.use('/travelerRater', [passport], travelerRater);
+router.use('/erieRater', [passport], erieRater);
 
 module.exports = router;

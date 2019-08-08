@@ -67,3 +67,8 @@ exports.allStateRater = {
 exports.travelerRater = {
   LOGIN_URL: 'https://www.travelers.com/foragents',
 };
+
+exports.erieRater = {
+  LOGIN_URL: 'https://www.agentexchange.com/',
+  CUSTOMER_URL: 'https://www.agentexchange.com/Customer/PA',
+};
