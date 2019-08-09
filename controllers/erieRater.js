@@ -1,6 +1,4 @@
-/* eslint-disable no-loop-func */
-/* eslint-disable guard-for-in */
-/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
+/* eslint-disable no-loop-func, guard-for-in, prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
