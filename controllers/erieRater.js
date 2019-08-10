@@ -276,6 +276,7 @@ module.exports = {
             document.querySelector('#btnContinue').click();
           });
           stepResult.vehicle = true;
+          console.log('stepResult', stepResult);
         } catch (error) {
           await exitFail(error, 'Vehicles');
         }
@@ -290,8 +291,8 @@ module.exports = {
             error: `There was an error at ${step} step`,
           };
         }
-        // browser.close();
-        // return next();
+        browser.close();
+        return next();
       }
 
 
