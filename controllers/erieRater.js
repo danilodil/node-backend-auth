@@ -289,8 +289,8 @@ module.exports = {
             error: `There was an error at ${step} step`,
           };
         }
-        // browser.close();
-        // return next();
+        browser.close();
+        return next();
       }
 
 
