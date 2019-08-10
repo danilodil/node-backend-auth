@@ -127,19 +127,18 @@ module.exports = {
             });
           }
           console.log('>>>>step 2');
-          await page.waitFor(5000);
+          await page.waitFor(3000);
           console.log('>>>>step 3');
           await page.waitForSelector('#contentarea > #ProspectScoreForm #startNewQuote');
           console.log('>>>>step 4');
           await page.click('#contentarea > #ProspectScoreForm #startNewQuote');
           console.log('>>>>step 5');
-          if (await page.$('#standardizedAddressContinue')) {
-            await page.evaluate(() => {
-              document.querySelector('#standardizedAddressContinue').click();
-            });
-          }
-          console.log('>>>>step 6');
-          await page.waitForNavigation({ timeout: 0 });
+          // if (await page.$('#standardizedAddressContinue')) {
+          //   await page.evaluate(() => {
+          //     document.querySelector('#standardizedAddressContinue').click();
+          //   });
+          // }
+          // await page.waitForNavigation({ timeout: 0 });
           stepResult.newQuote = true;
         } catch (error) {
           await exitFail(error, 'newQuote');
@@ -150,12 +149,14 @@ module.exports = {
         console.log('Erie Customer Step');
         try {
           await page.waitFor(2000);
+          console.log('>>>>step 6');
           if (await page.$('#standardizedAddressContinue')) {
+            console.log('inside if');
             await page.evaluate(() => {
               document.querySelector('#standardizedAddressContinue').click();
             });
           }
-
+          console.log('>>>>step 7');
           await page.waitForSelector('table #Home_IsSelected');
           await page.click('table #Home_IsSelected');
 
@@ -275,6 +276,7 @@ module.exports = {
             document.querySelector('#btnContinue').click();
           });
           stepResult.vehicle = true;
+          console.log('stepResult', stepResult);
         } catch (error) {
           await exitFail(error, 'Vehicles');
         }
