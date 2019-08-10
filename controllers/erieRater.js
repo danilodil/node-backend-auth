@@ -97,6 +97,7 @@ module.exports = {
       async function newQuoteStep() {
         console.log('Erie New Quote Step');
         try {
+          await page.waitFor(2000);
           await page.waitForSelector(populatedData.mailingAddress.element);
           await page.click(populatedData.mailingAddress.element);
           await page.evaluate((mailingAddress) => {
@@ -112,27 +113,32 @@ module.exports = {
           await page.evaluate((zipcode) => {
             document.querySelector(zipcode.element).value = zipcode.value;
           }, populatedData.zipcode);
-
+          console.log('>>>>step 0');
           await page.waitForSelector(populatedData.dateofBirthMonth.element);
           await page.evaluate((populatedDataObj) => {
             document.querySelector(populatedDataObj.dateofBirthMonth.element).value = populatedDataObj.dateofBirthMonth.value;
             document.querySelector(populatedDataObj.dateofBirthDay.element).value = populatedDataObj.dateofBirthDay.value;
             document.querySelector(populatedDataObj.dateofBirthYear.element).value = populatedDataObj.dateofBirthYear.value;
           }, populatedData);
-
+          console.log('>>>>step 1');
           if (await page.$('#standardizedAddressContinue')) {
             await page.evaluate(() => {
               document.querySelector('#standardizedAddressContinue').click();
             });
           }
-          await page.waitFor(2000);
+          console.log('>>>>step 2');
+          await page.waitFor(5000);
+          console.log('>>>>step 3');
           await page.waitForSelector('#contentarea > #ProspectScoreForm #startNewQuote');
+          console.log('>>>>step 4');
           await page.click('#contentarea > #ProspectScoreForm #startNewQuote');
+          console.log('>>>>step 5');
           if (await page.$('#standardizedAddressContinue')) {
             await page.evaluate(() => {
               document.querySelector('#standardizedAddressContinue').click();
             });
           }
+          console.log('>>>>step 6');
           await page.waitForNavigation({ timeout: 0 });
           stepResult.newQuote = true;
         } catch (error) {
