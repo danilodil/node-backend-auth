@@ -1,13 +1,14 @@
 const express = require('express');
 
-const progressiveRaterController = require('../controllers/progressiveRater');
+const allStateController = require('../controllers/allStateRater');
 const raterController = require('../controllers/rater');
+
 
 const router = express.Router();
 
-router.put('/progressive', [
+router.put('/allState/', [
   raterController.getOneByName,
-  progressiveRaterController.rate,
+  allStateController.allState,
   raterController.saveRating,
 ]);
 
