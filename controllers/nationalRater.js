@@ -16,7 +16,6 @@ module.exports = {
       const raterStore = req.session.raterStore;
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
-      const phone = bodyData.phone.slice(0, 10);
 
       let stepResult = {
         login: false,
@@ -233,7 +232,6 @@ module.exports = {
           const customCode = async function () {
             await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
             for (const j in bodyData.vehicles) {
-              await page.waitForSelector('#ctl00_MainContent_AutoControl1_txtVIN');
               if (j < bodyData.vehicles.length - 1) {
                 await page.evaluate((i) => {
                   const el = document.getElementById(`ctl00_MainContent_InsuredAutoLabel${parseInt(i) + 1}_btnAddAuto`);
@@ -242,7 +240,7 @@ module.exports = {
                   }
                 }, j);
               }
-              await page.waitFor(1000);
+              await page.waitFor(2000);
             }
           };
           const afterCode = async function () {
@@ -276,17 +274,8 @@ module.exports = {
         try {
           await page.waitFor(1200);
           await page.goto(nationalGeneralAlRater.UNDERWRITING_URL, { waitUntil: 'load' });
-          await page.waitForSelector(populatedData.priorInsuranceCo.element);
-          await page.select(populatedData.priorInsuranceCo.element, populatedData.priorInsuranceCo.value);
           await page.waitFor(2000);
-          await page.select(populatedData.priorBICoverage.element, populatedData.priorBICoverage.value);
-          await page.waitFor(1200);
-          await page.type(populatedData.priorExpirationDate.element, populatedData.priorExpirationDate.value);
-          await page.waitFor(600);
-          await page.select(populatedData.residentStatus.element, populatedData.residentStatus.value);
-          await page.waitFor(600);
-          await page.select(populatedData.prohibitedRisk.element, populatedData.prohibitedRisk.value);
-          await page.waitFor(1000);
+          await fillPageForm(null, null, null);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
           // await page.select('#ctl00_MainContent_ctl05_ddlAnswer', 'False');
           await page.evaluate(() => {
@@ -303,27 +292,7 @@ module.exports = {
           await coveragesStep();
           stepResult.underWriting = true;
         } catch (err) {
-          console.log(err);
-          console.log('Error at National AL Underwriting :', err.stack);
-          stepResult.underWriting = false;
-          req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
-            status: false,
-            error: 'There is some data error underWriting step',
-            stepResult,
-            quoteId,
-          };
-          let reloaded = false;
-          if (!reloaded) {
-            reloaded = true;
-            await page.reload();
-            await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
-            stepResult.underWriting = true;
-            await coveragesStep();
-          } else {
-            browser.close();
-            return next();
-          }
+          await exitFail(err, 'UnderWriting');
         }
       }
 
@@ -368,7 +337,7 @@ module.exports = {
             totalPremium: downPayments.TOTAL,
           };
           stepResult.summary = true;
-          req.session.payment = {
+          req.session.data = {
             title: 'Successfully retrieved national general AL rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
@@ -402,7 +371,7 @@ module.exports = {
       async function exitFail(error, step) {
         console.log(`Error during National AL ${step} step:`, error);
         if (req && req.session && req.session.data) {
-          req.session.payment = {
+          req.session.data = {
             title: 'Failed to retrieve National AL rate',
             status: false,
             error: `There was an error at ${step} step`,
@@ -613,6 +582,7 @@ module.exports = {
             },
           ],
         };
+        const phone = bodyData.phone.slice(0, 10);
         const clientInputSelect = {
           ctl00$MainContent$InsuredNamed1$ddlProducers: {
             type: 'selet-one',
