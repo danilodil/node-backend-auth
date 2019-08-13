@@ -78,7 +78,7 @@ module.exports = {
       });
 
       if (!params.stepName) {
-
+        await allSteps();
       } else {
         if (params.stepName === 'namedInsured') {
           await namedInsuredStep();
@@ -112,7 +112,6 @@ module.exports = {
           await underwritingStep();
         }
         if (params.stepName === 'coverage' && raterStore) {
-          await errorStep();
           await coveragesStep();
         }
       }
@@ -121,7 +120,7 @@ module.exports = {
         await namedInsuredStep();
         await vehicleStep();
         await driverStep();
-        // await violationStep();
+        await violationStep();
         await underwritingStep();
         await coveragesStep();
       }
@@ -236,7 +235,7 @@ module.exports = {
               await pageQuote.waitFor(1000);
             }
           };
-          await fillPageForm('Coverages', beforeCode, afterCode, 2000, 2);
+          await fillPageForm(null, beforeCode, afterCode, 2000, 2);
           stepResult.vehicles = true;
         } catch (error) {
           await exitFail(error, 'vehicles');
@@ -279,7 +278,7 @@ module.exports = {
 
       async function underwritingStep() {
         try {
-          await fillPageForm('Driver', null, null, null, 1);
+          await fillPageForm(null, null, null, null, 1);
           await pageQuote.waitFor(1000);
           await navigateMenu('Underwriting');
           await pageQuote.waitFor(1000);
@@ -317,7 +316,6 @@ module.exports = {
             }
             await pageQuote.waitFor(2000);
           }
-          await coveragesStep();
         } catch (error) {
           await exitFail(error, 'error');
         }
@@ -485,7 +483,7 @@ module.exports = {
             }
           });
           if (pg === 'error') {
-            return errorStep();
+            await errorStep();
           }
           await pageQuote.evaluate(() => {
             const el = document.getElementById('ctl00_pageMessage');
