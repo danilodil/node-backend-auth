@@ -1,13 +1,13 @@
 const express = require('express');
 
-const progressiveRaterController = require('../controllers/progressiveRater');
+const erieRater = require('../controllers/erieRater');
 const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/progressive', [
+router.put('/erie/', [
   raterController.getOneByName,
-  progressiveRaterController.rate,
+  erieRater.erieRater,
   raterController.saveRating,
 ]);
 

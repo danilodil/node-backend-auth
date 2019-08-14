@@ -1,5 +1,4 @@
 const express = require('express');
-const asyncHandler = require('express-async-handler');
 
 const nationalRaterController = require('../controllers/nationalRater');
 const raterController = require('../controllers/rater');

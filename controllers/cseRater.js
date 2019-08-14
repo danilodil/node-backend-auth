@@ -1,11 +1,11 @@
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations, consistent-return,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow */
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, no-plusplus */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { cseRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('./../constants/environment');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
 module.exports = {
   cseRating: async (req, res, next) => {
@@ -35,67 +35,12 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
       const page = await browser.newPage();
 
-      const staticDetailsObj = {
-        firstName: 'Test',
-        lastName: 'User',
-        middleName: '',
-        birthDate: '12/16/1993',
-        email: 'test@mail.com',
-        phone: '3026075611',
-        addressStreetName: 'Market St',
-        addressStreetNumber: '969',
-        city: 'San Diego',
-        state: 'CA',
-        zipCode: '92101',
-        lengthAtAddress: '1 year or more',
-        priorInsurance: 'Yes',
-        priorInsuranceCarrier: 'USAA',
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleModelYear: '2015',
-            vehicleManufacturer: 'FORD',
-            vehicleModel: 'F350',
-            body: 'EXT CAB (8CYL 4x2)',
-            zipCode: '19934',
-            lengthOfOwnership: 'At least 1 year but less than 3 years',
-            primaryUse: 'Commute',
-            vehicleAnnualDistance: '15000',
-            vehicleDaysDrivenPerWeek: '4 days',
-            vehicleCommuteMilesDrivenOneWay: '2000',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            birthDate: '12/16/1993',
-            applicantGenderCd: 'Male',
-            maritalStatus: 'Married',
-            yearsLicensed: '3 years or more',
-            driverLicensedDt: '12/20/2013',
-            driverLicenseNumber: '123456789',
-            employment: 'Student (full-time)',
-            education: 'College Degree',
-          },
-        ],
-        priorIncident: 'AAD - At Fault Accident',
-        priorIncidentDate: '12/16/2012',
-        policyEffectiveDate: '01/01/2018',
-        priorPolicyTerminationDate: '03/15/2019',
-        yearsWithPriorInsurance: '5 years or more',
-        ownOrRentPrimaryResidence: 'Rent',
-        numberOfResidentsInHome: '3',
-        rentersLimits: 'Greater Than 300,000',
-        haveAnotherProgressivePolicy: 'No',
-      };
       const populatedData = await populateKeyValueData(bodyData);
 
       await loginStep();
@@ -178,8 +123,58 @@ module.exports = {
       }
 
       function populateKeyValueData(bodyData) {
+        const staticDetailsObj = {
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          email: 'test@gmail.com',
+          phone: '0000000000',
+          addressStreetName: 'Market St',
+          addressStreetNumber: '969',
+          city: 'San Diego',
+          state: 'CA',
+          zipCode: '92101',
+          lengthAtAddress: '1 year or more',
+          priorInsurance: 'Yes',
+          priorInsuranceCarrier: 'USAA',
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleModelYear: '2015',
+              vehicleManufacturer: 'FORD',
+              vehicleModel: 'F350',
+              body: 'EXT CAB (8CYL 4x2)',
+              zipCode: '19934',
+              vehicleAnnualDistance: '15000',
+              vehicleDaysDrivenPerWeek: '4 days',
+              vehicleCommuteMilesDrivenOneWay: '2000',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              birthDate: '12/16/1993',
+              applicantGenderCd: 'Male',
+              maritalStatus: 'Married',
+              yearsLicensed: '3 years or more',
+              driverLicensedDt: '12/20/2013',
+              driverLicenseNumber: '123456789',
+            },
+          ],
+          priorIncident: 'AAD - At Fault Accident',
+          priorIncidentDate: '12/16/2012',
+          policyEffectiveDate: '01/01/2018',
+          priorPolicyTerminationDate: '03/15/2019',
+          yearsWithPriorInsurance: '5 years or more',
+          ownOrRentPrimaryResidence: 'Rent',
+          numberOfResidentsInHome: '3',
+          rentersLimits: 'Greater Than 300,000',
+          haveAnotherProgressivePolicy: 'No',
+        };
+
         const clientInputSelect = {
-          // product selction
           productSelection: [
             {
               element: 'BasicPolicy.ControllingStateCd',
@@ -190,8 +185,6 @@ module.exports = {
               value: 'PL-PREF-AUTO',
             },
           ],
-
-          // Underwriting Status
           underwriting: [
             {
               title: 'Expiration Date',
@@ -209,20 +202,10 @@ module.exports = {
               value: bodyData.firstName || staticDetailsObj.firstName,
             },
             {
-              title: 'MI',
-              element: 'InsuredName.OtherGivenName',
-              value: bodyData.middleName || staticDetailsObj.middleName,
-            },
-            {
               title: 'Last Name',
               element: 'InsuredName.Surname',
               value: bodyData.lastName || staticDetailsObj.lastName,
             },
-            // {
-            //   title: 'Suffix',
-            //   element: 'InsuredName.SuffixCd',
-            //   value: bodyData.suffixName || staticDetailsObj.suffixName,
-            // },
             {
               title: 'Birth Date',
               element: 'InsuredPersonal.BirthDt',
@@ -274,8 +257,6 @@ module.exports = {
               value: bodyData.email || staticDetailsObj.email,
             },
           ],
-
-          // Policy Coverage
           policyCoverage: [
             {
               title: 'Bodily Injury',
@@ -320,7 +301,6 @@ module.exports = {
           ],
         };
 
-        // vehicle
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           clientInputSelect.vehicleMilageType = {
             title: 'Mileage Type',
@@ -494,7 +474,6 @@ module.exports = {
           });
         }
 
-        // Driver Detail Edit
         if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
           bodyData.drivers.forEach((element, j) => {
             clientInputSelect[`editDriverDetails${j}`] = {
@@ -633,7 +612,6 @@ module.exports = {
           await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
           await page.click('#NewQuote');
 
-          // Product selction
           const { productSelection } = populatedData;
           await page.waitForSelector('#Main > div');
           await page.evaluate((productSelectionData) => {
@@ -672,7 +650,6 @@ module.exports = {
           });
           await page.waitForSelector('#ProviderNumber');
           await page.waitFor(1000);
-          // page.on('console', msg => console.log('PAGE LOG:', msg));
           await page.evaluate((underwritingData) => {
             underwritingData.forEach((oneElement) => {
               if (oneElement.value === 'AAGCA') {
@@ -689,7 +666,9 @@ module.exports = {
           await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
           await page.click('#DefaultAddress');
           await page.waitFor(1000);
+
           await page.click('#NextPage');
+          await page.waitFor(1000);
           await page.waitForSelector('#Question_Acknowledgement');
           await page.waitFor(1000);
           await page.evaluate(() => {
@@ -894,11 +873,11 @@ module.exports = {
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
-  
+
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
-  
+
           await page.waitForSelector('#NextPage');
           await page.click('#NextPage');
           await page.waitFor(3000);
@@ -923,7 +902,7 @@ module.exports = {
             stepResult,
           };
           browser.close();
-          return next();  
+          return next();
         } catch (err) {
           console.log('Error at CSE CA summaryStep:', err);
           stepResult.summary = false;
