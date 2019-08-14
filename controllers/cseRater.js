@@ -1,5 +1,6 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations, consistent-return,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, no-plusplus */
+
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations, consistent-return, no-param-reassign, guard-for-in ,
+no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, no-plusplus, dot-notation, no-unneeded-ternary, prefer-const */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -61,53 +62,25 @@ module.exports = {
         await underWritingStep();
         await page.waitForSelector('#QuoteAppSummary_QuoteAppNumber');
         quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
-        req.session.data = {
-          title: 'Successfully finished CSE CA UnderWriting Step',
-          status: true,
-          quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        await exitSuccess('Underwriting');
       } else if (params.stepName === 'vehicles' && raterStore) {
         await page.waitForSelector('#Wizard_Vehicles');
         await page.click('#Wizard_Vehicles');
         await page.waitFor(200);
         await vehicleStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Vehicle Step',
-          status: true,
-          quoteId: raterStore.quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        await exitSuccess('vehicle');
       } else if (params.stepName === 'policy' && raterStore) {
         await page.waitForSelector('#Wizard_AutoGeneral');
         await page.click('#Wizard_AutoGeneral');
         await page.waitFor(200);
         await policyStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Policy Step',
-          status: true,
-          quoteId: raterStore.quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        await exitSuccess('policy');
       } else if (params.stepName === 'drivers' && raterStore) {
         await page.waitForSelector('#Wizard_Drivers');
         await page.click('#Wizard_Drivers');
         await page.waitFor(100);
         await driverStep();
-        req.session.data = {
-          title: 'Successfully finished CSE CA Drivers Step',
-          status: true,
-          quoteId: raterStore.quoteId,
-          stepResult,
-        };
-        browser.close();
-        return next();
+        await exitSuccess('Drivers');
       } else if (params.stepName === 'summary' && raterStore) {
         await page.waitForSelector('#Wizard_LossHistory');
         await page.click('#Wizard_LossHistory');
@@ -174,132 +147,34 @@ module.exports = {
           haveAnotherProgressivePolicy: 'No',
         };
 
-        const clientInputSelect = {
-          productSelection: [
-            {
-              element: 'BasicPolicy.ControllingStateCd',
-              value: 'CA',
-            },
-            {
-              element: 'ProductSelectionGroupCd',
-              value: 'PL-PREF-AUTO',
-            },
-          ],
-          underwriting: [
-            {
-              title: 'Expiration Date',
-              element: 'BasicPolicy.RenewalTermCd',
-              value: '1 Year',
-            },
-            {
-              title: 'Program',
-              element: 'BasicPolicy.ProgramInd',
-              value: 'Civil Servant',
-            },
-            {
-              title: 'First Name',
-              element: 'InsuredName.GivenName',
-              value: bodyData.firstName || staticDetailsObj.firstName,
-            },
-            {
-              title: 'Last Name',
-              element: 'InsuredName.Surname',
-              value: bodyData.lastName || staticDetailsObj.lastName,
-            },
-            {
-              title: 'Birth Date',
-              element: 'InsuredPersonal.BirthDt',
-              value: bodyData.birthDate || staticDetailsObj.birthDate,
-            },
-            {
-              title: 'Number',
-              element: 'InsuredLookupAddr.PrimaryNumber',
-              value: bodyData.addressStreetNumber || staticDetailsObj.addressStreetNumber,
-            },
-            {
-              title: 'Street Name',
-              element: 'InsuredLookupAddr.StreetName',
-              value: bodyData.addressStreetName || staticDetailsObj.addressStreetName,
-            },
-            {
-              title: 'City',
-              element: 'InsuredLookupAddr.City',
-              value: bodyData.city || staticDetailsObj.city,
-            },
-            {
-              title: 'State',
-              element: 'InsuredLookupAddr.StateProvCd',
-              value: bodyData.state || staticDetailsObj.state,
-            },
-            {
-              title: 'Zip',
-              element: 'InsuredLookupAddr.PostalCode',
-              value: bodyData.zipCode || staticDetailsObj.zipCode,
-            },
-            {
-              title: 'Primary Phone Name',
-              element: 'InsuredPhonePrimary.PhoneName',
-              value: 'Mobile',
-            },
-            {
-              title: 'Primary Phone',
-              element: 'InsuredPhonePrimary.PhoneNumber',
-              value: bodyData.phone || staticDetailsObj.phone,
-            },
-            {
-              title: 'Delivery Preference',
-              element: 'Insured.PreferredDeliveryMethod',
-              value: 'Email',
-            },
-            {
-              title: 'Primary Email',
-              element: 'InsuredEmail.EmailAddr',
-              value: bodyData.email || staticDetailsObj.email,
-            },
-          ],
-          policyCoverage: [
-            {
-              title: 'Bodily Injury',
-              element: 'Line.BILimit',
-              value: bodyData.policyCoverage.bodilyInjuryCoverage || '25000/50000',
-            },
-            {
-              title: 'Property Damage',
-              element: 'Line.PDLimit',
-              value: bodyData.policyCoverage.propertyDamageCoverage || '10000',
-            },
-            {
-              title: 'Medical Payments',
-              element: 'Line.MedPayLimit',
-              value: bodyData.policyCoverage.medicalCoverage || '2000',
-            },
-            {
-              title: 'Un/Under-insured Motorist - Bodily Injury',
-              element: 'Line.UMBILimit',
-              value: bodyData.policyCoverage.underInsuredMotoristCoverage || '15000/30000',
-            },
-            {
-              title: 'UM-PD / WCD Applies',
-              element: 'Line.UMPDWCDInd',
-              value: 'No',
-            },
-            {
-              title: 'Apply Multi-Car Discount to Single Car',
-              element: 'Line.MultiCarDiscountInd',
-              value: 'No',
-            },
-            {
-              title: 'Multi-Policy Discount-Property',
-              element: 'Line.MultiPolicyDiscountInd',
-              value: 'HO3',
-            },
-            {
-              title: 'Multi-Policy Discount-Umbrella',
-              element: 'Line.MultiPolicyDiscount2Ind',
-              value: 'No',
-            },
-          ],
-        };
+        const clientInputSelect = {};
+        clientInputSelect['BasicPolicy.RenewalTermCd'] = { type: 'select-one', name: 'BasicPolicy.RenewalTermCd', value: '1 Year' };
+        clientInputSelect['BasicPolicy.ProgramInd'] = { type: 'select-one', name: 'BasicPolicy.ProgramInd', value: 'Civil Servant' };
+        clientInputSelect['InsuredName.GivenName'] = { type: 'text', name: 'InsuredName.GivenName', value: bodyData.firstName || staticDetailsObj.firstName };
+        clientInputSelect['InsuredName.Surname'] = { type: 'text', name: 'InsuredName.Surname', value: bodyData.lastName || staticDetailsObj.lastName };
+        clientInputSelect['InsuredPersonal.BirthDt'] = { type: 'text', name: 'InsuredPersonal.BirthDt', value: bodyData.birthDate || staticDetailsObj.birthDate };
+        clientInputSelect['InsuredLookupAddr.PrimaryNumber'] = { type: 'text', name: 'InsuredLookupAddr.PrimaryNumber', value: bodyData.birthDate || staticDetailsObj.birthDate };
+        clientInputSelect['InsuredLookupAddr.StreetName'] = { type: 'text', name: 'InsuredLookupAddr.StreetName', value: bodyData.addressStreetName || staticDetailsObj.addressStreetName };
+        clientInputSelect['InsuredLookupAddr.City'] = { type: 'text', name: 'InsuredLookupAddr.City', value: bodyData.city || staticDetailsObj.city };
+        clientInputSelect['InsuredLookupAddr.StateProvCd'] = { type: 'select-one', name: 'InsuredLookupAddr.StateProvCd', value: bodyData.state || staticDetailsObj.state };
+        clientInputSelect['InsuredLookupAddr.PostalCode'] = { type: 'text', name: 'InsuredLookupAddr.PostalCode', value: bodyData.zipCode || staticDetailsObj.zipCode };
+        clientInputSelect['InsuredPhonePrimary.PhoneName'] = { type: 'select-one', name: 'InsuredPhonePrimary.PhoneName', value: 'Mobile' };
+        clientInputSelect['InsuredPhonePrimary.PhoneNumber'] = { type: 'text', name: 'InsuredPhonePrimary.PhoneNumber', value: bodyData.phone || staticDetailsObj.phone };
+        clientInputSelect['Insured.PreferredDeliveryMethod'] = { type: 'select-one', name: 'Insured.PreferredDeliveryMethod', value: 'Email' };
+        clientInputSelect['InsuredEmail.EmailAddr'] = { type: 'text', name: 'InsuredEmail.EmailAddr', value: bodyData.email || staticDetailsObj.email };
+        clientInputSelect['Question_Acknowledgement'] = { type: 'select-one', name: 'Question_Acknowledgement', value: 'YES' };
+        clientInputSelect['Question_cserules_isResidence'] = { type: 'select-one', name: 'Question_cserules_isResidence', value: 'No' };
+        clientInputSelect['Question_cserules_notStreetLic'] = { type: 'select-one', name: 'Question_cserules_notStreetLic', value: 'No' };
+        clientInputSelect['Question_cserules_useBusiness'] = { type: 'select-one', name: 'Question_cserules_useBusiness', value: 'No' };
+        clientInputSelect['Question_cserules_useBusinessSales'] = { type: 'select-one', name: 'Question_cserules_useBusiness', value: 'Yes' };
+        clientInputSelect['Line.BILimit'] = { type: 'select-one', name: 'Line.BILimit', value: bodyData.policyCoverage.bodilyInjuryCoverage || '25000/50000' };
+        clientInputSelect['Line.PDLimit'] = { type: 'select-one', name: 'Line.PDLimit', value: bodyData.policyCoverage.propertyDamageCoverage || '10000' };
+        clientInputSelect['Line.MedPayLimit'] = { type: 'select-one', name: 'Line.MedPayLimit', value: bodyData.policyCoverage.medicalCoverage || '2000' };
+        clientInputSelect['Line.UMBILimit'] = { type: 'select-one', name: 'Line.UMBILimit', value: bodyData.policyCoverage.underInsuredMotoristCoverage || '15000/30000' };
+        clientInputSelect['Line.UMPDWCDInd'] = { type: 'select-one', name: 'Line.UMPDWCDInd', value: 'No' };
+        clientInputSelect['Line.MultiCarDiscountInd'] = { type: 'select-one', element: 'Line.MultiCarDiscountInd', value: 'No' };
+        clientInputSelect['Line.MultiPolicyDiscountInd'] = { type: 'select-one', element: 'Line.MultiPolicyDiscountInd', value: 'HO3' };
+        clientInputSelect['Line.MultiPolicyDiscount2Ind'] = { type: 'select-one', element: 'Line.MultiPolicyDiscount2Ind', value: 'No' };
 
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           clientInputSelect.vehicleMilageType = {
@@ -547,7 +422,6 @@ module.exports = {
         return clientInputSelect;
       }
 
-      let loginReAttemptCounter = cseRater.LOGIN_REATTEMPT;
       async function loginStep() {
         try {
           console.log('CSE CA Login Step.');
@@ -555,25 +429,12 @@ module.exports = {
           await page.waitForSelector('#frmLogin > div > div.signInTile');
           await page.type('#j_username', username);
           await page.type('#j_password', password);
+          await page.waitFor(2000);
           await page.click('#SignIn');
           await page.waitForNavigation({ timeout: 0 });
           stepResult.login = true;
         } catch (error) {
-          console.log('Error at CSE CA Login Step:', error);
-          if (!loginReAttemptCounter) {
-            stepResult.login = false;
-            req.session.data = {
-              title: 'Failed to retrieved CSE CA rate.',
-              status: false,
-              error: 'There is some error validations at loginStep',
-              stepResult,
-            };
-            browser.close();
-            return next();
-          }
-          console.log('Reattempt CSE CA login');
-          loginReAttemptCounter--;
-          loginStep();
+          await exitFail(error, 'login');
         }
       }
 
@@ -585,16 +446,7 @@ module.exports = {
           await page.click('#ToolbarSearch');
           stepResult.existingQuote = true;
         } catch (error) {
-          console.log('Error at CSE Existing Quote Step. :', error);
-          stepResult.existingQuote = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at Existing Quote Step',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(error, 'existing');
         }
       }
 
@@ -612,13 +464,11 @@ module.exports = {
           await page.waitForSelector('#frmCMM > div.contents > div.navigationBar > div:nth-child(4)');
           await page.click('#NewQuote');
 
-          const { productSelection } = populatedData;
           await page.waitForSelector('#Main > div');
-          await page.evaluate((productSelectionData) => {
-            productSelectionData.forEach((oneElement) => {
-              document.getElementById(oneElement.element).value = oneElement.value;
-            });
-          }, productSelection);
+          await page.evaluate(() => {
+            document.getElementById('BasicPolicy.ControllingStateCd').value = 'CA';
+            document.getElementById('ProductSelectionGroupCd').value = 'PL-PREF-AUTO';
+          });
 
           await page.click('#Continue');
           await page.waitFor(1000);
@@ -626,42 +476,20 @@ module.exports = {
           await page.click('#ProductSelectionList > table > tbody > tr > td > a');
           stepResult.newQuote = true;
         } catch (e) {
-          console.log('Error at CSE CA New Quote Step. :', e);
-          stepResult.newQuote = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at newQuoteStep',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(e, 'new Quote');
         }
       }
 
       async function underWritingStep() {
         console.log('CSE CA underWriting Step.');
         try {
-          const { underwriting } = populatedData;
           await page.waitFor(1000);
           page.on('dialog', async (dialog) => {
             console.log(dialog.message());
             await dialog.dismiss();
           });
           await page.waitForSelector('#ProviderNumber');
-          await page.waitFor(1000);
-          await page.evaluate((underwritingData) => {
-            underwritingData.forEach((oneElement) => {
-              if (oneElement.value === 'AAGCA') {
-                setTimeout(() => {
-                  document.getElementById(oneElement.element).value = oneElement.value;
-                  document.getElementById('AffinityGroupCdDisplay').value = oneElement.value;
-                }, 1000);
-              } else {
-                document.getElementById(oneElement.element).value = oneElement.value;
-              }
-            });
-          }, underwriting);
+          await fillPageForm(null, null, null);
           await page.click('#ResetCommercialName');
           await page.click('tr>td>img[id="InsuredLookupAddr.addrVerifyImg"]');
           await page.click('#DefaultAddress');
@@ -669,47 +497,12 @@ module.exports = {
 
           await page.click('#NextPage');
           await page.waitFor(1000);
-          await page.waitForSelector('#Question_Acknowledgement');
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            document.getElementById('Question_Acknowledgement').value = 'YES';
-          });
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            document.getElementById('Question_cserules_isForRent').value = 'No';
-          });
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            document.getElementById('Question_cserules_isResidence').value = 'No';
-          });
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            document.getElementById('Question_cserules_notStreetLic').value = 'No';
-          });
-          await page.waitFor(1000);
-          await page.evaluate(() => {
-            document.getElementById('Question_cserules_useBusiness').value = 'Yes';
-          });
-          await page.waitFor(1000);
-
-          await page.evaluate(() => {
-            document.getElementById('Question_cserules_useBusinessSales').value = 'Yes';
-          });
+          await fillPageForm(null, null, null);
           quoteId = await page.$eval('#QuoteAppSummary_QuoteAppNumber', e => e.innerText);
           await page.click('#NextPage');
           stepResult.underWriting = true;
         } catch (e) {
-          console.log('Error at CSE CA underWriting Step. :', e);
-          stepResult.underWriting = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at underWritingStep',
-            stepResult,
-            quoteId,
-          };
-          browser.close();
-          return next();
+          await exitFail(e, 'underWriting');
         }
       }
 
@@ -763,46 +556,21 @@ module.exports = {
           }
           stepResult.vehicles = true;
         } catch (e) {
-          console.log('Error at CSE CA Vehicle Step :', e);
-          stepResult.vehicles = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at vehicleStep',
-            stepResult,
-            quoteId,
-          };
-          browser.close();
-          return next();
+          await exitFail(e, 'vehicle');
         }
       }
 
       async function policyStep() {
         try {
           console.log('CSE CA Policy Step.');
-          const { policyCoverage } = populatedData;
           await page.waitFor(4000);
           await page.waitForSelector('#Line\\.BILimit');
-          await page.evaluate((policyCoverage) => {
-            policyCoverage.forEach((oneElement) => {
-              document.getElementById(oneElement.element).value = oneElement.value;
-            });
-          }, policyCoverage);
+          await fillPageForm(null, null, null);
           await page.click('#NextPage');
           await page.waitFor(1000);
           stepResult.policy = true;
         } catch (e) {
-          console.log('Error at CSE CA policyStep :', e);
-          stepResult.policy = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at policyStep',
-            stepResult,
-            quoteId,
-          };
-          browser.close();
-          return next();
+          await exitFail(e, 'policy');
         }
       }
 
@@ -852,17 +620,7 @@ module.exports = {
           }
           stepResult.drivers = true;
         } catch (e) {
-          console.log('Error at CSE CA Driver Step :', e);
-          stepResult.drivers = false;
-          req.session.data = {
-            title: 'Failed to retrieved CSE CA rate.',
-            status: false,
-            error: 'There is some error validations at driverStep',
-            stepResult,
-            quoteId,
-          };
-          browser.close();
-          return next();
+          await exitFail(e, 'driver');
         }
       }
 
@@ -904,17 +662,178 @@ module.exports = {
           browser.close();
           return next();
         } catch (err) {
-          console.log('Error at CSE CA summaryStep:', err);
-          stepResult.summary = false;
+          await exitFail(err, 'summary');
+        }
+      }
+
+      async function exitFail(error, step) {
+        console.log(`Error during CSE CA ${step} step:`, error);
+        if (req && req.session && req.session.data) {
           req.session.data = {
             title: 'Failed to retrieved CSE CA rate.',
             status: false,
-            error: 'There is some data error summaryStep',
+            error: `There was an error at ${step} step`,
             stepResult,
-            quoteId,
           };
-          browser.close();
-          return next();
+        }
+        browser.close();
+        return next();
+      }
+
+      async function exitSuccess(step) {
+        try {
+          if (req && req.session && req.session.data) {
+            req.session.data = {
+              title: `Successfully finished CSE CA ${step} Step`,
+              status: true,
+              quoteId: raterStore.quoteId || quoteId,
+              stepResult,
+            };
+            browser.close();
+            return next();
+          }
+        } catch (error) {
+          await exitFail(error, 'SuccessStep');
+        }
+      }
+
+      async function fillPageForm(beforeCustomCode, afterCustomCode, delayAfter) {
+        try {
+          if (beforeCustomCode) {
+            await beforeCustomCode();
+          }
+          const qO = await page.evaluate(async (data) => {
+            const form = document.forms[0];
+            for (const ele of form.elements) {
+              if (ele.disabled) {
+                ele.disabled = false;
+              }
+            }
+            const formD = new FormData(form);
+            const quoteObj = {};
+            for (const pair of formD.entries()) {
+              const key = (pair && pair[0]) ? pair[0] : null;
+              const value = (data && key && data[key] && data[key].value) ? data[key].value : null;
+              if (key && value) {
+                const el = document.getElementById(key);
+                console.log('el>>>>>>', el);
+                if (el.type === 'text') {
+                  el.value = value;
+                } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
+                  el.value = await getBestValue(value, el.options);
+                } else if (el.type === 'radio' || el.type === 'checkbox') {
+                  el.checked = (value && value === true) ? true : false;
+                }
+              }
+            }
+            return quoteObj;
+
+            function compareTwoStrings(first, second) {
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
+
+              if (!first.length && !second.length) return 1;// if both are empty strings
+              if (!first.length || !second.length) return 0;// if only one is empty string
+              if (first === second) return 1;// identical
+              if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
+
+              let firstBigrams = new Map();
+              for (let i = 0; i < first.length - 1; i++) {
+                const bigram = first.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram) + 1
+                  : 1;
+                firstBigrams.set(bigram, count);
+              }
+
+              let intersectionSize = 0;
+              for (let i = 0; i < second.length - 1; i++) {
+                const bigram = second.substring(i, i + 2);
+                const count = firstBigrams.has(bigram)
+                  ? firstBigrams.get(bigram)
+                  : 0;
+
+                if (count > 0) {
+                  firstBigrams.set(bigram, count - 1);
+                  intersectionSize++;
+                }
+              }
+
+              return (2.0 * intersectionSize) / (first.length + second.length - 2);
+            }
+            function findBestMatch(mainString, targetStrings) {
+              if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+              const ratings = [];
+              let bestMatchIndex = 0;
+
+              for (let i = 0; i < targetStrings.length; i++) {
+                const currentTargetString = targetStrings[i];
+                const currentRating = compareTwoStrings(mainString, currentTargetString);
+                ratings.push({ target: currentTargetString, rating: currentRating });
+                if (currentRating > ratings[bestMatchIndex].rating) {
+                  bestMatchIndex = i;
+                }
+              }
+
+              const bestMatch = ratings[bestMatchIndex];
+              return { ratings, bestMatch, bestMatchIndex };
+            }
+            function areArgsValid(mainString, targetStrings) {
+              if (typeof mainString !== 'string') return false;
+              if (!Array.isArray(targetStrings)) return false;
+              if (!targetStrings.length) return false;
+              if (targetStrings.find(s => typeof s !== 'string')) return false;
+              return true;
+            }
+
+            async function getBestValue(value, data) {
+              try {
+                const optionsArray = [...data];
+                const nArr = optionsArray.map(entry => entry.text.toLowerCase());
+                const vArr = optionsArray.map(entry => entry.value.toLowerCase());
+                if (value && value.length && value.length > 0 && value.length < 2) {
+                  if (vArr.indexOf(value.toLowerCase()) !== -1) {
+                    return value;
+                  }
+                } else if (value && value.length > 1) {
+                  const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
+                  const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+                  let i = 0;
+                  if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+                    i = nBestMatch.bestMatchIndex;
+                  } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+                    i = vBestMatch.bestMatchIndex;
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                    i = nBestMatch.bestMatchIndex;
+                  }
+                  const bestValue = optionsArray[i].value;
+                  return bestValue;
+                } else if (value) {
+                  return value || '';
+                } else {
+                  return '';
+                }
+              } catch (error) {
+                console.log(`Error: ${error}`);
+              }
+            }
+          }, populatedData);
+          if (qO) {
+            quoteObj = qO;
+          }
+          if (afterCustomCode) {
+            await afterCustomCode();
+          }
+          if (delayAfter) {
+            await page.waitFor(delayAfter);
+          } else {
+            await page.waitFor(1000);
+          }
+        } catch (error) {
+          console.log(error);
+          await exitFail(error, 'FillPage');
         }
       }
     } catch (error) {
