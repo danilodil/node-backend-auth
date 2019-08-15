@@ -36,7 +36,6 @@ exports.progressiveRater = {
 };
 
 exports.cseRater = {
-  LOGIN_REATTEMPT: 2,
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
