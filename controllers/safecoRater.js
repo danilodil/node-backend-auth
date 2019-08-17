@@ -62,7 +62,7 @@ module.exports = {
         if (params.stepName === 'namedInsured') {
           await policyInfoStep();
           const quoteId = `${bodyData.lastName}, ${bodyData.firstName}`;
-          exitSuccess('Named Insured', quoteId);
+          await exitSuccess('Named Insured', quoteId);
         }
         if (params.stepName === 'drivers' && raterStore) {
           await driversStep();
@@ -70,7 +70,7 @@ module.exports = {
             await finalSteps();
           } else {
             const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
-            exitSuccess('Drivers', quoteId);
+            await exitSuccess('Drivers', quoteId);
           }
         }
         if (params.stepName === 'vehicles' && raterStore) {
@@ -79,7 +79,7 @@ module.exports = {
             await finalSteps();
           } else {
             const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
-            exitSuccess('Vehicles', quoteId);
+            await exitSuccess('Vehicles', quoteId);
           }
         }
         if (params.stepName === 'summary' && raterStore) {
@@ -116,8 +116,7 @@ module.exports = {
           await page.waitFor(2000);
           stepResult.existingQuote = true;
         } catch (err) {
-          await exitFail(error, 'Existing Quote');
-          return next();
+          await exitFail(err, 'Existing Quote');
         }
       }
 
@@ -136,10 +135,10 @@ module.exports = {
         try {
           console.log('Safeco AL Login Step.');
           await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
-          await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
-          await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
-          await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
-          await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
+          await page.waitForSelector('#username');
+          await page.type('#username', username);
+          await page.type('#password', password);
+          await page.evaluate(() => document.querySelector('#submit1').click());
           await page.waitForNavigation({ waitUntil: 'load' });
           stepResult.login = true;
         } catch (error) {
@@ -154,7 +153,7 @@ module.exports = {
           await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
           stepResult.newQuote = true;
         } catch (err) {
-          await exitFail(error, 'New Quote');
+          await exitFail(err, 'New Quote');
         }
       }
 
@@ -216,10 +215,11 @@ module.exports = {
 
       async function vehiclesStep() {
         try {
+          await page.waitFor(5000);
           await loadStep('vehicle', true);
           const afterCustomCode = async function () {
             for (const j in bodyData.vehicles) {
-              await page.evaluate(async () => {
+              await page.evaluate(async (data) => {
                 const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
                 const vinEl = document.getElementById('PolicyVehicleVIN');
                 const vinBtn = document.getElementById('imgVINLookUp');
@@ -277,7 +277,6 @@ module.exports = {
       }
 
       async function summaryStep() {
-        console.log('Safeco AL Summary Step.');
         try {
           await page.waitFor(2000);
           await loadStep('summary', true);
@@ -457,15 +456,7 @@ module.exports = {
             await page.waitFor(1000);
           }
         } catch (err) {
-          console.log('Error at Safeco AL FillPageForm Step:', err);
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at FillPageForm',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'FillPageForm');
         }
       }
 
@@ -503,9 +494,6 @@ module.exports = {
           garagedLocation: '2',
           principalOperator: '1',
           territory: '460',
-          vehicleVin: 'KMHDH6AE1DU001708',
-          vehicleUse: '8',
-          yearsVehicleOwned: '5',
           vehicles: [
             {
               // Vehicle Type will always be 1981 or newer
