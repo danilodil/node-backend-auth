@@ -1,11 +1,11 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition */
+/* eslint-disable no-console, dot-notation, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
+ no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, func-names, no-plusplus, consistent-return */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const { safecoAlRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
-const ENVIRONMENT = require('../constants/environment');
+const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
 
@@ -19,11 +19,11 @@ module.exports = {
       let browserParams = {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       };
-      if (ENVIRONMENT.ENV === 'local') {
+      if (ENVIRONMENT.nodeEnv === 'local') {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      let page = await browser.newPage();
+      const page = await browser.newPage();
 
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
@@ -45,69 +45,6 @@ module.exports = {
         stepResult = raterStore.stepResult;
       }
 
-      const staticDataObj = {
-        mailingAddress: '670 Park Avenue',
-        city: 'Moody',
-        state: 'AL',
-        zipCode: '36140',
-        socialSecurityStatus: 'R',
-        reasonForPolicy: 'N',
-        garagedAddress: 'Howard Lake Park',
-        garagedZipcode: '36016',
-        garagedCity: 'Hoover',
-        peopleInhouseHold1: 'U',
-        peopleInhouseHold2: 'U',
-        peopleInhouseHold3: 'U',
-        peopleInhouseHold4: 'U',
-        policyCurrentInsuranceValue: 'DW',
-        policyDataResidenceType: 'H',
-        policyDataPackageSelection: 'B',
-        policyVehiclesTrackStatus: 'Not Participating',
-        policyVehiclesCoverage: '100',
-        firstName: 'Test',
-        lastName: 'User',
-        birthDate: '12/16/1993',
-        gender: 'Male',
-        email: 'test@gmail.com',
-        maritalStatus: 'Married',
-        relationship: 'L',
-        licenseState: 'AL',
-        ageWhen1stLicensed: '21',
-        commonOccupation: 'Manager',
-        education: 'BS',
-        garagedLocation: '2',
-        principalOperator: '1',
-        territory: '460',
-        vehicleVin: 'KMHDH6AE1DU001708',
-        vehicleUse: '8',
-        annualMiles: '50',
-        yearsVehicleOwned: '5',
-        vehicles: [
-          {
-            // Vehicle Type will always be 1981 or newer
-            vehicleVin: '1FTSF30L61EC23425',
-            vehicleUse: '8',
-            annualMiles: '50',
-            yearsVehicleOwned: '5',
-            garagedLocation: '2',
-            principalOperator: '1',
-            policyVehiclesTrackStatus: 'Not Participating',
-          },
-        ],
-        drivers: [
-          {
-            firstName: 'Test',
-            lastName: 'User',
-            gender: 'Male',
-            birthDate: '12/16/1993',
-            maritalStatus: 'Single',
-            relationship: 'L',
-            licenseState: 'AL',
-            ageWhen1stLicensed: '21',
-            commonOccupation: 'Manager',
-          },
-        ],
-      };
       const populatedData = await populateData();
 
       await loginStep();
@@ -132,7 +69,7 @@ module.exports = {
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
             exitSuccess('Drivers', quoteId);
           }
         }
@@ -141,7 +78,7 @@ module.exports = {
           if (params.sendSummary && params.sendSummary === 'true') {
             await finalSteps();
           } else {
-            const quoteId = ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`);
+            const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
             exitSuccess('Vehicles', quoteId);
           }
         }
@@ -153,13 +90,14 @@ module.exports = {
       async function existingQuote() {
         console.log('Safeco AL existing Quote Step');
         try {
+          const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
           await page.waitFor(8000);
           await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.select('#SAMSearchBusinessType', '7|1|');
           await page.select('#SAMSearchModifiedDateRange', '7');
           await page.select('#SAMSearchActivityStatus', '8');
-          await page.type('#SAMSearchName', ((req.session.data && req.session.data.quoteId) ? req.session.data.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`));
+          await page.type('#SAMSearchName', quoteId);
           await page.evaluate(() => document.querySelector('#asearch').click());
           await page.waitFor(3000);
           await page.waitForSelector('#divMain');
@@ -224,7 +162,8 @@ module.exports = {
         try {
           await page.waitFor(3000);
           await loadStep('policyinfo', false);
-          await fillPageForm('driver');
+          await fillPageForm();
+          await saveStep();
           stepResult.policyInfo = true;
         } catch (err) {
           console.log('Error at Safeco AL Policy Information Step:', err);
@@ -241,7 +180,7 @@ module.exports = {
           req.session.data = {
             title: 'Failed to retrieved Safeco AL rate.',
             status: false,
-            error: error,
+            error,
             stepResult,
           };
           browser.close();
@@ -249,52 +188,15 @@ module.exports = {
         }
       }
 
-      // async function GaragedInfoStep() {
-      //   try {
-      //     await page.waitFor(800);
-      //     await page.evaluate(() => {
-      //       ecfields.noValidate(); __doPostBack('ScreenTabs1', 'garagedlocation');
-      //     });
-      //     await page.waitFor(1000);
-      //     await page.waitForSelector('#PolicyLocations2AddressLine1');
-      //     await page.evaluate((garagedAddress) => { document.querySelector(garagedAddress.element).value = garagedAddress.value; }, populatedData.garagedAddress);
-
-      //     await page.click(populatedData.garagedZipcode.element);
-      //     await page.evaluate((garagedZipcode) => { document.querySelector(garagedZipcode.element).value = garagedZipcode.value; }, populatedData.garagedZipcode);
-
-      //     await page.waitFor(1500);
-      //     await page.evaluate((garagedCity) => {
-      //       document.querySelector(garagedCity.element).value = garagedCity.value;
-      //     }, populatedData.garagedCity);
-
-      //     await page.waitFor(1500);
-      //     await page.evaluate(() => document.querySelector('#Continue').click());
-      //     stepResult.garagedInfo = true;
-      //   } catch (err) {
-      //     await exitFail(err, 'Garaged Info');
-      //   }
-      // }
-
-      // async function houseHoldStep() {
-      //   try {
-      //     await page.waitFor(5000);
-      //     await fillPageForm(populatedHouseHoldInfoObject, 'driver');
-
-      //     stepResult.houseHold = true;
-      //   } catch (e) {
-      //     await exitFail(e, 'House Hold');
-      //   }
-      // }
-
       async function driversStep() {
         try {
           await loadStep('driver', true);
           const afterCustomCode = async function () {
-            for (let j in bodyData.drivers) {
-              await page.evaluate(async (data, i) => {
+            for (const j in bodyData.drivers) {
+              await page.evaluate(async () => {
                 const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
-                const PolicyDriverSR22FilingYN2N = document.getElementById(`PolicyDriverSR22FilingYN2N`);
-                const LicenseSuspendedRevokedYNNexist = document.getElementById(`PolicyDriverLicenseSuspendedRevokedYNN`);
+                const PolicyDriverSR22FilingYN2N = document.getElementById('PolicyDriverSR22FilingYN2N');
+                const LicenseSuspendedRevokedYNNexist = document.getElementById('PolicyDriverLicenseSuspendedRevokedYNN');
                 if (PolicyDriverSR22FilingYNN) {
                   PolicyDriverSR22FilingYNN.click();
                   PolicyDriverSR22FilingYN2N.click();
@@ -303,8 +205,9 @@ module.exports = {
               }, populatedData, j);
               await page.waitFor(1000);
             }
-          }
-          await fillPageForm('vehicle', afterCustomCode);
+          };
+          await fillPageForm(null, afterCustomCode);
+          await saveStep();
           stepResult.drivers = true;
         } catch (err) {
           await exitFail(err, 'Driver');
@@ -313,26 +216,26 @@ module.exports = {
 
       async function vehiclesStep() {
         try {
+          await loadStep('vehicle', true);
           const afterCustomCode = async function () {
-            for (let j in bodyData.vehicles) {
-              await page.evaluate(async (data, i) => {
+            for (const j in bodyData.vehicles) {
+              await page.evaluate(async () => {
                 const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
-                const vinEl = document.getElementById(`PolicyVehicleVIN`);
-                const vinBtn = document.getElementById(`imgVINLookUp`);
+                const vinEl = document.getElementById('PolicyVehicleVIN');
+                const vinBtn = document.getElementById('imgVINLookUp');
                 if (vinEl) {
                   vinExist.click();
-                  vinEl.value = data[`PolicyVehicleVIN`].value;
-                  console.log('step 3');
+                  vinEl.value = data.PolicyVehicleVIN.value;
                   vinBtn.click();
-                  console.log('step 4');
                 }
-              }, populatedData, j)
+              }, populatedData, j);
               await page.waitFor(1000);
             }
-          }
+          };
 
-          await fillPageForm('telematics', null, afterCustomCode);
+          await fillPageForm(null, afterCustomCode);
           await page.waitFor(2000);
+          await saveStep();
           stepResult.vehicles = true;
         } catch (err) {
           await exitFail(err, 'Vehicles');
@@ -342,8 +245,8 @@ module.exports = {
       async function telemeticsStep() {
         try {
           await page.waitFor(2000);
-          // await loadStep('telematics', true);
-          await fillPageForm('underwriting');
+          await loadStep('telematics', true);
+          await fillPageForm();
           stepResult.telemetics = true;
         } catch (err) {
           await exitFail(err, 'Telematics');
@@ -353,8 +256,8 @@ module.exports = {
       async function underwritingStep() {
         try {
           await page.waitFor(2000);
-          // await loadStep('underwriting', true);
-          await fillPageForm('coverages');
+          await loadStep('underwriting', true);
+          await fillPageForm();
           await page.waitFor(2000);
           stepResult.underWriting = true;
         } catch (err) {
@@ -365,8 +268,8 @@ module.exports = {
       async function coveragesStep() {
         try {
           await page.waitFor(2000);
-          // await loadStep('coverages', true);
-          await fillPageForm('summary');
+          await loadStep('coverages', true);
+          await fillPageForm();
           stepResult.coverage = true;
         } catch (err) {
           await exitFail(err, 'Coverages');
@@ -395,6 +298,7 @@ module.exports = {
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
             stepResult,
           };
+          console.log(' req.session.data', req.session.data);
           browser.close();
           return next();
         } catch (err) {
@@ -402,13 +306,10 @@ module.exports = {
         }
       }
 
-      // nextStep can be 'policyinfo', 'vehicle', 'driver', 'telematics', 'underwriting' 'coverages', 'summary'
-      // async function fillPageForm(pData, nextStep) {
-      async function fillPageForm(nextStep, beforeCustomCode, afterCustomCode, delayAfter) {
+      async function fillPageForm(beforeCustomCode, afterCustomCode, delayAfter) {
         try {
-          page.on('console', msg => {
-            for (let i = 0; i < msg.args().length; ++i)
-              console.log(`${msg.args()[i]}`);
+          page.on('console', (msg) => {
+            for (let i = 0; i < msg.args().length; ++i) console.log(`${msg.args()[i]}`);
           });
           if (beforeCustomCode) {
             await beforeCustomCode();
@@ -424,8 +325,8 @@ module.exports = {
               ecfields.buildModalHtml = function () { };
             }
 
-            let list = data;
-            for (let fieldName in list) {
+            const list = data;
+            for (const fieldName in list) {
               const ecField = list[fieldName] ? list[fieldName] : null;
               const xField = data[fieldName] ? data[fieldName] : null;
               if (ecField) {
@@ -443,23 +344,23 @@ module.exports = {
                   } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
                     el.value = await getBestValue(xField.value, el.options);
                   } else if (el.type === 'radio' || el.type === 'checkbox') {
-                    el.checked = (xField.value && xField.value === true) ? true : false;
+                    el.checked = !!((xField.value && xField.value === true));
                   }
                 }
               }
             }
 
             function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '')
-              second = second.replace(/\s+/g, '')
+              first = first.replace(/\s+/g, '');
+              second = second.replace(/\s+/g, '');
 
-              if (!first.length && !second.length) return 1;                   // if both are empty strings
-              if (!first.length || !second.length) return 0;                   // if only one is empty string
-              if (first === second) return 1;       							 // identical
-              if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
-              if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+              if (!first.length && !second.length) return 1; // if both are empty strings
+              if (!first.length || !second.length) return 0; // if only one is empty string
+              if (first === second) return 1; // identical
+              if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+              if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
-              let firstBigrams = new Map();
+              const firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
                 const bigram = first.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
@@ -467,7 +368,7 @@ module.exports = {
                   : 1;
 
                 firstBigrams.set(bigram, count);
-              };
+              }
 
               let intersectionSize = 0;
               for (let i = 0; i < second.length - 1; i++) {
@@ -492,15 +393,15 @@ module.exports = {
 
               for (let i = 0; i < targetStrings.length; i++) {
                 const currentTargetString = targetStrings[i];
-                const currentRating = compareTwoStrings(mainString, currentTargetString)
-                ratings.push({ target: currentTargetString, rating: currentRating })
+                const currentRating = compareTwoStrings(mainString, currentTargetString);
+                ratings.push({ target: currentTargetString, rating: currentRating });
                 if (currentRating > ratings[bestMatchIndex].rating) {
-                  bestMatchIndex = i
+                  bestMatchIndex = i;
                 }
               }
 
 
-              const bestMatch = ratings[bestMatchIndex]
+              const bestMatch = ratings[bestMatchIndex];
 
               return { ratings, bestMatch, bestMatchIndex };
             }
@@ -529,7 +430,7 @@ module.exports = {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
@@ -550,9 +451,6 @@ module.exports = {
           if (afterCustomCode) {
             await afterCustomCode();
           }
-          if (nextStep) {
-            await navigateMenu(nextStep);
-          }
           if (delayAfter) {
             await page.waitFor(delayAfter);
           } else {
@@ -572,6 +470,69 @@ module.exports = {
       }
 
       function populateData() {
+        const staticDataObj = {
+          mailingAddress: '670 Park Avenue',
+          city: 'Moody',
+          state: 'AL',
+          zipCode: '36140',
+          socialSecurityStatus: 'R',
+          reasonForPolicy: 'N',
+          garagedAddress: 'Howard Lake Park',
+          garagedZipcode: '36016',
+          garagedCity: 'Hoover',
+          peopleInhouseHold1: 'U',
+          peopleInhouseHold2: 'U',
+          peopleInhouseHold3: 'U',
+          peopleInhouseHold4: 'U',
+          policyCurrentInsuranceValue: 'DW',
+          policyDataResidenceType: 'H',
+          policyDataPackageSelection: 'B',
+          policyVehiclesTrackStatus: 'Not Participating',
+          policyVehiclesCoverage: '100',
+          firstName: 'Test',
+          lastName: 'User',
+          birthDate: '12/16/1993',
+          gender: 'Male',
+          email: 'test@gmail.com',
+          maritalStatus: 'Married',
+          relationship: 'L',
+          licenseState: 'AL',
+          ageWhen1stLicensed: '21',
+          commonOccupation: 'Manager',
+          education: 'BS',
+          garagedLocation: '2',
+          principalOperator: '1',
+          territory: '460',
+          vehicleVin: 'KMHDH6AE1DU001708',
+          vehicleUse: '8',
+          yearsVehicleOwned: '5',
+          vehicles: [
+            {
+              // Vehicle Type will always be 1981 or newer
+              vehicleVin: '1FTSF30L61EC23425',
+              vehicleUse: '8',
+              annualMiles: '50',
+              yearsVehicleOwned: '5',
+              garagedLocation: '2',
+              principalOperator: '1',
+              policyVehiclesTrackStatus: 'Not Participating',
+            },
+          ],
+          drivers: [
+            {
+              firstName: 'Test',
+              lastName: 'User',
+              gender: 'Male',
+              birthDate: '12/16/1993',
+              maritalStatus: 'Single',
+              relationship: 'L',
+              licenseState: 'AL',
+              ageWhen1stLicensed: '21',
+              commonOccupation: 'Manager',
+            },
+          ],
+        };
+
         const dataObj = {};
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           for (const j in bodyData.vehicles) {
@@ -633,10 +594,25 @@ module.exports = {
           await page.waitFor(500);
           if (navigate) {
             await navigateMenu(step);
+            await page.waitForNavigation();
           }
           await page.waitFor(1500);
         } catch (error) {
           await exitFail(error, 'load');
+        }
+      }
+
+      async function saveStep() {
+        try {
+          console.log('Safeco AL Save Step');
+          await page.waitFor(500);
+          await page.evaluate(() => {
+            const save = document.getElementById('Save');
+            save.click();
+          });
+          await page.waitFor(2000);
+        } catch (error) {
+          await exitFail(error, 'save');
         }
       }
 

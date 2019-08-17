@@ -1,5 +1,7 @@
-const ENVIRONMENT = require('./environment');
+require('dotenv').config();
 
 exports.CONFIG = {
-  nodeEnv: ENVIRONMENT.ENV,
+  nodeEnv: process.env.ENV,
+  port: process.env.PORT || '4000',
+  dbUrl: process.env.DATABASE_URL,
 };

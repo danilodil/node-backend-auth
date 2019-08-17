@@ -1,13 +1,12 @@
-const ENVIRONMENT = require('./environment');
+const ENVIRONMENT = require('./configConstants').CONFIG;
 
-const nodeEnv = ENVIRONMENT.ENV;
-if (nodeEnv === 'local') {
+if (ENVIRONMENT.nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
-if (nodeEnv === 'development') {
+if (ENVIRONMENT.nodeEnv === 'development') {
   exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
 }
-if (nodeEnv === 'production') {
+if (ENVIRONMENT.nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
 }
 
@@ -37,7 +36,6 @@ exports.progressiveRater = {
 };
 
 exports.cseRater = {
-  LOGIN_REATTEMPT: 2,
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
@@ -61,19 +59,15 @@ exports.safecoAlRater = {
   EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
 };
 
-exports.vendorNames = {
-  client: [
-    'SF',
-    'PROGRESSIVEDERATER',
-    'PROGRESSIVEALRATER',
-    'CSECARATER',
-    'EZLYNX',
-    'QQ',
-    'NATIONALGENERALALRATER',
-    'SAFECOALRATER',
-  ],
-  user: [
-    'QQ',
-    'EZLYNX',
-  ],
+exports.allStateRater = {
+  LOGIN_URL: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
+};
+
+exports.travelerRater = {
+  LOGIN_URL: 'https://www.travelers.com/foragents',
+};
+
+exports.erieRater = {
+  LOGIN_URL: 'https://www.agentexchange.com/',
+  CUSTOMER_URL: 'https://www.agentexchange.com/Customer/PA',
 };

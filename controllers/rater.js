@@ -1,80 +1,91 @@
-/* eslint-disable radix, no-param-reassign */
+/* eslint-disable radix, no-param-reassign, no-console */
 
 const Boom = require('boom');
 const Rater = require('../models/rater');
 
 module.exports = {
   saveRating: async (req, res, next) => {
-    if (!req.session.data) {
-      return next();
-    }
-    console.log(`${req.body.vendorName}: Saving Rate`);
+    try {
+      if (!req.session.data && !req.session.payment) {
+        return next();
+      }
+      console.log(`${req.body.vendorName}: Saving Rate`);
+      let companyId = null;
+      let clientId = null;
+      const currentUser = req.body.decoded_user;
+      if (currentUser.user) {
+        companyId = currentUser.user.companyUserId;
+        clientId = currentUser.user.id;
+      }
+      if (currentUser.client) {
+        companyId = currentUser.client.companyClientId;
+        clientId = currentUser.client.id;
+      }
+      if (!companyId && !clientId) {
+        return next(Boom.badRequest('Invalid Data'));
+      }
 
-    let companyId = null;
-    let clientId = null;
-    const currentUser = req.body.decoded_user;
-    if (currentUser.user) {
-      companyId = currentUser.user.companyUserId;
-      clientId = currentUser.user.id;
-    }
-    if (currentUser.client) {
-      companyId = currentUser.client.companyClientId;
-      clientId = currentUser.client.id;
-    }
-    if (!companyId && !clientId) {
-      return next(Boom.badRequest('Invalid Data'));
-    }
-
-    const existRater = {
-      where: {
-        companyId,
-        clientId,
-        vendorName: req.body.vendorName,
-      },
-    };
-
-    const raterData = await Rater.findOne(existRater);
-    /* create new rater result */
-    const isSucceeded = (req.session && req.session.data && req.session.data.status && req.session.data.totalPremium) ? true : false;
-    if (!raterData) {
-      console.log(req.session.data);
-      const newRater = {
-        companyId,
-        clientId,
-        vendorName: req.body.vendorName,
-        succeeded: isSucceeded,
-        totalPremium: req.session.data.totalPremium || null,
-        months: req.session.data.months || null,
-        downPayment: req.session.data.downPayment || null,
-        error: req.session.data.error || null,
-        quoteId: req.session.data.quoteId || null,
-        quoteIds: req.session.data.quoteIds || null,
-        stepResult: req.session.data.stepResult || null,
+      const existRater = {
+        where: {
+          companyId,
+          clientId,
+          vendorName: req.body.vendorName,
+        },
       };
-      await Rater.create(newRater);
-      console.log(`${req.body.vendorName} Rater Created`);
-    }
 
-    /* update rater result */
-    const updateObj = {
-      stepResult: req.session.data.stepResult || null,
-      quoteId: req.session.data.quoteId || null,
-      quoteIds: req.session.data.quoteIds || null,
-    };
-    if (raterData && req.session.data.totalPremium && req.session.data.status) {
-      updateObj.totalPremium = req.session.data.totalPremium;
-      updateObj.months = req.session.data.months;
-      updateObj.downPayment = req.session.data.downPayment;
-      updateObj.succeeded = true;
-      updateObj.error = null;
-      await raterData.update(updateObj);
-      console.log(`${req.body.vendorName} Rater Updated`);
-    } else if (raterData) {
-      await raterData.update(updateObj);
-      console.log(`${req.body.vendorName} Rater Updated`);
-    }
+      const raterData = await Rater.findOne(existRater);
+      /* create new rater result */
+      const isSucceeded = !!((req.session && req.session.data && req.session.data.status && req.session.data.totalPremium));
+      if (!raterData) {
+        const newRater = {
+          companyId,
+          clientId,
+          vendorName: req.body.vendorName,
+          succeeded: isSucceeded,
+          totalPremium: req.session.data.totalPremium || null,
+          months: req.session.data.months || null,
+          downPayment: req.session.data.downPayment || null,
+          error: req.session.data.error || null,
+          quoteId: req.session.data.quoteId || null,
+          quoteIds: req.session.data.quoteIds || null,
+          stepResult: req.session.data.stepResult || null,
+        };
+        await Rater.create(newRater);
+        console.log(`${req.body.vendorName} Rater Created`);
+      }
 
-    return next();
+      const data = !req.session.payment ? req.session.data : req.session.payment;
+      const isPayment = !!req.session.payment;
+
+      /* update rater result */
+      const updateObj = {
+        stepResult: data.stepResult || null,
+        quoteId: data.quoteId || null,
+        quoteIds: data.quoteIds || null,
+      };
+      if (raterData && data.totalPremium && data.status) {
+        updateObj.totalPremium = data.totalPremium;
+        updateObj.months = data.months;
+        updateObj.downPayment = data.downPayment;
+        updateObj.succeeded = true;
+        updateObj.error = null;
+        await raterData.update(updateObj);
+        console.log(`${req.body.vendorName} Rater Updated`);
+      } else if (raterData) {
+        await raterData.update(updateObj);
+        console.log(`${req.body.vendorName} Rater Updated`);
+      }
+
+      console.log(req.session);
+
+      if (isPayment) {
+        req.session.data = req.session.payment;
+      }
+      return next();
+    } catch (error) {
+      console.log(error);
+      return next(Boom.badRequest(`${req.body.vendorName} Error Saving Rate: `, error));
+    }
   },
   getBestRating: async (req, res, next) => {
     console.log(`${req.body.vendorName}: Inside Get Best Rate`);
@@ -171,7 +182,7 @@ module.exports = {
 
   getOneByNameData: async (req, res, next) => {
     console.log('Inside getOneByNameData');
-    const raterStore = req.session.raterStore;
+    const { raterStore } = req.session;
     if (!raterStore) {
       return next(Boom.badRequest('Error retrieving rate'));
     }
