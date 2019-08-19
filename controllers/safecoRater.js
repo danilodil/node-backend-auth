@@ -431,12 +431,13 @@ module.exports = {
                 } else if (value && value.length > 1) {
                   const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
                   const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+                  const bestMatchRating = vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating;
                   let i = 0;
                   if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
-                    i = vBestMatch.bestMatchIndex; // eslint-disable-next-line max-len
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
+                    i = vBestMatch.bestMatchIndex;
+                  } else if (bestMatchRating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
