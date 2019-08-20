@@ -1,5 +1,5 @@
-/* eslint-disable no-await-in-loop, no-restricted-syntax, no-param-reassign,no-loop-func,no-console,
-no-inner-declarations, consistent-return, func-names, no-undef, dot-notation,no-use-before-define */
+/* eslint-disable no-restricted-syntax, no-console, no-loop-func, no-inner-declarations,
+consistent-return, func-names, no-undef, no-use-before-define */
 
 
 const Boom = require('boom');
@@ -194,7 +194,7 @@ module.exports = {
           const afterCustomCode = async function () {
             for (const j in bodyData.drivers) {
               if (Object.prototype.hasOwnProperty.call(bodyData.drivers, j)) {
-                await page.evaluate(async () => {
+                page.evaluate(async () => {
                   const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
                   const PolicyDriverSR22FilingYN2N = document.getElementById('PolicyDriverSR22FilingYN2N');
                   const LicenseSuspendedRevokedYNNexist = document.getElementById('PolicyDriverLicenseSuspendedRevokedYNN');
@@ -204,7 +204,7 @@ module.exports = {
                     LicenseSuspendedRevokedYNNexist.click();
                   }
                 }, populatedData, j);
-                await page.waitFor(1000);
+                page.waitFor(1000);
               }
             }
           };
@@ -223,7 +223,7 @@ module.exports = {
           const afterCustomCode = async function () {
             for (const j in bodyData.vehicles) {
               if (Object.prototype.hasOwnProperty.call(bodyData.vehicles, j)) {
-                await page.evaluate(async (data) => {
+                page.evaluate(async (data) => {
                   const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
                   const vinEl = document.getElementById('PolicyVehicleVIN');
                   const vinBtn = document.getElementById('imgVINLookUp');
@@ -233,7 +233,7 @@ module.exports = {
                     vinBtn.click();
                   }
                 }, populatedData, j);
-                await page.waitFor(1000);
+                page.waitFor(1000);
               }
             }
           };
@@ -302,7 +302,7 @@ module.exports = {
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
             stepResult,
           };
-          console.log(' req.session.data', req.session.data);
+          console.log('req.session.data', req.session.data);
           browser.close();
           return next();
         } catch (err) {
@@ -347,7 +347,7 @@ module.exports = {
                   if (el.type === 'text' && xField.value) {
                     el.value = xField.value;
                   } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
-                    el.value = await getBestValue(xField.value, el.options);
+                    el.value = getBestValue(xField.value, el.options);
                   } else if (el.type === 'radio' || el.type === 'checkbox') {
                     el.checked = !!((xField.value && xField.value === true));
                   }
@@ -355,9 +355,9 @@ module.exports = {
               }
             }
 
-            function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '');
-              second = second.replace(/\s+/g, '');
+            function compareTwoStrings(firstString, secondString) {
+              const first = firstString.replace(/\s+/g, '');
+              const second = secondString.replace(/\s+/g, '');
 
               if (!first.length && !second.length) return 1; // if both are empty strings
               if (!first.length || !second.length) return 0; // if only one is empty string
@@ -527,6 +527,7 @@ module.exports = {
               licenseState: 'AL',
               ageWhen1stLicensed: '21',
               commonOccupation: 'Manager',
+              education: 'BS',
             },
           ],
         };
@@ -536,14 +537,14 @@ module.exports = {
           for (const j in bodyData.vehicles) {
             if (Object.prototype.hasOwnProperty.call(bodyData.vehicles, j)) {
               const element = bodyData.vehicles[j];
-              dataObj['PolicyVehicleVINKnownYNY'] = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
-              dataObj['PolicyVehicleVIN'] = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
-              dataObj['PolicyVehicleAnnualMiles'] = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
-              dataObj['PolicyVehicleYearsVehicleOwned'] = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
-              dataObj['PolicyVehicleUse'] = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
-              dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
-              dataObj['PolicyVehiclemp_GaragedLocation_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
-              dataObj['PolicyVehiclemp_PrincipalOperator_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
+              dataObj.PolicyVehicleVINKnownYNY = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
+              dataObj.PolicyVehicleVIN = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
+              dataObj.PolicyVehicleAnnualMiles = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
+              dataObj.PolicyVehicleYearsVehicleOwned = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
+              dataObj.PolicyVehicleUse = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
+              dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+              dataObj.PolicyVehiclemp_GaragedLocation_ID = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
+              dataObj.PolicyVehiclemp_PrincipalOperator_ID = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
             }
           }
         }
@@ -551,44 +552,44 @@ module.exports = {
           for (const j in bodyData.drivers) {
             if (Object.prototype.hasOwnProperty.call(bodyData.drivers, j)) {
               const element = bodyData.drivers[j];
-              dataObj['PolicyDriverPersonFirstName'] = { type: 'text', value: element.firstName || staticDataObj.drivers[0].firstName, name: 'PolicyDriverPersonFirstName' };
-              dataObj['PolicyDriverPersonLastName'] = { type: 'text', value: element.lastName || staticDataObj.drivers[0].lastName, name: 'PolicyDriverPersonLastName' };
-              dataObj['PolicyDriverPersonEducation'] = { type: 'select-one', value: staticDataObj.drivers[0].education, name: 'PolicyDriverPersonEducation' };
-              dataObj['PolicyDriverPersonGender'] = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: 'PolicyDriverPersonGender' };
-              dataObj['PolicyDriverPersonBirthdate'] = { type: 'text', value: element.applicantBirthDt || staticDataObj.drivers[0].birthDate, name: 'PolicyDriverPersonBirthdate' };
-              dataObj['PolicyDriverPersonMaritalStatus'] = { type: 'select-one', value: element.maritalStatus || staticDataObj.drivers[0].maritalStatus, name: 'PolicyDriverPersonMaritalStatus' };
-              dataObj['PolicyDriverRelationshipToInsured'] = { type: 'select-one', value: staticDataObj.drivers[0].relationship, name: 'PolicyDriverRelationshipToInsured' };
-              dataObj['PolicyDriverLicenseState'] = { type: 'select-one', value: element.licenseState || staticDataObj.drivers[0].licenseState, name: 'PolicyDriverLicenseState' };
-              dataObj['PolicyDriverPersonCommonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' };
-              dataObj['PolicyDriverPersonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonOccupationCategory' };
-              dataObj['PolicyDriverFirstAgeLicensed'] = { type: 'text', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' };
+              dataObj.PolicyDriverPersonFirstName = { type: 'text', value: element.firstName || staticDataObj.drivers[0].firstName, name: 'PolicyDriverPersonFirstName' };
+              dataObj.PolicyDriverPersonLastName = { type: 'text', value: element.lastName || staticDataObj.drivers[0].lastName, name: 'PolicyDriverPersonLastName' };
+              dataObj.PolicyDriverPersonEducation = { type: 'select-one', value: staticDataObj.drivers[0].education, name: 'PolicyDriverPersonEducation' };
+              dataObj.PolicyDriverPersonGender = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: 'PolicyDriverPersonGender' };
+              dataObj.PolicyDriverPersonBirthdate = { type: 'text', value: element.applicantBirthDt || staticDataObj.drivers[0].birthDate, name: 'PolicyDriverPersonBirthdate' };
+              dataObj.PolicyDriverPersonMaritalStatus = { type: 'select-one', value: element.maritalStatus || staticDataObj.drivers[0].maritalStatus, name: 'PolicyDriverPersonMaritalStatus' };
+              dataObj.PolicyDriverRelationshipToInsured = { type: 'select-one', value: staticDataObj.drivers[0].relationship, name: 'PolicyDriverRelationshipToInsured' };
+              dataObj.PolicyDriverLicenseState = { type: 'select-one', value: element.licenseState || staticDataObj.drivers[0].licenseState, name: 'PolicyDriverLicenseState' };
+              dataObj.PolicyDriverPersonCommonOccupationCategory = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' };
+              dataObj.PolicyDriverPersonOccupationCategory = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonOccupationCategory' };
+              dataObj.PolicyDriverFirstAgeLicensed = { type: 'text', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' };
             }
           }
         }
 
-        dataObj['PolicyAutoDataAnyIncidentsOnPolicyYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' };
-        dataObj['PolicyAutoDataDeliveryVehicleYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' };
-        dataObj['PolicyAutoDataVehicleGaragingAddressYNY'] = { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' };
-        dataObj['PolicyAutoDataVerifiableYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
-        dataObj['PolicyAutoDataAutoBusinessType'] = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
-        dataObj['PolicyClientEmailAddress'] = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
-        dataObj['PolicyClientMailingLocationAddressLine1'] = { type: 'text', value: staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
-        dataObj['PolicyClientMailingLocationCity'] = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
-        dataObj['PolicyClientMailingLocationState'] = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
-        dataObj['PolicyClientMailingLocationZipCode'] = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };
-        dataObj['PolicyClientPersonBirthdate'] = { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' };
-        dataObj['PolicyClientPersonFirstName'] = { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' };
-        dataObj['PolicyClientPersonLastName'] = { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' };
-        dataObj['PolicyClientPersonSocialSecurityNumberStatus'] = { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' };
-        dataObj['PolicyEffectiveDate'] = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
-        dataObj['PolicyRatingState'] = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
-        dataObj['PolicyAutoDataResidenceType'] = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
-        dataObj['PolicyCurrentInsuranceValue'] = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
-        dataObj['PolicyAutoDataPrevLiabilityType'] = { type: 'select-one', value: staticDataObj.prevLiabilityType, name: 'PolicyAutoDataPrevLiabilityType' };
-        dataObj['PolicyPriorPolicyDuration'] = { type: 'text', value: staticDataObj.priorPolicyDuration, name: 'PolicyPriorPolicyDuration' };
-        dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
-        dataObj['PolicyDataPackageSelection'] = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
-        dataObj['PolicyVehicles1CoverageCOMPLimitDed'] = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
+        dataObj.PolicyAutoDataAnyIncidentsOnPolicyYNN = { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' };
+        dataObj.PolicyAutoDataDeliveryVehicleYNN = { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' };
+        dataObj.PolicyAutoDataVehicleGaragingAddressYNY = { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' };
+        dataObj.PolicyAutoDataVerifiableYNN = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
+        dataObj.PolicyAutoDataAutoBusinessType = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
+        dataObj.PolicyClientEmailAddress = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
+        dataObj.PolicyClientMailingLocationAddressLine1 = { type: 'text', value: staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
+        dataObj.PolicyClientMailingLocationCity = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
+        dataObj.PolicyClientMailingLocationState = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
+        dataObj.PolicyClientMailingLocationZipCode = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };
+        dataObj.PolicyClientPersonBirthdate = { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' };
+        dataObj.PolicyClientPersonFirstName = { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' };
+        dataObj.PolicyClientPersonLastName = { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' };
+        dataObj.PolicyClientPersonSocialSecurityNumberStatus = { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' };
+        dataObj.PolicyEffectiveDate = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
+        dataObj.PolicyRatingState = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
+        dataObj.PolicyAutoDataResidenceType = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
+        dataObj.PolicyCurrentInsuranceValue = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
+        dataObj.PolicyAutoDataPrevLiabilityType = { type: 'select-one', value: staticDataObj.prevLiabilityType, name: 'PolicyAutoDataPrevLiabilityType' };
+        dataObj.PolicyPriorPolicyDuration = { type: 'text', value: staticDataObj.priorPolicyDuration, name: 'PolicyPriorPolicyDuration' };
+        dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+        dataObj.PolicyDataPackageSelection = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
+        dataObj.PolicyVehicles1CoverageCOMPLimitDed = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
         return dataObj;
       }
 
