@@ -3,14 +3,14 @@
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { safecoAlRater } = require('../constants/appConstant');
+const { safecoRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
 
 module.exports = {
-  safecoAl: async (req, res, next) => {
+  safeco: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
       const raterStore = req.session.raterStore;
@@ -92,7 +92,7 @@ module.exports = {
         try {
           const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
           await page.waitFor(8000);
-          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
+          await page.goto(safecoRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.select('#SAMSearchBusinessType', '7|1|');
           await page.select('#SAMSearchModifiedDateRange', '7');
@@ -135,7 +135,7 @@ module.exports = {
       async function loginStep() {
         try {
           console.log('Safeco AL Login Step.');
-          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(safecoRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
           await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
           await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
@@ -151,7 +151,7 @@ module.exports = {
         try {
           console.log('Safeco AL New Quote Step.');
           await page.waitFor(2000);
-          await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(safecoRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
           stepResult.newQuote = true;
         } catch (err) {
           await exitFail(error, 'New Quote');

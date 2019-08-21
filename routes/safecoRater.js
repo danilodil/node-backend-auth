@@ -6,9 +6,9 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/safeco/al', [
+router.put('/safeco', [
   raterController.getOneByName,
-  safecoRaterController.safecoAl,
+  safecoRaterController.safeco,
   raterController.saveRating,
 ]);
 

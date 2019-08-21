@@ -1,15 +1,15 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,no-param-reassign, no-plusplus, 
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,no-param-reassign, no-plusplus,
 func-names, no-shadow, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, consistent-return  */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const SS = require('string-similarity');
-const { nationalGeneralAlRater } = require('../constants/appConstant');
+const { nationalGeneralRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
 module.exports = {
-  nationalGeneralAl: async (req, res, next) => {
+  nationalGeneral: async (req, res, next) => {
     try {
       const params = req.body;
       const { username, password } = req.body.decoded_vendor;
@@ -82,7 +82,7 @@ module.exports = {
       async function loginStep() {
         try {
           console.log('National AL Login Step.');
-          await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(nationalGeneralRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#txtUserID');
           await page.type('#txtUserID', username);
           await page.type('#txtPassword', password);
@@ -135,7 +135,7 @@ module.exports = {
       async function newQuoteStep() {
         try {
           console.log('National AL New Quote Step.');
-          await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(nationalGeneralRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]');
           await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]', 'AL');
           await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlProduct"]', 'PPA');
@@ -154,7 +154,7 @@ module.exports = {
           let retried = false;
           if (!retried) {
             retried = true;
-            await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+            await page.goto(nationalGeneralRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
             await page.waitForSelector('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]');
             await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]', 'AL');
             await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlProduct"]', 'PPA');
@@ -171,7 +171,7 @@ module.exports = {
       async function namedInsuredStep() {
         console.log('National AL Named Insured Step.');
         try {
-          await page.goto(nationalGeneralAlRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(nationalGeneralRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
             await dialog.dismiss();
           });
@@ -194,7 +194,7 @@ module.exports = {
         console.log('National AL Drivers Step.');
         try {
           await page.waitFor(1000);
-          await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.DRIVERS_URL, { waitUntil: 'load' });
           const customCode = async function () {
             await page.waitForSelector('#ctl00_MainContent_InsuredDriverLabel1_btnAddDriver');
             for (const j in bodyData.drivers) {
@@ -226,7 +226,7 @@ module.exports = {
         console.log('National AL Vehicles Step.');
         try {
           await page.waitFor(2000);
-          await page.goto(nationalGeneralAlRater.VEHICLES_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.VEHICLES_URL, { waitUntil: 'load' });
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
           const customCode = async function () {
@@ -261,7 +261,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           stepResult.vehicles = true;
           await page.waitFor(1000);
-          await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
         } catch (err) {
@@ -273,7 +273,7 @@ module.exports = {
         console.log('National AL Underwriting Step.');
         try {
           await page.waitFor(1200);
-          await page.goto(nationalGeneralAlRater.UNDERWRITING_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.UNDERWRITING_URL, { waitUntil: 'load' });
           await page.waitFor(2000);
           await fillPageForm(null, null, null);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
@@ -299,7 +299,7 @@ module.exports = {
       async function coveragesStep() {
         console.log('National AL Coverages Step.');
         try {
-          await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(1600);
           const options = await page.$$eval('#ctl00_MainContent_ddlPayPlan option', options => options.map(option => option.innerText));
           const values = await page.$$eval('#ctl00_MainContent_ddlPayPlan option', options => options.map(option => option.value));
@@ -321,7 +321,7 @@ module.exports = {
       async function summaryStep() {
         console.log('National AL summaryStep Step.');
         try {
-          await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
           const tBody = await page.$$eval('table #ctl00_MainContent_ctl03_tblRow td', tds => tds.map(td => td.innerText));
           quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
@@ -408,7 +408,7 @@ module.exports = {
                 } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
                   el.value = await getBestValue(value, el.options);
                 } else if (el.type === 'radio' || el.type === 'checkbox') {
-                  el.checked = (value && value === true) ? true : false;
+                  el.checked = !!((value && value === true));
                 }
               }
             }
@@ -424,7 +424,7 @@ module.exports = {
               if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
               if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
-              let firstBigrams = new Map();
+              const firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
                 const bigram = first.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
@@ -491,7 +491,7 @@ module.exports = {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
