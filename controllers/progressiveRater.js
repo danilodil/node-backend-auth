@@ -526,7 +526,7 @@ module.exports = {
         console.log(`Error during Progressive ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.payment = {
-            title: 'Failed to retrieve Progressive AL rate',
+            title: 'Failed to retrieve Progressive rate',
             status: false,
             error: `There was an error at ${step} step`,
             stepResult,
@@ -538,7 +538,6 @@ module.exports = {
 
       async function exitSuccess(step, save) {
         try {
-          console.log('Hit');
           req.session.data = {
             title: `Successfully finished Progressive ${step} Step`,
             status: true,

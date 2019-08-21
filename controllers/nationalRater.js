@@ -81,7 +81,7 @@ module.exports = {
 
       async function loginStep() {
         try {
-          console.log('National AL Login Step.');
+          console.log('National Login Step.');
           await page.goto(nationalGeneralRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#txtUserID');
           await page.type('#txtUserID', username);
@@ -96,7 +96,7 @@ module.exports = {
 
       async function existingQuoteStep() {
         try {
-          console.log('National AL Existing Quote Id Step.');
+          console.log('National Existing Quote Id Step.');
           const quoteId = raterStore.quoteId;
           await page.evaluate((quoteId) => {
             document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
@@ -105,10 +105,10 @@ module.exports = {
           await page.waitFor(2000);
           stepResult.existingQuote = true;
         } catch (error) {
-          console.log('Error at National AL Existing Quote Id Step:');
+          console.log('Error at National Existing Quote Id Step:');
           stepResult.existingQuote = false;
           req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
+            title: 'Failed to retrieved National rate.',
             status: false,
             error: 'There is some error on existing Quote step',
             stepResult,
@@ -134,7 +134,7 @@ module.exports = {
 
       async function newQuoteStep() {
         try {
-          console.log('National AL New Quote Step.');
+          console.log('National New Quote Step.');
           await page.goto(nationalGeneralRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]');
           await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]', 'AL');
@@ -143,10 +143,10 @@ module.exports = {
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
           stepResult.newQuote = true;
         } catch (error) {
-          console.log('Error at National AL New Quote  Step:');
+          console.log('Error at National New Quote  Step:');
           stepResult.newQuote = false;
           req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
+            title: 'Failed to retrieved National rate.',
             status: false,
             error: 'There is some error validations at newQuoteStep',
             stepResult,
@@ -169,7 +169,7 @@ module.exports = {
       }
 
       async function namedInsuredStep() {
-        console.log('National AL Named Insured Step.');
+        console.log('National Named Insured Step.');
         try {
           await page.goto(nationalGeneralRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
@@ -191,7 +191,7 @@ module.exports = {
       }
 
       async function driversStep() {
-        console.log('National AL Drivers Step.');
+        console.log('National Drivers Step.');
         try {
           await page.waitFor(1000);
           await page.goto(nationalGeneralRater.DRIVERS_URL, { waitUntil: 'load' });
@@ -223,7 +223,7 @@ module.exports = {
       }
 
       async function vehiclesStep() {
-        console.log('National AL Vehicles Step.');
+        console.log('National Vehicles Step.');
         try {
           await page.waitFor(2000);
           await page.goto(nationalGeneralRater.VEHICLES_URL, { waitUntil: 'load' });
@@ -270,7 +270,7 @@ module.exports = {
       }
 
       async function underWritingStep() {
-        console.log('National AL Underwriting Step.');
+        console.log('National Underwriting Step.');
         try {
           await page.waitFor(1200);
           await page.goto(nationalGeneralRater.UNDERWRITING_URL, { waitUntil: 'load' });
@@ -297,7 +297,7 @@ module.exports = {
       }
 
       async function coveragesStep() {
-        console.log('National AL Coverages Step.');
+        console.log('National Coverages Step.');
         try {
           await page.goto(nationalGeneralRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(1600);
@@ -319,7 +319,7 @@ module.exports = {
       }
 
       async function summaryStep() {
-        console.log('National AL summaryStep Step.');
+        console.log('National summaryStep Step.');
         try {
           await page.goto(nationalGeneralRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
@@ -338,7 +338,7 @@ module.exports = {
           };
           stepResult.summary = true;
           req.session.data = {
-            title: 'Successfully retrieved national general AL rate.',
+            title: 'Successfully retrieved national general rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
@@ -356,7 +356,7 @@ module.exports = {
       async function exitSuccess(step) {
         try {
           req.session.data = {
-            title: `Successfully finished National AL ${step} Step`,
+            title: `Successfully finished National ${step} Step`,
             status: true,
             quoteIds: raterStore.quoteId || quoteId,
             stepResult,
@@ -369,10 +369,10 @@ module.exports = {
       }
 
       async function exitFail(error, step) {
-        console.log(`Error during National AL ${step} step:`, error);
+        console.log(`Error during National ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.data = {
-            title: 'Failed to retrieve National AL rate',
+            title: 'Failed to retrieve National rate',
             status: false,
             error: `There was an error at ${step} step`,
             stepResult,
@@ -852,8 +852,8 @@ module.exports = {
         return clientInputSelect;
       }
     } catch (error) {
-      console.log('Error at National AL : ', error.stack);
-      return next(Boom.badRequest('Failed to retrieved national general AL rate.'));
+      console.log('Error at National : ', error.stack);
+      return next(Boom.badRequest('Failed to retrieved national general rate.'));
     }
   },
 };
