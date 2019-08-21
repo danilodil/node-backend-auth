@@ -16,7 +16,7 @@ module.exports = {
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(9, bodyData.drivers.length);
 
-      let stepResult = {
+      const stepResult = {
         login: false,
         search: false,
         newQuote: false,

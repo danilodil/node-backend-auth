@@ -805,7 +805,7 @@ module.exports = {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
