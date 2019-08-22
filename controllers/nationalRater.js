@@ -1,15 +1,15 @@
-/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,no-param-reassign, no-plusplus, 
+/* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,no-param-reassign, no-plusplus,
 func-names, no-shadow, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, consistent-return  */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const SS = require('string-similarity');
-const { nationalGeneralAlRater } = require('../constants/appConstant');
+const { nationalGeneralRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
 module.exports = {
-  nationalGeneralAl: async (req, res, next) => {
+  nationalGeneral: async (req, res, next) => {
     try {
       const params = req.body;
       const { username, password } = req.body.decoded_vendor;
@@ -81,8 +81,8 @@ module.exports = {
 
       async function loginStep() {
         try {
-          console.log('National AL Login Step.');
-          await page.goto(nationalGeneralAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          console.log('National Login Step.');
+          await page.goto(nationalGeneralRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#txtUserID');
           await page.type('#txtUserID', username);
           await page.type('#txtPassword', password);
@@ -96,7 +96,7 @@ module.exports = {
 
       async function existingQuoteStep() {
         try {
-          console.log('National AL Existing Quote Id Step.');
+          console.log('National Existing Quote Id Step.');
           const quoteId = raterStore.quoteId;
           await page.evaluate((quoteId) => {
             document.querySelector('input[name=\'ctl00$MainContent$wgtMainMenuSearchQuotes$txtSearchString\']').value = quoteId;
@@ -105,10 +105,10 @@ module.exports = {
           await page.waitFor(2000);
           stepResult.existingQuote = true;
         } catch (error) {
-          console.log('Error at National AL Existing Quote Id Step:');
+          console.log('Error at National Existing Quote Id Step:');
           stepResult.existingQuote = false;
           req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
+            title: 'Failed to retrieved National rate.',
             status: false,
             error: 'There is some error on existing Quote step',
             stepResult,
@@ -134,8 +134,8 @@ module.exports = {
 
       async function newQuoteStep() {
         try {
-          console.log('National AL New Quote Step.');
-          await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+          console.log('National New Quote Step.');
+          await page.goto(nationalGeneralRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]');
           await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]', 'AL');
           await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlProduct"]', 'PPA');
@@ -143,10 +143,10 @@ module.exports = {
           await page.click('span > #ctl00_MainContent_wgtMainMenuNewQuote_btnContinue');
           stepResult.newQuote = true;
         } catch (error) {
-          console.log('Error at National AL New Quote  Step:');
+          console.log('Error at National New Quote  Step:');
           stepResult.newQuote = false;
           req.session.data = {
-            title: 'Failed to retrieved National AL rate.',
+            title: 'Failed to retrieved National rate.',
             status: false,
             error: 'There is some error validations at newQuoteStep',
             stepResult,
@@ -154,7 +154,7 @@ module.exports = {
           let retried = false;
           if (!retried) {
             retried = true;
-            await page.goto(nationalGeneralAlRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
+            await page.goto(nationalGeneralRater.NEW_QUOTE_URL, { waitUntil: 'domcontentloaded' });
             await page.waitForSelector('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]');
             await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlState"]', 'AL');
             await page.select('select[name="ctl00$MainContent$wgtMainMenuNewQuote$ddlProduct"]', 'PPA');
@@ -169,9 +169,9 @@ module.exports = {
       }
 
       async function namedInsuredStep() {
-        console.log('National AL Named Insured Step.');
+        console.log('National Named Insured Step.');
         try {
-          await page.goto(nationalGeneralAlRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(nationalGeneralRater.NAMED_INSURED_URL, { waitUntil: 'domcontentloaded' });
           page.on('dialog', async (dialog) => {
             await dialog.dismiss();
           });
@@ -191,10 +191,10 @@ module.exports = {
       }
 
       async function driversStep() {
-        console.log('National AL Drivers Step.');
+        console.log('National Drivers Step.');
         try {
           await page.waitFor(1000);
-          await page.goto(nationalGeneralAlRater.DRIVERS_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.DRIVERS_URL, { waitUntil: 'load' });
           const customCode = async function () {
             await page.waitForSelector('#ctl00_MainContent_InsuredDriverLabel1_btnAddDriver');
             for (const j in bodyData.drivers) {
@@ -223,10 +223,10 @@ module.exports = {
       }
 
       async function vehiclesStep() {
-        console.log('National AL Vehicles Step.');
+        console.log('National Vehicles Step.');
         try {
           await page.waitFor(2000);
-          await page.goto(nationalGeneralAlRater.VEHICLES_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.VEHICLES_URL, { waitUntil: 'load' });
           await page.waitForSelector('#ctl00_MainContent_InsuredAutoLabel1_btnAddAuto');
 
           const customCode = async function () {
@@ -261,7 +261,7 @@ module.exports = {
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
           stepResult.vehicles = true;
           await page.waitFor(1000);
-          await page.goto(nationalGeneralAlRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.VEHICLE_HISTORY_URL, { waitUntil: 'load' });
           await page.waitFor(1000);
           await page.evaluate(() => document.querySelector('#ctl00_MainContent_btnContinue').click());
         } catch (err) {
@@ -270,10 +270,10 @@ module.exports = {
       }
 
       async function underWritingStep() {
-        console.log('National AL Underwriting Step.');
+        console.log('National Underwriting Step.');
         try {
           await page.waitFor(1200);
-          await page.goto(nationalGeneralAlRater.UNDERWRITING_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.UNDERWRITING_URL, { waitUntil: 'load' });
           await page.waitFor(2000);
           await fillPageForm(null, null, null);
           await page.select('#ctl00_MainContent_ctl09_ddlAnswer', 'False');
@@ -297,9 +297,9 @@ module.exports = {
       }
 
       async function coveragesStep() {
-        console.log('National AL Coverages Step.');
+        console.log('National Coverages Step.');
         try {
-          await page.goto(nationalGeneralAlRater.COVERAGES_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.COVERAGES_URL, { waitUntil: 'load' });
           await page.waitFor(1600);
           const options = await page.$$eval('#ctl00_MainContent_ddlPayPlan option', options => options.map(option => option.innerText));
           const values = await page.$$eval('#ctl00_MainContent_ddlPayPlan option', options => options.map(option => option.value));
@@ -319,9 +319,9 @@ module.exports = {
       }
 
       async function summaryStep() {
-        console.log('National AL summaryStep Step.');
+        console.log('National summaryStep Step.');
         try {
-          await page.goto(nationalGeneralAlRater.BILLPLANS_URL, { waitUntil: 'load' });
+          await page.goto(nationalGeneralRater.BILLPLANS_URL, { waitUntil: 'load' });
           const tHead = await page.$$eval('table tr.GRIDHEADER td', tds => tds.map(td => td.innerText));
           const tBody = await page.$$eval('table #ctl00_MainContent_ctl03_tblRow td', tds => tds.map(td => td.innerText));
           quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
@@ -338,7 +338,7 @@ module.exports = {
           };
           stepResult.summary = true;
           req.session.data = {
-            title: 'Successfully retrieved national general AL rate.',
+            title: 'Successfully retrieved national general rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
@@ -356,7 +356,7 @@ module.exports = {
       async function exitSuccess(step) {
         try {
           req.session.data = {
-            title: `Successfully finished National AL ${step} Step`,
+            title: `Successfully finished National ${step} Step`,
             status: true,
             quoteIds: raterStore.quoteId || quoteId,
             stepResult,
@@ -369,10 +369,10 @@ module.exports = {
       }
 
       async function exitFail(error, step) {
-        console.log(`Error during National AL ${step} step:`, error);
+        console.log(`Error during National ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.data = {
-            title: 'Failed to retrieve National AL rate',
+            title: 'Failed to retrieve National rate',
             status: false,
             error: `There was an error at ${step} step`,
             stepResult,
@@ -408,7 +408,7 @@ module.exports = {
                 } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
                   el.value = await getBestValue(value, el.options);
                 } else if (el.type === 'radio' || el.type === 'checkbox') {
-                  el.checked = (value && value === true) ? true : false;
+                  el.checked = !!((value && value === true));
                 }
               }
             }
@@ -424,7 +424,7 @@ module.exports = {
               if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
               if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
-              let firstBigrams = new Map();
+              const firstBigrams = new Map();
               for (let i = 0; i < first.length - 1; i++) {
                 const bigram = first.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
@@ -491,7 +491,7 @@ module.exports = {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= .75) {
+                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
@@ -852,8 +852,8 @@ module.exports = {
         return clientInputSelect;
       }
     } catch (error) {
-      console.log('Error at National AL : ', error.stack);
-      return next(Boom.badRequest('Failed to retrieved national general AL rate.'));
+      console.log('Error at National : ', error.stack);
+      return next(Boom.badRequest('Failed to retrieved national general rate.'));
     }
   },
 };

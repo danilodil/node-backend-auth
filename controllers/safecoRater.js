@@ -4,14 +4,14 @@ consistent-return, func-names, no-undef, no-use-before-define */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { safecoAlRater } = require('../constants/appConstant');
+const { safecoRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
 
 module.exports = {
-  safecoAl: async (req, res, next) => {
+  safeco: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
       const { raterStore } = req.session;
@@ -89,11 +89,11 @@ module.exports = {
       }
 
       async function existingQuote() {
-        console.log('Safeco AL existing Quote Step');
+        console.log('Safeco existing Quote Step');
         try {
           const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
           await page.waitFor(8000);
-          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
+          await page.goto(safecoRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.select('#SAMSearchBusinessType', '7|1|');
           await page.select('#SAMSearchModifiedDateRange', '7');
@@ -134,8 +134,8 @@ module.exports = {
 
       async function loginStep() {
         try {
-          console.log('Safeco AL Login Step.');
-          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          console.log('Safeco Login Step.');
+          await page.goto(safecoRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('#username');
           await page.type('#username', username);
           await page.type('#password', password);
@@ -149,9 +149,9 @@ module.exports = {
 
       async function newQuoteStep() {
         try {
-          console.log('Safeco AL New Quote Step.');
+          console.log('Safeco New Quote Step.');
           await page.waitFor(2000);
-          await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(safecoRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
           stepResult.newQuote = true;
         } catch (err) {
           await exitFail(err, 'New Quote');
@@ -166,7 +166,7 @@ module.exports = {
           await saveStep();
           stepResult.policyInfo = true;
         } catch (err) {
-          console.log('Error at Safeco AL Policy Information Step:', err);
+          console.log('Error at Safeco Policy Information Step:', err);
           stepResult.policyInfo = false;
           let error = 'There is some error validations at policyInformationStep';
           try {
@@ -175,10 +175,10 @@ module.exports = {
               error = 'Unable to process due to site down.';
             }
           } catch (e) {
-            console.log('Safeco AL Unable to process due to site down.');
+            console.log('Safeco Unable to process due to site down.');
           }
           req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
+            title: 'Failed to retrieved Safeco rate.',
             status: false,
             error,
             stepResult,
@@ -295,7 +295,7 @@ module.exports = {
           });
           stepResult.summary = true;
           req.session.data = {
-            title: 'Successfully retrieved safeco AL rate.',
+            title: 'Successfully retrieved safeco rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
@@ -506,7 +506,7 @@ module.exports = {
           priorPolicyDuration: '5',
           vehicles: [
             {
-              // Vehicle Type will always be 1981 or newer
+              // Vehicle Type willways be 1981 or newer
               vehicleVin: '1FTSF30L61EC23425',
               vehicleUse: '8',
               annualMiles: '50',
@@ -595,7 +595,7 @@ module.exports = {
 
       async function loadStep(step, navigate) {
         try {
-          console.log(`Safeco AL ${step} Step`);
+          console.log(`Safeco ${step} Step`);
           await page.waitFor(500);
           if (navigate) {
             await navigateMenu(step);
@@ -609,7 +609,7 @@ module.exports = {
 
       async function saveStep() {
         try {
-          console.log('Safeco AL Save Step');
+          console.log('Safeco Save Step');
           await page.waitFor(500);
           await page.evaluate(() => {
             const save = document.getElementById('Save');
@@ -655,10 +655,10 @@ module.exports = {
       }
 
       async function exitFail(error, step) {
-        console.log(`Error during Safeco AL ${step} step:`, error);
+        console.log(`Error during Safeco ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
+            title: 'Failed to retrieved Safeco rate.',
             status: false,
             error: `There is some error validations at ${step} step`,
             stepResult,
@@ -671,7 +671,7 @@ module.exports = {
       async function exitSuccess(step, quoteID) {
         try {
           req.session.data = {
-            title: `Successfully finished Safeco AL ${step} Step`,
+            title: `Successfully finished Safeco ${step} Step`,
             status: true,
             quoteId: quoteID,
             stepResult,
@@ -692,8 +692,8 @@ module.exports = {
         }
       });
     } catch (error) {
-      console.log('Error  at Safeco AL :', error);
-      return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));
+      console.log('Error  at Safeco :', error);
+      return next(Boom.badRequest('Failed to retrieved safeco rate.'));
     }
   },
 };

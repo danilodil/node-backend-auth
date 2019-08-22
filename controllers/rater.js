@@ -76,8 +76,6 @@ module.exports = {
         console.log(`${req.body.vendorName} Rater Updated`);
       }
 
-      console.log(req.session);
-
       if (isPayment) {
         req.session.data = req.session.payment;
       }
