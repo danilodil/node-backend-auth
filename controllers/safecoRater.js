@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax, no-console, no-loop-func, no-inner-declarations,
-consistent-return, func-names, no-undef, no-use-before-define */
+consistent-return, func-names, no-undef, no-use-before-define, no-plusplus, no-await-in-loop */
 
 
 const Boom = require('boom');
@@ -132,6 +132,7 @@ module.exports = {
         }
       }
 
+      let loginReAttemptCounter = 2;
       async function loginStep() {
         try {
           console.log('Safeco Login Step.');
@@ -143,7 +144,20 @@ module.exports = {
           await page.waitForNavigation({ waitUntil: 'load' });
           stepResult.login = true;
         } catch (error) {
-          await exitFail(error, 'Login');
+          console.log('error', error);
+          if (!loginReAttemptCounter) {
+            stepResult.login = false;
+            req.session.data = {
+              title: 'Failed to retrieved Safeco rate.',
+              status: false,
+              error: 'There is some error validations at loginStep',
+              stepResult,
+            };
+            browser.close();
+            return next();
+          }
+          loginReAttemptCounter--;
+          loginStep();
         }
       }
 
@@ -347,7 +361,7 @@ module.exports = {
                   if (el.type === 'text' && xField.value) {
                     el.value = xField.value;
                   } else if (el.type === 'select-one' && el.options && el.options.length && el.options.length > 0) {
-                    el.value = getBestValue(xField.value, el.options);
+                    el.value = await getBestValue(xField.value, el.options);
                   } else if (el.type === 'radio' || el.type === 'checkbox') {
                     el.checked = !!((xField.value && xField.value === true));
                   }
