@@ -5,9 +5,9 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/national/al', [
+router.put('/national', [
   raterController.getOneByName,
-  nationalRaterController.nationalGeneralAl,
+  nationalRaterController.nationalGeneral,
   raterController.saveRating,
 ]);
 
