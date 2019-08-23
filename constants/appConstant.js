@@ -36,11 +36,10 @@ exports.progressiveRater = {
 };
 
 exports.cseRater = {
-  LOGIN_REATTEMPT: 2,
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
 
-exports.nationalGeneralAlRater = {
+exports.nationalGeneralRater = {
   LOGIN_URL: 'https://www.natgenagency.com/',
   NEW_QUOTE_URL: 'https://www.natgenagency.com/MainMenu.aspx',
   NAMED_INSURED_URL: 'https://www.natgenagency.com/Quote/QuoteNamedInsured.aspx',
@@ -52,7 +51,7 @@ exports.nationalGeneralAlRater = {
   BILLPLANS_URL: 'https://www.natgenagency.com/Quote/QuoteBillPlans.aspx',
 };
 
-exports.safecoAlRater = {
+exports.safecoRater = {
   LOGIN_URL: 'http://www.safeconow.com/',
   NEW_QUOTE_START_URL: 'https://now.agent.safeco.com/start/',
   NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
@@ -68,21 +67,7 @@ exports.travelerRater = {
   LOGIN_URL: 'https://www.travelers.com/foragents',
 };
 
-exports.vendorNames = {
-  client: [
-    'SF',
-    'PROGRESSIVEDERATER',
-    'PROGRESSIVEALRATER',
-    'CSECARATER',
-    'EZLYNX',
-    'QQ',
-    'NATIONALGENERALALRATER',
-    'SAFECOALRATER',
-    'ALLSTATERATER',
-    'TRAVELERRATER',
-  ],
-  user: [
-    'QQ',
-    'EZLYNX',
-  ],
+exports.erieRater = {
+  LOGIN_URL: 'https://www.agentexchange.com/',
+  CUSTOMER_URL: 'https://www.agentexchange.com/Customer/PA',
 };
