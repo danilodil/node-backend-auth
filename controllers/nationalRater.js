@@ -7,6 +7,7 @@ const SS = require('string-similarity');
 const { nationalGeneralRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
+const { nationalGeneralQueue } = require('../jobs/nationalGeneral');
 
 module.exports = {
   nationalGeneral: async (req, res, next) => {
@@ -859,4 +860,15 @@ module.exports = {
       return next(Boom.badRequest('Failed to retrieved national general rate.'));
     }
   },
+
+  addToQueue: async (req, res, next) => {
+    const raterData = {
+      raterStore: req.session.raterStore,
+      body: req.body,
+    };
+    const job = await nationalGeneralQueue.add(raterData);
+    req.session.data = { jobId: job.id };
+    return next();
+  },
+
 };
