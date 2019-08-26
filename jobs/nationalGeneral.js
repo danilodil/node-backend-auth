@@ -9,7 +9,8 @@ const { saveRatingFromJob } = require('../controllers/rater');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 
-const nationalGeneralQueue = new Queue('nationalGeneral', ENVIRONMENT.redisUrl);
+const connection = { redis: { port: 10621, host: 'redis-10621.c10.us-east-1-2.ec2.cloud.redislabs.com', db: 'redis-xilo-dev-auth-9401510' } };
+const nationalGeneralQueue = new Queue('nationalGeneral', connection);
 const maxJobsPerWorker = 1;
 
 module.exports = {
