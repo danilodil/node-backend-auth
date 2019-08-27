@@ -126,7 +126,7 @@ async function nationalGeneral(req) {
       } catch (error) {
         console.log('Error at National Existing Quote Id Step:');
         stepResult.existingQuote = false;
-        await exitFail(err, 'Existing Quote');
+        await exitFail(error, 'Existing Quote');
       }
     }
 
@@ -563,7 +563,7 @@ async function nationalGeneral(req) {
           },
         ],
       };
-      const phone = bodyData.phone.slice(0, 10);
+      const phone = bodyData.phone ? bodyData.phone.slice(0, 10) : null;
       const clientInputSelect = {
         ctl00$MainContent$InsuredNamed1$ddlProducers: {
           type: 'selet-one',

@@ -586,7 +586,7 @@ module.exports = {
             },
           ],
         };
-        const phone = bodyData.phone.slice(0, 10);
+        const phone = bodyData.phone ? bodyData.phone.slice(0, 10) : null;
         const clientInputSelect = {
           ctl00$MainContent$InsuredNamed1$ddlProducers: {
             type: 'selet-one',
