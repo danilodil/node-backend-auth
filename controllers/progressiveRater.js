@@ -11,6 +11,7 @@ const { formatDate } = require('../lib/utils');
 
 const tomorrowDate = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
 const Rater = require('../models/rater');
+const { progressiveQueue } = require('../jobs/progressive');
 
 module.exports = {
   rate: async (req, res, next) => {
@@ -525,7 +526,7 @@ module.exports = {
       async function exitFail(error, step) {
         console.log(`Error during Progressive ${step} step:`, error);
         if (req && req.session && req.session.data) {
-          req.session.payment = {
+          req.session.data = {
             title: 'Failed to retrieve Progressive rate',
             status: false,
             error: `There was an error at ${step} step`,
@@ -577,7 +578,7 @@ module.exports = {
 
       async function exitSuccessFinal(payDetails) {
         try {
-          req.session.payment = {
+          req.session.data = {
             title: 'Successfully retrieved progressive AL rate.',
             status: true,
             totalPremium: (payDetails && payDetails.premium) ? payDetails.premium : null,
@@ -1019,5 +1020,14 @@ module.exports = {
       console.log('Error at Progressive:', error);
       return next(Boom.badRequest('Failed to retrieve progressive rate.'));
     }
+  },
+  addToQueue: async (req, res, next) => {
+    const raterData = {
+      raterStore: req.session.raterStore,
+      body: req.body,
+    };
+    const job = await progressiveQueue.add(raterData);
+    req.session.data = { jobId: job.id };
+    return next();
   },
 };
