@@ -54,7 +54,7 @@ module.exports = {
       } else {
         await newQuoteStep();
       }
-      if (!params.stepName) {
+      if (!params.stepName || params.stepName === 'all') {
         await policyInfoStep();
         await driversStep();
         await vehiclesStep();
@@ -96,7 +96,7 @@ module.exports = {
           await page.goto(safecoRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.select('#SAMSearchBusinessType', '7|1|');
-          await page.select('#SAMSearchModifiedDateRange', '7');
+          await page.select('#SAMSearchModifiedDateRange', '1');
           await page.select('#SAMSearchActivityStatus', '8');
           await page.type('#SAMSearchName', quoteId);
           await page.evaluate(() => document.querySelector('#asearch').click());
@@ -587,7 +587,7 @@ module.exports = {
         dataObj.PolicyAutoDataVerifiableYNN = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
         dataObj.PolicyAutoDataAutoBusinessType = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
         dataObj.PolicyClientEmailAddress = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
-        dataObj.PolicyClientMailingLocationAddressLine1 = { type: 'text', value: staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
+        dataObj.PolicyClientMailingLocationAddressLine1 = { type: 'text', value: bodyData.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
         dataObj.PolicyClientMailingLocationCity = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
         dataObj.PolicyClientMailingLocationState = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
         dataObj.PolicyClientMailingLocationZipCode = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };

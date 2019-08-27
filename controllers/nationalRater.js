@@ -7,6 +7,7 @@ const SS = require('string-similarity');
 const { nationalGeneralRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
+const { nationalGeneralQueue } = require('../jobs/nationalGeneral');
 
 module.exports = {
   nationalGeneral: async (req, res, next) => {
@@ -57,10 +58,16 @@ module.exports = {
         await vehiclesStep();
         await underWritingStep();
       } else if (params.stepName === 'namedInsured') {
-        await namedInsuredStep();
-        await page.waitFor(1000);
-        quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
-        await exitSuccess('Named Insured');
+        try {
+          await namedInsuredStep();
+          await page.waitFor(1000);
+          // quoteId = await page.$eval('#ctl00_lblHeaderPageTitleTop', e => e.innerText);
+          console.log('QUOTE ID: ', quoteId);
+          await page.waitFor(1000);
+          await exitSuccess('Named Insured');
+        } catch (error) {
+          await exitFail(error, 'namedInsured');
+        }
       } else if (params.stepName === 'drivers' && raterStore) {
         await driversStep();
         if (params.sendSummary && params.sendSummary === 'true') {
@@ -70,11 +77,7 @@ module.exports = {
         }
       } else if (params.stepName === 'vehicles' && raterStore) {
         await vehiclesStep();
-        if (params.sendSummary && params.sendSummary === 'true') {
-          await underWritingStep();
-        } else {
-          await exitSuccess('Vehicles');
-        }
+        await underWritingStep();
       } else if (params.stepName === 'summary' && raterStore) {
         await underWritingStep();
       }
@@ -358,9 +361,10 @@ module.exports = {
           req.session.data = {
             title: `Successfully finished National ${step} Step`,
             status: true,
-            quoteIds: raterStore.quoteId || quoteId,
+            quoteId: raterStore && raterStore.quoteId ? raterStore.quoteId : quoteId,
             stepResult,
           };
+          console.log(req.session.data);
           browser.close();
           return next();
         } catch (error) {
@@ -856,4 +860,15 @@ module.exports = {
       return next(Boom.badRequest('Failed to retrieved national general rate.'));
     }
   },
+
+  addToQueue: async (req, res, next) => {
+    const raterData = {
+      raterStore: req.session.raterStore,
+      body: req.body,
+    };
+    const job = await nationalGeneralQueue.add(raterData);
+    req.session.data = { jobId: job.id };
+    return next();
+  },
+
 };
