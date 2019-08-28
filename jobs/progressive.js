@@ -567,6 +567,7 @@ async function rate(req) {
                     quoteIds: quoteObj,
                     stepResult,
                 };
+                browser.close();
                 await saveRatingFromJob(req, response);
             } catch (error) {
                 await exitFail(error, 'exitSuccess');
