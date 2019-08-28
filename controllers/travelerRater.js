@@ -509,16 +509,16 @@ module.exports = {
         dataObj.ReasonForinsurance = { element: 'select[data-label="Reason for No Prior Insurance"]', value: 'FIRSTCAR' };
         dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: staticDataObj.primaryResidence };
 
-        dataObj.liability = { element: 'select[data-label="Liability"]', value: bodyData.coverage[0].liability || staticDataObj.liability };
-        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: bodyData.coverage[0].propertyDamage || staticDataObj.propertyDamage };
-        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: bodyData.coverage[0].motorist || staticDataObj.motorist };
-        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: bodyData.coverage[0].medicalPayment || staticDataObj.medicalPayment };
-        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: bodyData.coverage[0].comprehensive || staticDataObj.comprehensive };
-        dataObj.collision = { element: 'select[data-label="Collision"]', value: bodyData.coverage[0].collision || staticDataObj.collision };
-        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0].roadAssistant || staticDataObj.roadAssistant };
-        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: bodyData.coverage[0].rentalETE || staticDataObj.rentalETE };
-        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0].equipment || staticDataObj.equipment };
-        dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: bodyData.coverage[0].driverPlan || staticDataObj.driverPlan };
+        dataObj.liability = { element: 'select[data-label="Liability"]', value: bodyData.coverage[0] ? bodyData.coverage[0].liability : staticDataObj.liability };
+        dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: bodyData.coverage[0] ? bodyData.coverage[0].propertyDamage : staticDataObj.propertyDamage };
+        dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: bodyData.coverage[0] ? bodyData.coverage[0].motorist : staticDataObj.motorist };
+        dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: bodyData.coverage[0] ? bodyData.coverage[0].medicalPayment : staticDataObj.medicalPayment };
+        dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: bodyData.coverage[0] ? bodyData.coverage[0].comprehensive : staticDataObj.comprehensive };
+        dataObj.collision = { element: 'select[data-label="Collision"]', value: bodyData.coverage[0] ? bodyData.coverage[0].collision : staticDataObj.collision };
+        dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0] ? bodyData.coverage[0].roadAssistant : staticDataObj.roadAssistant };
+        dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: bodyData.coverage[0] ? bodyData.coverage[0].rentalETE : staticDataObj.rentalETE };
+        dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0] ? bodyData.coverage[0].equipment : staticDataObj.equipment };
+        dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: bodyData.coverage[0] ? bodyData.coverage[0].driverPlan : staticDataObj.driverPlan };
 
         return dataObj;
       }
