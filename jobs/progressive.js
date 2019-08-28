@@ -216,7 +216,11 @@ async function rate(req) {
             if (response) return;
             try {
                 await loadStep('NamedInsured', false);
-                await fillPageForm('Underwriting', null, null, null, 2);
+                if (!params.stepName) {
+                    await fillPageForm('Vehicles', null, null, null, 2);
+                } else {
+                    await fillPageForm('Underwriting', null, null, null, 2);
+                }
                 stepResult.namedInsured = true;
             } catch (error) {
                 await exitFail(error, 'namedInsured');
@@ -311,7 +315,6 @@ async function rate(req) {
         }
 
         async function errorStep() {
-            if (response) return;
             try {
                 await fillPageForm(null, null, null, null, 2);
                 await pageQuote.waitFor(500);
@@ -339,6 +342,7 @@ async function rate(req) {
                     }
                     await pageQuote.waitFor(2000);
                 }
+                await coveragesStep();
             } catch (error) {
                 await exitFail(error, 'error');
             }
@@ -505,6 +509,7 @@ async function rate(req) {
                         return 'coverages';
                     }
                 });
+                console.log('ERROR?: ', pg);
                 if (pg === 'error') {
                     await errorStep();
                 }
@@ -892,7 +897,7 @@ async function rate(req) {
                         applicantBirthDt: '12/16/1993',
                         applicantGenderCd: 'Male',
                         applicantMaritalStatusCd: 'Single',
-                        driverLicensedDt: '3 years or more',
+                        drivingExperience: '3 years or more',
                         driverLicenseNumber: '',
                         employment: 'Banking/Finance/Real Estate',
                         occupation: 'Other',
@@ -956,7 +961,7 @@ async function rate(req) {
                     dataObj[`DRV.${j}.drvr_rel_desc_cd`] = { type: 'select-one', value: 'O', name: `DRV.${j}.drvr_rel_desc_cd` };
                     dataObj[`DRV.${j}.drvr_stat_dsply`] = { type: 'select-one', value: 'R', name: `DRV.${j}.drvr_stat_dsply` };
                     dataObj[`DRV.${j}.drvr_lic_stat`] = { type: 'select-one', value: 'V', name: `DRV.${j}.drvr_lic_stat` };
-                    dataObj[`DRV.${j}.drvr_years_lic`] = { type: 'select-one', value: element.driverLicensedDt || staticDetailsObj.drivers[0].driverLicensedDt, name: `DRV.${j}.drvr_years_lic` };
+                    dataObj[`DRV.${j}.drvr_years_lic`] = { type: 'select-one', value: element.drivingExperience || staticDetailsObj.drivers[0].drivingExperience, name: `DRV.${j}.drvr_years_lic` };
                     dataObj[`DRV.${j}.drvr_empl_stat`] = { type: 'select-one', value: element.employment || staticDetailsObj.drivers[0].employment, name: `DRV.${j}.drvr_empl_stat` };
                     dataObj[`DRV.${j}.drvr_occup_lvl`] = { type: 'select-one', value: element.occupation || staticDetailsObj.drivers[0].occupation, name: `DRV.${j}.drvr_occup_lvl` };
                     dataObj[`DRV.${j}.drvr_ed_lvl`] = { type: 'select-one', value: element.education || staticDetailsObj.drivers[0].education, name: `DRV.${j}.drvr_ed_lvl` };
