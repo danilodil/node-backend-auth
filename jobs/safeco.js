@@ -157,6 +157,7 @@ async function safeco(req) {
       try {
         console.log('Safeco Login Step.');
         await page.goto(safecoRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+        await page.waitFor(1000);
         await page.waitForSelector('#username');
         await page.type('#username', username);
         await page.type('#password', password);
@@ -184,7 +185,7 @@ async function safeco(req) {
       try {
         await page.waitFor(3000);
         await loadStep('policyinfo', false);
-        await fillPageForm();
+        await fillPageForm(null, null, 1000);
         await saveStep();
         stepResult.policyInfo = true;
       } catch (err) {
@@ -197,6 +198,7 @@ async function safeco(req) {
     async function driversStep() {
       if (response) return;
       try {
+        await fillPageForm(null, null, 1000);
         await loadStep('driver', true);
         const afterCustomCode = async function () {
           for (const j in bodyData.drivers) {
@@ -248,6 +250,8 @@ async function safeco(req) {
 
         await fillPageForm(null, afterCustomCode);
         await page.waitFor(2000);
+        await fillPageForm(null, null, 1000);
+
         await saveStep();
         stepResult.vehicles = true;
       } catch (err) {
@@ -272,8 +276,9 @@ async function safeco(req) {
       try {
         await page.waitFor(2000);
         await loadStep('underwriting', true);
-        await fillPageForm();
-        await page.waitFor(2000);
+        await fillPageForm(null, null, 1000);
+        await loadStep('underwriting', true);
+        await fillPageForm(null, null, 1000);
         stepResult.underWriting = true;
       } catch (err) {
         await exitFail(err, 'Underwriting');
@@ -493,7 +498,10 @@ async function safeco(req) {
         peopleInhouseHold2: 'U',
         peopleInhouseHold3: 'U',
         peopleInhouseHold4: 'U',
-        policyCurrentInsuranceValue: 'DW',
+        policyCurrentInsuranceValue: 'CI',
+        policyPrevInsuranceCarrierValue: 'Allstate',
+        policyAutoDataPrevLiabilityType: 'NO',
+        policyAutoDataPriorAutoPolicyExpirationDate: '06/01/2020',
         policyDataResidenceType: 'H',
         policyDataPackageSelection: 'B',
         policyVehiclesTrackStatus: 'Not Participating',
@@ -519,8 +527,8 @@ async function safeco(req) {
             // Vehicle Type willways be 1981 or newer
             vehicleVin: '1FTSF30L61EC23425',
             vehicleUse: '8',
-            annualMiles: '50',
-            yearsVehicleOwned: '5',
+            annualMiles: 10000,
+            yearsVehicleOwned: 5,
             garagedLocation: '2',
             principalOperator: '1',
             policyVehiclesTrackStatus: 'Not Participating',
@@ -549,9 +557,9 @@ async function safeco(req) {
             const element = bodyData.vehicles[j];
             dataObj.PolicyVehicleVINKnownYNY = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
             dataObj.PolicyVehicleVIN = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
-            dataObj.PolicyVehicleAnnualMiles = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
-            dataObj.PolicyVehicleYearsVehicleOwned = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
-            dataObj.PolicyVehicleUse = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
+            dataObj.PolicyVehicleAnnualMiles = { type: 'text', value: element.annualMiles || staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
+            dataObj.PolicyVehicleYearsVehicleOwned = { type: 'text', value: element.yearsVehicleOwned || staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
+            dataObj.PolicyVehicleUse = { type: 'select-one', value: element.vehicleUse || staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
             dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
             dataObj.PolicyVehiclemp_GaragedLocation_ID = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
             dataObj.PolicyVehiclemp_PrincipalOperator_ID = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
@@ -594,11 +602,16 @@ async function safeco(req) {
       dataObj.PolicyEffectiveDate = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
       dataObj.PolicyRatingState = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
       dataObj.PolicyAutoDataResidenceType = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
-      dataObj.PolicyCurrentInsuranceValue = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
+      dataObj.PolicyCurrentInsuranceValue = { type: 'select-one', value: bodyData.priorInsurance || staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
+      dataObj.PolicyPrevInsuranceCarrierValue = { type: 'select-one', value: bodyData.priorInsuranceCompany || staticDataObj.policyPrevInsuranceCarrierValue, name: 'PolicyPrevInsuranceCarrierValue' };
+      dataObj.PolicyAutoDataPrevLiabilityType = { type: 'select-one', value: bodyData.policyAutoDataPrevLiabilityType || staticDataObj.PolicyAutoDataPrevLiabilityType, name: 'PolicyAutoDataPrevLiabilityType' };
+      dataObj.PolicyPriorPolicyDuration = { type: 'select-one', value: bodyData.monthsWithCarrier || staticDataObj.PolicyPriorPolicyDuration, name: 'PolicyPriorPolicyDuration' };
+      dataObj.PolicyAutoDataPriorAutoPolicyExpirationDate = { type: 'select-one', value: staticDataObj.policyAutoDataPriorAutoPolicyExpirationDate, name: 'PolicyAutoDataPriorAutoPolicyExpirationDate' };
       dataObj.PolicyAutoDataPrevLiabilityType = { type: 'select-one', value: staticDataObj.prevLiabilityType, name: 'PolicyAutoDataPrevLiabilityType' };
       dataObj.PolicyPriorPolicyDuration = { type: 'text', value: staticDataObj.priorPolicyDuration, name: 'PolicyPriorPolicyDuration' };
       dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
       dataObj.PolicyDataPackageSelection = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
+      dataObj.PolicyPolicyTerm0 = { type: 'select-one', value: true, name: 'PolicyPolicyTerm0' };
       dataObj.PolicyVehicles1CoverageCOMPLimitDed = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
       return dataObj;
     }
