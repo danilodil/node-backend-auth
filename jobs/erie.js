@@ -1,6 +1,5 @@
 /* eslint-disable no-loop-func, guard-for-in, prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, no-prototype-builtins */
 
-const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const Queue = require('bull');
 const { erieRater } = require('../constants/appConstant');
@@ -46,6 +45,8 @@ async function erie(req) {
       vehicle: false,
     };
 
+    let response = null;
+
     let browserParams = {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       slowMo: 300,
@@ -86,6 +87,7 @@ async function erie(req) {
     }
 
     async function searchStep() {
+      if (response) return;
       console.log('Erie Search Step');
       try {
         await page.waitFor(2000);
@@ -115,6 +117,7 @@ async function erie(req) {
     }
 
     async function newQuoteStep() {
+      if (response) return;
       console.log('Erie New Quote Step');
       try {
         await page.waitFor(2000);
@@ -158,6 +161,7 @@ async function erie(req) {
     }
 
     async function customerStep() {
+      if (response) return;
       console.log('Erie Customer Step');
       try {
         await page.waitFor(4000);
@@ -202,6 +206,7 @@ async function erie(req) {
     }
 
     async function namedInsuredStep() {
+      if (response) return;
       console.log('Erie Named Insured Step');
       try {
         await page.waitFor(3000);
@@ -241,6 +246,7 @@ async function erie(req) {
     }
 
     async function driversStep() {
+      if (response) return;
       console.log('Erie Driver Step');
       try {
         await page.waitFor(8000);
@@ -330,7 +336,12 @@ async function erie(req) {
           document.querySelector('#btnContinue').click();
         });
         stepResult.vehicle = true;
-        console.log('stepResult', stepResult);
+        response = {
+          title: 'Success to retrieve Erie rate',
+          status: true,
+          stepResult,
+        };
+        saveRatingFromJob(req, response);
         browser.close();
       } catch (error) {
         await exitFail(error, 'Vehicles');

@@ -47,6 +47,8 @@ async function traveler(req) {
       summary: false,
     };
 
+    let response = null;
+
     let browserParams = {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       slowMo: 300,
@@ -87,6 +89,7 @@ async function traveler(req) {
     }
 
     async function searchStep() {
+      if (response) return;
       console.log('Traveler Search Step');
       try {
         await page.type('#PiSearchNewFields > div:nth-child(1) > div > div > input', populatedData.lastName.value);
@@ -113,6 +116,7 @@ async function traveler(req) {
     }
 
     async function addCustomerStep() {
+      if (response) return;
       console.log('Traveler Add Customer Step');
       try {
         await page.waitFor(6000);
@@ -146,6 +150,7 @@ async function traveler(req) {
     }
 
     async function policyStep() {
+      if (response) return;
       console.log('Traveler Policy Step');
       try {
         await page.waitFor(4000);
@@ -164,6 +169,7 @@ async function traveler(req) {
     }
 
     async function customerInfoStep() {
+      if (response) return;
       console.log('Traveler Customer Info Step');
       try {
         await navigationPromise;
@@ -210,6 +216,7 @@ async function traveler(req) {
     }
 
     async function vehicleStep() {
+      if (response) return;
       console.log('Traveler vehicle Step');
       try {
         await page.evaluate(() => {
@@ -252,6 +259,7 @@ async function traveler(req) {
     }
 
     async function driverStep() {
+      if (response) return;
       console.log('Traveler Driver Step');
       try {
         await page.waitForSelector('input[value="M"]');
@@ -286,6 +294,7 @@ async function traveler(req) {
     }
 
     async function underwritingStep() {
+      if (response) return;
       console.log('Traveler underwriting Step');
       try {
         await page.waitFor(5000);
@@ -339,6 +348,7 @@ async function traveler(req) {
     }
 
     async function coverageStep() {
+      if (response) return;
       console.log('Traveler Coverage Step');
       try {
         await closeModel();
