@@ -6,9 +6,9 @@ const { erieRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
+const { erieQueue } = require('../jobs/erie');
 
 module.exports = {
-
   erieRater: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
@@ -431,5 +431,15 @@ module.exports = {
       console.log('Error at Traveler :', error);
       return next(Boom.badRequest('Failed to retrieved Traveler rate.'));
     }
+  },
+
+  addToQueue: async (req, res, next) => {
+    const raterData = {
+      raterStore: req.session.raterStore,
+      body: req.body,
+    };
+    const job = await erieQueue.add(raterData);
+    req.session.data = { jobId: job.id };
+    return next();
   },
 };
