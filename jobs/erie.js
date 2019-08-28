@@ -311,6 +311,7 @@ async function erie(req) {
 
 
     async function vehicleStep() {
+      if (response) return;
       console.log('Erie Vehicle Step');
       try {
         await page.waitFor(10000);

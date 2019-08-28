@@ -399,6 +399,7 @@ async function traveler(req) {
     }
 
     async function summaryStep() {
+      if (response) return;
       console.log('Traveler Rater Summary Step');
       try {
         await page.waitFor(15000);
