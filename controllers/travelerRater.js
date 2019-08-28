@@ -7,6 +7,7 @@ const { travelerRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate, ageCount } = require('../lib/utils');
+const { travelerQueue } = require('../jobs/traveler');
 
 module.exports = {
 
@@ -526,5 +527,15 @@ module.exports = {
       console.log('Error at Traveler :', error);
       return next(Boom.badRequest('Failed to retrieved Traveler rate.'));
     }
+  },
+
+  addToQueue: async (req, res, next) => {
+    const raterData = {
+      raterStore: req.session.raterStore,
+      body: req.body,
+    };
+    const job = await travelerQueue.add(raterData);
+    req.session.data = { jobId: job.id };
+    return next();
   },
 };
