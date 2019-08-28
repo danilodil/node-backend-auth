@@ -1,19 +1,20 @@
-/* eslint-disable no-console, dot-notation, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,
- no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition, no-shadow, func-names, no-plusplus, consistent-return */
+/* eslint-disable no-restricted-syntax, no-console, no-loop-func, no-inner-declarations,
+consistent-return, func-names, no-undef, no-use-before-define, no-plusplus, no-await-in-loop */
+
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
-const { safecoAlRater } = require('../constants/appConstant');
+const { safecoRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate } = require('../lib/utils');
 
 
 module.exports = {
-  safecoAl: async (req, res, next) => {
+  safeco: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
-      const raterStore = req.session.raterStore;
+      const { raterStore } = req.session;
       const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
       const params = req.body;
       let browserParams = {
@@ -41,7 +42,7 @@ module.exports = {
         summary: false,
       };
 
-      if (raterStore && raterStore.stepResult) {
+      if (raterStore && raterStore.stepResult) { // eslint-disable-next-line prefer-destructuring
         stepResult = raterStore.stepResult;
       }
 
@@ -53,7 +54,7 @@ module.exports = {
       } else {
         await newQuoteStep();
       }
-      if (!params.stepName) {
+      if (!params.stepName || params.stepName === 'all') {
         await policyInfoStep();
         await driversStep();
         await vehiclesStep();
@@ -62,7 +63,7 @@ module.exports = {
         if (params.stepName === 'namedInsured') {
           await policyInfoStep();
           const quoteId = `${bodyData.lastName}, ${bodyData.firstName}`;
-          exitSuccess('Named Insured', quoteId);
+          await exitSuccess('Named Insured', quoteId);
         }
         if (params.stepName === 'drivers' && raterStore) {
           await driversStep();
@@ -70,7 +71,7 @@ module.exports = {
             await finalSteps();
           } else {
             const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
-            exitSuccess('Drivers', quoteId);
+            await exitSuccess('Drivers', quoteId);
           }
         }
         if (params.stepName === 'vehicles' && raterStore) {
@@ -79,7 +80,7 @@ module.exports = {
             await finalSteps();
           } else {
             const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
-            exitSuccess('Vehicles', quoteId);
+            await exitSuccess('Vehicles', quoteId);
           }
         }
         if (params.stepName === 'summary' && raterStore) {
@@ -88,14 +89,14 @@ module.exports = {
       }
 
       async function existingQuote() {
-        console.log('Safeco AL existing Quote Step');
+        console.log('Safeco existing Quote Step');
         try {
           const quoteId = raterStore.quoteId ? raterStore.quoteId : `${bodyData.lastName}, ${bodyData.firstName}`;
           await page.waitFor(8000);
-          await page.goto(safecoAlRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
+          await page.goto(safecoRater.EXISTING_QUOTE_URL, { waitUntil: 'load' });
           await page.waitFor(5000);
           await page.select('#SAMSearchBusinessType', '7|1|');
-          await page.select('#SAMSearchModifiedDateRange', '7');
+          await page.select('#SAMSearchModifiedDateRange', '1');
           await page.select('#SAMSearchActivityStatus', '8');
           await page.type('#SAMSearchName', quoteId);
           await page.evaluate(() => document.querySelector('#asearch').click());
@@ -116,8 +117,7 @@ module.exports = {
           await page.waitFor(2000);
           stepResult.existingQuote = true;
         } catch (err) {
-          await exitFail(error, 'Existing Quote');
-          return next();
+          await exitFail(err, 'Existing Quote');
         }
       }
 
@@ -132,29 +132,43 @@ module.exports = {
         }
       }
 
+      let loginReAttemptCounter = 2;
       async function loginStep() {
         try {
-          console.log('Safeco AL Login Step.');
-          await page.goto(safecoAlRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
-          await page.waitForSelector('#ctl00_ContentPlaceHolder1_UsernameTextBox');
-          await page.type('#ctl00_ContentPlaceHolder1_UsernameTextBox', username);
-          await page.type('#ctl00_ContentPlaceHolder1_PasswordTextBox', password);
-          await page.evaluate(() => document.querySelector('#ctl00_ContentPlaceHolder1_SubmitButton').click());
+          console.log('Safeco Login Step.');
+          await page.goto(safecoRater.LOGIN_URL, { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector('#username');
+          await page.type('#username', username);
+          await page.type('#password', password);
+          await page.evaluate(() => document.querySelector('#submit1').click());
           await page.waitForNavigation({ waitUntil: 'load' });
           stepResult.login = true;
         } catch (error) {
-          await exitFail(error, 'Login');
+          console.log('error', error);
+          if (!loginReAttemptCounter) {
+            stepResult.login = false;
+            req.session.data = {
+              title: 'Failed to retrieved Safeco rate.',
+              status: false,
+              error: 'There is some error validations at loginStep',
+              stepResult,
+            };
+            browser.close();
+            return next();
+          }
+          loginReAttemptCounter--;
+          loginStep();
         }
       }
 
       async function newQuoteStep() {
         try {
-          console.log('Safeco AL New Quote Step.');
+          console.log('Safeco New Quote Step.');
           await page.waitFor(2000);
-          await page.goto(safecoAlRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
+          await page.goto(safecoRater.NEW_QUOTE_START_AUTO_URL, { waitUntil: 'domcontentloaded' });
           stepResult.newQuote = true;
         } catch (err) {
-          await exitFail(error, 'New Quote');
+          await exitFail(err, 'New Quote');
         }
       }
 
@@ -166,7 +180,7 @@ module.exports = {
           await saveStep();
           stepResult.policyInfo = true;
         } catch (err) {
-          console.log('Error at Safeco AL Policy Information Step:', err);
+          console.log('Error at Safeco Policy Information Step:', err);
           stepResult.policyInfo = false;
           let error = 'There is some error validations at policyInformationStep';
           try {
@@ -175,10 +189,10 @@ module.exports = {
               error = 'Unable to process due to site down.';
             }
           } catch (e) {
-            console.log('Safeco AL Unable to process due to site down.');
+            console.log('Safeco Unable to process due to site down.');
           }
           req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
+            title: 'Failed to retrieved Safeco rate.',
             status: false,
             error,
             stepResult,
@@ -193,17 +207,19 @@ module.exports = {
           await loadStep('driver', true);
           const afterCustomCode = async function () {
             for (const j in bodyData.drivers) {
-              await page.evaluate(async () => {
-                const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
-                const PolicyDriverSR22FilingYN2N = document.getElementById('PolicyDriverSR22FilingYN2N');
-                const LicenseSuspendedRevokedYNNexist = document.getElementById('PolicyDriverLicenseSuspendedRevokedYNN');
-                if (PolicyDriverSR22FilingYNN) {
-                  PolicyDriverSR22FilingYNN.click();
-                  PolicyDriverSR22FilingYN2N.click();
-                  LicenseSuspendedRevokedYNNexist.click();
-                }
-              }, populatedData, j);
-              await page.waitFor(1000);
+              if (Object.prototype.hasOwnProperty.call(bodyData.drivers, j)) {
+                page.evaluate(async () => {
+                  const PolicyDriverSR22FilingYNN = document.getElementById('PolicyDriverSR22FilingYNN');
+                  const PolicyDriverSR22FilingYN2N = document.getElementById('PolicyDriverSR22FilingYN2N');
+                  const LicenseSuspendedRevokedYNNexist = document.getElementById('PolicyDriverLicenseSuspendedRevokedYNN');
+                  if (PolicyDriverSR22FilingYNN) {
+                    PolicyDriverSR22FilingYNN.click();
+                    PolicyDriverSR22FilingYN2N.click();
+                    LicenseSuspendedRevokedYNNexist.click();
+                  }
+                }, populatedData, j);
+                page.waitFor(1000);
+              }
             }
           };
           await fillPageForm(null, afterCustomCode);
@@ -216,20 +232,23 @@ module.exports = {
 
       async function vehiclesStep() {
         try {
+          await page.waitFor(5000);
           await loadStep('vehicle', true);
           const afterCustomCode = async function () {
             for (const j in bodyData.vehicles) {
-              await page.evaluate(async () => {
-                const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
-                const vinEl = document.getElementById('PolicyVehicleVIN');
-                const vinBtn = document.getElementById('imgVINLookUp');
-                if (vinEl) {
-                  vinExist.click();
-                  vinEl.value = data.PolicyVehicleVIN.value;
-                  vinBtn.click();
-                }
-              }, populatedData, j);
-              await page.waitFor(1000);
+              if (Object.prototype.hasOwnProperty.call(bodyData.vehicles, j)) {
+                page.evaluate(async (data) => {
+                  const vinExist = document.getElementById('PolicyVehicleVINKnownYNY');
+                  const vinEl = document.getElementById('PolicyVehicleVIN');
+                  const vinBtn = document.getElementById('imgVINLookUp');
+                  if (vinEl) {
+                    vinExist.click();
+                    vinEl.value = data.PolicyVehicleVIN.value;
+                    vinBtn.click();
+                  }
+                }, populatedData, j);
+                page.waitFor(1000);
+              }
             }
           };
 
@@ -277,7 +296,6 @@ module.exports = {
       }
 
       async function summaryStep() {
-        console.log('Safeco AL Summary Step.');
         try {
           await page.waitFor(2000);
           await loadStep('summary', true);
@@ -291,14 +309,14 @@ module.exports = {
           });
           stepResult.summary = true;
           req.session.data = {
-            title: 'Successfully retrieved safeco AL rate.',
+            title: 'Successfully retrieved safeco rate.',
             status: true,
             totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
             months: premiumDetails.plan ? premiumDetails.plan : null,
             downPayment: premiumDetails.downPaymentAmount ? premiumDetails.downPaymentAmount.replace(/,/g, '') : null,
             stepResult,
           };
-          console.log(' req.session.data', req.session.data);
+          console.log('req.session.data', req.session.data);
           browser.close();
           return next();
         } catch (err) {
@@ -309,7 +327,7 @@ module.exports = {
       async function fillPageForm(beforeCustomCode, afterCustomCode, delayAfter) {
         try {
           page.on('console', (msg) => {
-            for (let i = 0; i < msg.args().length; ++i) console.log(`${msg.args()[i]}`);
+            for (let i = 0; i < msg.args().length; i += 1) console.log(`${msg.args()[i]}`);
           });
           if (beforeCustomCode) {
             await beforeCustomCode();
@@ -325,13 +343,14 @@ module.exports = {
               ecfields.buildModalHtml = function () { };
             }
 
-            const list = data;
+            const list = data; // eslint-disable-next-line guard-for-in
             for (const fieldName in list) {
               const ecField = list[fieldName] ? list[fieldName] : null;
               const xField = data[fieldName] ? data[fieldName] : null;
               if (ecField) {
                 ecField.required = false;
                 ecField.rules = [];
+                ecField.disabled = false;
               }
               if (ecField && xField) {
                 const el = document.getElementById(fieldName);
@@ -350,9 +369,9 @@ module.exports = {
               }
             }
 
-            function compareTwoStrings(first, second) {
-              first = first.replace(/\s+/g, '');
-              second = second.replace(/\s+/g, '');
+            function compareTwoStrings(firstString, secondString) {
+              const first = firstString.replace(/\s+/g, '');
+              const second = secondString.replace(/\s+/g, '');
 
               if (!first.length && !second.length) return 1; // if both are empty strings
               if (!first.length || !second.length) return 0; // if only one is empty string
@@ -361,7 +380,7 @@ module.exports = {
               if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
               const firstBigrams = new Map();
-              for (let i = 0; i < first.length - 1; i++) {
+              for (let i = 0; i < first.length - 1; i += 1) {
                 const bigram = first.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
                   ? firstBigrams.get(bigram) + 1
@@ -371,7 +390,7 @@ module.exports = {
               }
 
               let intersectionSize = 0;
-              for (let i = 0; i < second.length - 1; i++) {
+              for (let i = 0; i < second.length - 1; i += 1) {
                 const bigram = second.substring(i, i + 2);
                 const count = firstBigrams.has(bigram)
                   ? firstBigrams.get(bigram)
@@ -379,7 +398,7 @@ module.exports = {
 
                 if (count > 0) {
                   firstBigrams.set(bigram, count - 1);
-                  intersectionSize++;
+                  intersectionSize += 1;
                 }
               }
 
@@ -391,7 +410,7 @@ module.exports = {
               const ratings = [];
               let bestMatchIndex = 0;
 
-              for (let i = 0; i < targetStrings.length; i++) {
+              for (let i = 0; i < targetStrings.length; i += 1) {
                 const currentTargetString = targetStrings[i];
                 const currentRating = compareTwoStrings(mainString, currentTargetString);
                 ratings.push({ target: currentTargetString, rating: currentRating });
@@ -413,6 +432,7 @@ module.exports = {
               return true;
             }
 
+            // eslint-disable-next-line no-shadow
             async function getBestValue(value, data) {
               try {
                 const optionsArray = [...data];
@@ -425,12 +445,13 @@ module.exports = {
                 } else if (value && value.length > 1) {
                   const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
                   const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+                  const bestMatchRating = vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating;
                   let i = 0;
                   if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
                     i = nBestMatch.bestMatchIndex;
                   } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
                     i = vBestMatch.bestMatchIndex;
-                  } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
+                  } else if (bestMatchRating && nBestMatch.bestMatch.rating >= 0.75) {
                     i = nBestMatch.bestMatchIndex;
                   }
                   const bestValue = optionsArray[i].value;
@@ -457,15 +478,7 @@ module.exports = {
             await page.waitFor(1000);
           }
         } catch (err) {
-          console.log('Error at Safeco AL FillPageForm Step:', err);
-          req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
-            status: false,
-            error: 'There is some error validations at FillPageForm',
-            stepResult,
-          };
-          browser.close();
-          return next();
+          await exitFail(err, 'FillPageForm');
         }
       }
 
@@ -503,12 +516,11 @@ module.exports = {
           garagedLocation: '2',
           principalOperator: '1',
           territory: '460',
-          vehicleVin: 'KMHDH6AE1DU001708',
-          vehicleUse: '8',
-          yearsVehicleOwned: '5',
+          prevLiabilityType: 'BI',
+          priorPolicyDuration: '5',
           vehicles: [
             {
-              // Vehicle Type will always be 1981 or newer
+              // Vehicle Type willways be 1981 or newer
               vehicleVin: '1FTSF30L61EC23425',
               vehicleUse: '8',
               annualMiles: '50',
@@ -529,68 +541,75 @@ module.exports = {
               licenseState: 'AL',
               ageWhen1stLicensed: '21',
               commonOccupation: 'Manager',
+              education: 'BS',
             },
           ],
         };
 
         const dataObj = {};
-        if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
+        if (Object.prototype.hasOwnProperty.call(bodyData, 'vehicles') && bodyData.vehicles.length > 0) {
           for (const j in bodyData.vehicles) {
-            const element = bodyData.vehicles[j];
-            dataObj['PolicyVehicleVINKnownYNY'] = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
-            dataObj['PolicyVehicleVIN'] = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
-            dataObj['PolicyVehicleAnnualMiles'] = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
-            dataObj['PolicyVehicleYearsVehicleOwned'] = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
-            dataObj['PolicyVehicleUse'] = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
-            dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
-            dataObj['PolicyVehiclemp_GaragedLocation_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
-            dataObj['PolicyVehiclemp_PrincipalOperator_ID'] = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
+            if (Object.prototype.hasOwnProperty.call(bodyData.vehicles, j)) {
+              const element = bodyData.vehicles[j];
+              dataObj.PolicyVehicleVINKnownYNY = { type: 'radio', value: true, name: 'PolicyVehicleVINKnownYNY' };
+              dataObj.PolicyVehicleVIN = { type: 'text', value: element.vehicleVin || staticDataObj.vehicles[0].vehicleVin, name: 'PolicyVehicleVIN' };
+              dataObj.PolicyVehicleAnnualMiles = { type: 'text', value: staticDataObj.vehicles[0].annualMiles, name: 'PolicyVehicleAnnualMiles' };
+              dataObj.PolicyVehicleYearsVehicleOwned = { type: 'text', value: staticDataObj.vehicles[0].yearsVehicleOwned, name: 'PolicyVehicleYearsVehicleOwned' };
+              dataObj.PolicyVehicleUse = { type: 'select-one', value: staticDataObj.vehicles[0].vehicleUse, name: 'PolicyVehicleUse' };
+              dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.vehicles[0].policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+              dataObj.PolicyVehiclemp_GaragedLocation_ID = { type: 'select-one', value: staticDataObj.vehicles[0].garagedLocation, name: 'PolicyVehiclemp_GaragedLocation_ID' };
+              dataObj.PolicyVehiclemp_PrincipalOperator_ID = { type: 'select-one', value: staticDataObj.vehicles[0].principalOperator, name: 'PolicyVehiclemp_PrincipalOperator_ID' };
+            }
           }
         }
-        if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
+        if (Object.prototype.hasOwnProperty.call(bodyData, 'drivers') && bodyData.drivers.length > 0) {
           for (const j in bodyData.drivers) {
-            const element = bodyData.drivers[j];
-            dataObj['PolicyDriverPersonFirstName'] = { type: 'text', value: element.firstName || staticDataObj.drivers[0].firstName, name: 'PolicyDriverPersonFirstName' };
-            dataObj['PolicyDriverPersonLastName'] = { type: 'text', value: element.lastName || staticDataObj.drivers[0].lastName, name: 'PolicyDriverPersonLastName' };
-            dataObj['PolicyDriverPersonEducation'] = { type: 'select-one', value: staticDataObj.drivers[0].education, name: 'PolicyDriverPersonEducation' };
-            dataObj['PolicyDriverPersonGender'] = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: 'PolicyDriverPersonGender' };
-            dataObj['PolicyDriverPersonBirthdate'] = { type: 'text', value: element.applicantBirthDt || staticDataObj.drivers[0].birthDate, name: 'PolicyDriverPersonBirthdate' };
-            dataObj['PolicyDriverPersonMaritalStatus'] = { type: 'select-one', value: element.maritalStatus || staticDataObj.drivers[0].maritalStatus, name: 'PolicyDriverPersonMaritalStatus' };
-            dataObj['PolicyDriverRelationshipToInsured'] = { type: 'select-one', value: staticDataObj.drivers[0].relationship, name: 'PolicyDriverRelationshipToInsured' };
-            dataObj['PolicyDriverLicenseState'] = { type: 'select-one', value: element.licenseState || staticDataObj.drivers[0].licenseState, name: 'PolicyDriverLicenseState' };
-            dataObj['PolicyDriverPersonCommonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' };
-            dataObj['PolicyDriverPersonOccupationCategory'] = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonOccupationCategory' };
-            dataObj['PolicyDriverFirstAgeLicensed'] = { type: 'text', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' };
+            if (Object.prototype.hasOwnProperty.call(bodyData.drivers, j)) {
+              const element = bodyData.drivers[j];
+              dataObj.PolicyDriverPersonFirstName = { type: 'text', value: element.firstName || staticDataObj.drivers[0].firstName, name: 'PolicyDriverPersonFirstName' };
+              dataObj.PolicyDriverPersonLastName = { type: 'text', value: element.lastName || staticDataObj.drivers[0].lastName, name: 'PolicyDriverPersonLastName' };
+              dataObj.PolicyDriverPersonEducation = { type: 'select-one', value: staticDataObj.drivers[0].education, name: 'PolicyDriverPersonEducation' };
+              dataObj.PolicyDriverPersonGender = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: 'PolicyDriverPersonGender' };
+              dataObj.PolicyDriverPersonBirthdate = { type: 'text', value: element.applicantBirthDt || staticDataObj.drivers[0].birthDate, name: 'PolicyDriverPersonBirthdate' };
+              dataObj.PolicyDriverPersonMaritalStatus = { type: 'select-one', value: element.maritalStatus || staticDataObj.drivers[0].maritalStatus, name: 'PolicyDriverPersonMaritalStatus' };
+              dataObj.PolicyDriverRelationshipToInsured = { type: 'select-one', value: staticDataObj.drivers[0].relationship, name: 'PolicyDriverRelationshipToInsured' };
+              dataObj.PolicyDriverLicenseState = { type: 'select-one', value: element.licenseState || staticDataObj.drivers[0].licenseState, name: 'PolicyDriverLicenseState' };
+              dataObj.PolicyDriverPersonCommonOccupationCategory = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonCommonOccupationCategory' };
+              dataObj.PolicyDriverPersonOccupationCategory = { type: 'select-one', value: staticDataObj.drivers[0].commonOccupation, name: 'PolicyDriverPersonOccupationCategory' };
+              dataObj.PolicyDriverFirstAgeLicensed = { type: 'text', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: 'PolicyDriverFirstAgeLicensed' };
+            }
           }
         }
 
-        dataObj['PolicyAutoDataAnyIncidentsOnPolicyYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' };
-        dataObj['PolicyAutoDataDeliveryVehicleYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' };
-        dataObj['PolicyAutoDataVehicleGaragingAddressYNY'] = { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' };
-        dataObj['PolicyAutoDataVerifiableYNN'] = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
-        dataObj['PolicyAutoDataAutoBusinessType'] = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
-        dataObj['PolicyClientEmailAddress'] = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
-        dataObj['PolicyClientMailingLocationAddressLine1'] = { type: 'text', value: staticDataObj.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
-        dataObj['PolicyClientMailingLocationCity'] = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
-        dataObj['PolicyClientMailingLocationState'] = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
-        dataObj['PolicyClientMailingLocationZipCode'] = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };
-        dataObj['PolicyClientPersonBirthdate'] = { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' };
-        dataObj['PolicyClientPersonFirstName'] = { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' };
-        dataObj['PolicyClientPersonLastName'] = { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' };
-        dataObj['PolicyClientPersonSocialSecurityNumberStatus'] = { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' };
-        dataObj['PolicyEffectiveDate'] = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
-        dataObj['PolicyRatingState'] = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
-        dataObj['PolicyAutoDataResidenceType'] = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
-        dataObj['PolicyCurrentInsuranceValue'] = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
-        dataObj['PolicyVehicles1RightTrackStatus'] = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
-        dataObj['PolicyDataPackageSelection'] = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
-        dataObj['PolicyVehicles1CoverageCOMPLimitDed'] = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
+        dataObj.PolicyAutoDataAnyIncidentsOnPolicyYNN = { type: 'radio', value: true, name: 'PolicyAutoDataAnyIncidentsOnPolicyYNN' };
+        dataObj.PolicyAutoDataDeliveryVehicleYNN = { type: 'radio', value: true, name: 'PolicyAutoDataDeliveryVehicleYNN' };
+        dataObj.PolicyAutoDataVehicleGaragingAddressYNY = { type: 'radio', value: true, name: 'PolicyAutoDataVehicleGaragingAddressYNY' };
+        dataObj.PolicyAutoDataVerifiableYNN = { type: 'radio', value: true, name: 'PolicyAutoDataVerifiableYNN' };
+        dataObj.PolicyAutoDataAutoBusinessType = { type: 'select-one', value: bodyData.reasonForPolicy || staticDataObj.reasonForPolicy, name: 'PolicyAutoDataAutoBusinessType' };
+        dataObj.PolicyClientEmailAddress = { type: 'text', value: bodyData.email || staticDataObj.email, name: 'PolicyClientEmailAddress' };
+        dataObj.PolicyClientMailingLocationAddressLine1 = { type: 'text', value: bodyData.mailingAddress, name: 'PolicyClientMailingLocationAddressLine1' };
+        dataObj.PolicyClientMailingLocationCity = { type: 'text', value: bodyData.city || staticDataObj.city, name: 'PolicyClientMailingLocationCity' };
+        dataObj.PolicyClientMailingLocationState = { type: 'select-one', value: bodyData.state || staticDataObj.state, name: 'PolicyClientMailingLocationState' };
+        dataObj.PolicyClientMailingLocationZipCode = { type: 'text', value: staticDataObj.zipCode, name: 'PolicyClientMailingLocationZipCode' };
+        dataObj.PolicyClientPersonBirthdate = { type: 'text', value: bodyData.dateOfBirth || staticDataObj.birthDate, name: 'PolicyClientPersonBirthdate' };
+        dataObj.PolicyClientPersonFirstName = { type: 'text', value: bodyData.firstName || staticDataObj.firstName, name: 'PolicyClientPersonFirstName' };
+        dataObj.PolicyClientPersonLastName = { type: 'text', value: bodyData.lastName || staticDataObj.lastName, name: 'PolicyClientPersonLastName' };
+        dataObj.PolicyClientPersonSocialSecurityNumberStatus = { type: 'select-one', value: bodyData.socialSecurityStatus || staticDataObj.socialSecurityStatus, name: 'PolicyClientPersonSocialSecurityNumberStatus' };
+        dataObj.PolicyEffectiveDate = { type: 'text', value: tomorrow, name: 'PolicyEffectiveDate' };
+        dataObj.PolicyRatingState = { type: 'select-one', value: '1', name: 'PolicyRatingState' };
+        dataObj.PolicyAutoDataResidenceType = { type: 'select-one', value: staticDataObj.policyDataResidenceType, name: 'PolicyAutoDataResidenceType' };
+        dataObj.PolicyCurrentInsuranceValue = { type: 'select-one', value: staticDataObj.policyCurrentInsuranceValue, name: 'PolicyCurrentInsuranceValue' };
+        dataObj.PolicyAutoDataPrevLiabilityType = { type: 'select-one', value: staticDataObj.prevLiabilityType, name: 'PolicyAutoDataPrevLiabilityType' };
+        dataObj.PolicyPriorPolicyDuration = { type: 'text', value: staticDataObj.priorPolicyDuration, name: 'PolicyPriorPolicyDuration' };
+        dataObj.PolicyVehicles1RightTrackStatus = { type: 'select-one', value: staticDataObj.policyVehiclesTrackStatus, name: 'PolicyVehicles1RightTrackStatus' };
+        dataObj.PolicyDataPackageSelection = { type: 'select-one', value: staticDataObj.policyDataPackageSelection, name: 'PolicyAutoDataPackageSelection' };
+        dataObj.PolicyVehicles1CoverageCOMPLimitDed = { type: 'select-one', value: staticDataObj.policyVehiclesCoverage, name: 'PolicyVehicles1CoverageCOMPLimitDed' };
         return dataObj;
       }
 
       async function loadStep(step, navigate) {
         try {
-          console.log(`Safeco AL ${step} Step`);
+          console.log(`Safeco ${step} Step`);
           await page.waitFor(500);
           if (navigate) {
             await navigateMenu(step);
@@ -604,7 +623,7 @@ module.exports = {
 
       async function saveStep() {
         try {
-          console.log('Safeco AL Save Step');
+          console.log('Safeco Save Step');
           await page.waitFor(500);
           await page.evaluate(() => {
             const save = document.getElementById('Save');
@@ -650,10 +669,10 @@ module.exports = {
       }
 
       async function exitFail(error, step) {
-        console.log(`Error during Safeco AL ${step} step:`, error);
+        console.log(`Error during Safeco ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.data = {
-            title: 'Failed to retrieved Safeco AL rate.',
+            title: 'Failed to retrieved Safeco rate.',
             status: false,
             error: `There is some error validations at ${step} step`,
             stepResult,
@@ -666,7 +685,7 @@ module.exports = {
       async function exitSuccess(step, quoteID) {
         try {
           req.session.data = {
-            title: `Successfully finished Safeco AL ${step} Step`,
+            title: `Successfully finished Safeco ${step} Step`,
             status: true,
             quoteId: quoteID,
             stepResult,
@@ -687,8 +706,8 @@ module.exports = {
         }
       });
     } catch (error) {
-      console.log('Error  at Safeco AL :', error);
-      return next(Boom.badRequest('Failed to retrieved safeco AL rate.'));
+      console.log('Error  at Safeco :', error);
+      return next(Boom.badRequest('Failed to retrieved safeco rate.'));
     }
   },
 };

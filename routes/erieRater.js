@@ -1,14 +1,13 @@
 const express = require('express');
 
-const safecoRaterController = require('../controllers/safecoRater');
+const erieRater = require('../controllers/erieRater');
 const raterController = require('../controllers/rater');
-
 
 const router = express.Router();
 
-router.put('/safeco', [
+router.put('/erie/', [
   raterController.getOneByName,
-  safecoRaterController.safeco,
+  erieRater.erieRater,
   raterController.saveRating,
 ]);
 

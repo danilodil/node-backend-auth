@@ -5,15 +5,9 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/progressive/de', [
+router.put('/progressive', [
   raterController.getOneByName,
-  progressiveRaterController.rateDelaware,
-  raterController.saveRating,
-]);
-
-router.put('/progressive/al', [
-  raterController.getOneByName,
-  progressiveRaterController.rateAlabama,
+  progressiveRaterController.rate,
   raterController.saveRating,
 ]);
 

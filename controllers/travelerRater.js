@@ -20,7 +20,7 @@ module.exports = {
       bodyData.drivers.splice(10, bodyData.drivers.length);
       bodyData.drivers[0].ageWhen1stLicensed = await ageCount(bodyData.drivers[0].applicantBirthDt);
 
-      let stepResult = {
+      const stepResult = {
         login: false,
         policy: false,
         customerInfo: false,

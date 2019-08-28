@@ -5,10 +5,15 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
-router.put('/national/al', [
+// router.put('/national', [
+//   raterController.getOneByName,
+//   nationalRaterController.nationalGeneral,
+//   raterController.saveRating,
+// ]);
+
+router.put('/national', [
   raterController.getOneByName,
-  nationalRaterController.nationalGeneralAl,
-  raterController.saveRating,
+  nationalRaterController.addToQueue,
 ]);
 
 module.exports = router;
