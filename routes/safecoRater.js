@@ -6,10 +6,15 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
+// router.put('/safeco', [
+//   raterController.getOneByName,
+//   safecoRaterController.safeco,
+//   raterController.saveRating,
+// ]);
+
 router.put('/safeco', [
   raterController.getOneByName,
-  safecoRaterController.safeco,
-  raterController.saveRating,
+  safecoRaterController.addToQueue,
 ]);
 
 module.exports = router;
