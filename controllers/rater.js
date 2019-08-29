@@ -35,7 +35,7 @@ module.exports = {
 
       const raterData = await Rater.findOne(existRater);
       /* create new rater result */
-      const isSucceeded = !!((req.session && req.session.data && req.session.data.status && req.session.data.totalPremium));
+      const isSucceeded = !!((req.session.data.status && req.session.data.totalPremium));
       if (!raterData) {
         const newRater = {
           companyId,
@@ -186,5 +186,75 @@ module.exports = {
     }
     req.session.data = raterStore;
     return next();
+  },
+  saveRatingFromJob: async (req, res) => {
+    try {
+      if (!res) return;
+
+      console.log(`${req.body.vendorName}: Saving Rate`);
+      console.log(res);
+      let companyId = null;
+      let clientId = null;
+      const currentUser = req.body.decoded_user;
+      if (currentUser.user) {
+        companyId = currentUser.user.companyUserId;
+        clientId = currentUser.user.id;
+      }
+      if (currentUser.client) {
+        companyId = currentUser.client.companyClientId;
+        clientId = currentUser.client.id;
+      }
+      if (!companyId && !clientId) return;
+
+      const existRater = {
+        where: {
+          companyId,
+          clientId,
+          vendorName: req.body.vendorName,
+        },
+      };
+
+      const raterData = await Rater.findOne(existRater);
+      /* create new rater result */
+      const isSucceeded = !!((res.status && res.totalPremium));
+      if (!raterData) {
+        const newRater = {
+          companyId,
+          clientId,
+          vendorName: req.body.vendorName,
+          succeeded: isSucceeded,
+          totalPremium: res.totalPremium || null,
+          months: res.months || null,
+          downPayment: res.downPayment || null,
+          error: res.error || null,
+          quoteId: res.quoteId || null,
+          quoteIds: res.quoteIds || null,
+          stepResult: res.stepResult || null,
+        };
+        await Rater.create(newRater);
+        console.log(`${req.body.vendorName} Rater Created`);
+      }
+
+      /* update rater result */
+      const updateObj = {
+        stepResult: res.stepResult || null,
+        quoteId: res.quoteId || null,
+        quoteIds: res.quoteIds || null,
+      };
+      if (raterData && res.totalPremium && res.status) {
+        updateObj.totalPremium = res.totalPremium;
+        updateObj.months = res.months;
+        updateObj.downPayment = res.downPayment;
+        updateObj.succeeded = true;
+        updateObj.error = null;
+        await raterData.update(updateObj);
+        console.log(`${req.body.vendorName} Rater Updated`);
+      } else if (raterData) {
+        await raterData.update(updateObj);
+        console.log(`${req.body.vendorName} Rater Updated`);
+      }
+    } catch (error) {
+      console.log(`${req.body.vendorName} Error Saving Rate: `, error);
+    }
   },
 };
