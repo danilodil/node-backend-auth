@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-prototype-builtins */
@@ -24,17 +25,18 @@ module.exports = {
       if (returnValueIfExists(value)) {
         return `<${sel}>${returnValueIfExists(value)}</${sel}>`;
       }
-      return '';
+      return `</${sel}`;
     }
     let dataFile = '<Applicant><ApplicantType>Applicant</ApplicantType><PersonalInfo><Name>';
     dataFile += returnText('FirstName', client.firstName);
+    dataFile += returnText('MiddleName', null);
     dataFile += returnText('LastName', client.lastName);
     dataFile += '</Name>';
     dataFile += returnText('DOB', formatDate(client.birthDate));
     dataFile += returnText('Gender', client.gender);
     dataFile += returnText('MaritalStatus', client.maritalStatus);
-    // dataFile += returnText('Industry', client.lastName);
-    // dataFile += returnText('Occupation', client.occupation);
+    dataFile += returnText('Industry', null);
+    dataFile += returnText('Occupation', null);
     dataFile += returnText('Education', client.education);
     dataFile += returnText('Relation', client.relation);
     dataFile += '</PersonalInfo>';
@@ -46,6 +48,7 @@ module.exports = {
       dataFile += returnText('StreetNumber', client.streetNumber);
       dataFile += returnText('UnitNumber', client.unitNumber);
       dataFile += '</Addr1>';
+      dataFile += '</Addr2>';
       dataFile += returnText('City', client.city);
       dataFile += returnText('StateCode', client.stateCd);
       dataFile += returnText('Zip5', client.postalCd);
@@ -53,42 +56,47 @@ module.exports = {
         dataFile += '<Phone>';
         dataFile += returnText('PhoneType', 'Home');
         dataFile += returnText('PhoneNumber', client.phone);
-        dataFile += '</Phone>';
       }
+      dataFile += '</Phone>';
       dataFile += returnText('Email', client.email);
-      dataFile += '</Address>';
     }
+    dataFile += returnText('Validation', 'Valid');
+    dataFile += '</Address>';
     dataFile += '</Applicant>';
-
-    //   <PriorPolicyInfo>
-    //     <PriorCarrier>Erie</PriorCarrier>
-    //     <Expiration>2015-09-11</Expiration>
-    //     <YearsWithPriorCarrier>
-    //       <Years>0</Years>
-    //       <Months>3</Months>
-    //     </YearsWithPriorCarrier>
-    //     <YearsWithContinuousCoverage>
-    //       <Years>0</Years>
-    //       <Months>3</Months>
-    //     </YearsWithContinuousCoverage>
-    //     <PriorLiabilityLimit>100/300</PriorLiabilityLimit>
-    //   </PriorPolicyInfo>
-    //   <PolicyInfo>
-    //     <PolicyTerm>6 Month</PolicyTerm>
-    //     <Package>No</Package>
-    //     <Effective>2015-09-11</Effective>
-    //     <CreditCheckAuth>Yes</CreditCheckAuth>
-    //   </PolicyInfo>
-    //   <ResidenceInfo>
-    //     <CurrentAddress>
-    //       <YearsAtCurrent>
-    //         <Years>3</Years>
-    //         <Months>0</Months>
-    //       </YearsAtCurrent>
-    //       <Ownership>Apartment</Ownership>
-    //     </CurrentAddress>
-    //   </ResidenceInfo>
-
+    dataFile += '<PriorPolicyInfo>';
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('Expiration', '2015-09-11');
+    dataFile += '<YearsWithPriorCarrier>';
+    dataFile += returnText('Years', '0');
+    dataFile += returnText('Months', '3');
+    dataFile += '</YearsWithPriorCarrier>';
+    dataFile += '<YearsWithContinuousCoverage>';
+    dataFile += returnText('Years', '0');
+    dataFile += returnText('Months', '3');
+    dataFile += '</YearsWithContinuousCoverage>';
+    dataFile += returnText('PriorLiabilityLimit', '100/300');    
+    dataFile += '</PriorPolicyInfo>';
+    dataFile += '<PolicyInfo>';
+    dataFile += returnText('PolicyTerm', '6 Month');
+    dataFile += returnText('Package', 'No');
+    dataFile += returnText('Effective', '2015-09-11');
+    dataFile += returnText('CreditCheckAuth', 'Yes');
+    dataFile += '</PolicyInfo>';
+    dataFile += '<ResidenceInfo>';
+    dataFile += '<CurrentAddress>';
+    dataFile += '<YearsAtCurrent>';
+    dataFile += returnText('Years', '3');
+    dataFile += returnText('Months', '0');
+    dataFile += '</YearsAtCurrent>';
+    dataFile += '</CurrentAddress>';
+    dataFile += '</ResidenceInfo>';
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
+    dataFile += returnText('PriorCarrier', 'Erie');
 
     //   <Coverages>
     //     <GeneralCoverage>
@@ -321,8 +329,8 @@ module.exports = {
 
     return dataObj;
   },
-//   returnAutoHomeData: async (client) => {
-//     const dataObj = {};
+  //   returnAutoHomeData: async (client) => {
+  //     const dataObj = {};
 
 
 //     return dataObj;
