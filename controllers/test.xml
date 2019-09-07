@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/auto/V200">
+  <Applicant>
+    <ApplicantType>Applicant</ApplicantType>
+    <PersonalInfo>
+      <Name>
+        <FirstName>Test</FirstName>
+        <LastName>User</LastName>
+      </Name>
+      <DOB>12/16/1993</DOB>
+      <Gender>Male</Gender>
+    </PersonalInfo>
+    <Address>
+      <AddressCode>StreetAddress</AddressCode>
+      <Addr1>
+        <StreetName>Humphreys Drive</StreetName>
+        <StreetNumber>216</StreetNumber>
+      </Addr1>
+      <City>Rising Sun-Lebanon</City>
+      <StateCode>DE</StateCode>
+      <Zip5>19934</Zip5>
+      <Phone>
+        <PhoneType>Home</PhoneType>
+        <PhoneNumber>3026075611</PhoneNumber>
+      </Phone>
+      <Email>test@email.com</Email>
+    </Address>
+  </Applicant>
+</EZAUTO>
