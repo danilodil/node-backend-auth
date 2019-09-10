@@ -6,67 +6,116 @@ const request = require('request-promise');
 const Boom = require('boom');
 const base64 = require('base-64');
 const format = require('xml-formatter');
-const stringSimilarity = require('string-similarity');
-const convert = require('xml-js');
+const jsonxml = require('jsontoxml');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
-const ezHelper = require('./helpers/ezlynx');
 
 module.exports = {
   createContact: async (req, res, next) => {
     try {
       const { username } = req.body.decoded_vendor;
 
-      const type = req.params.type;
-      const client = req.body.client;
+      if (req.body.runBoth) {
+        const homeData = req.body.homeData;
+        const homeXmlData = jsonxml(homeData);
 
-      let data = '';
-      if (type === 'auto') {
-        data = await ezHelper.returnAutoData(client);
-      } else if (type === 'home') {
-        data = await ezHelper.returnHomeData(client);
-      } else if (type === 'commercial') {
-        // data = await ezHelper.returnCommercialData(client);
+        const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
+        const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
+
+        console.log('HOME DATA ###', homeXml_body);
+
+        const home_encodedData = base64.encode(homeXml_body);
+
+        const home_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
+        const home_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="4"><v100:FileData Name="EZHome" MimeType="text/xml">`;
+        const home_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
+        const home_xml_string = home_xml_authentication_header.concat(home_xml_soap_body_opens, home_encodedData, home_xml_soap_body_close);
+
+        const home_options = {
+          method: 'POST',
+          url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
+          qs: { WSDL: '' },
+          headers:
+               {
+                 SOAPAction: 'http://tempuri.org/UploadFile',
+                 'Content-Type': 'text/xml',
+               },
+          body: home_xml_string,
+        };
+
+        const homeResponse = await request(home_options);
+
+        // let newHomeResponse;
+
+        if (homeResponse.includes('Failed')) {
+          newHomeResponse = 'Failed';
+        } else {
+          newHomeResponse = 'Succeeded';
+        }
+
+        let homeUrl = 'Upload Failed';
+
+        if (homeResponse && homeResponse.includes('Succeeded') && homeResponse.match(/<URL>(.*)<\/URL>/)) {
+          homeUrl = homeResponse.match(/<URL>(.*)<\/URL>/)[1];
+        }
+
+        console.log(homeResponse);
+
+        const autoData = req.body.autoData;
+
+        const autoXmlData = jsonxml(autoData);
+
+        const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
+        const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
+
+        const auto_encodedData = base64.encode(autoXml_body);
+
+        const auto_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
+        const auto_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="4"><v100:FileData Name="EZAuto" MimeType="text/xml">`;
+        const auto_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
+        const auto_xml_string = auto_xml_authentication_header.concat(auto_xml_soap_body_opens, auto_encodedData, auto_xml_soap_body_close);
+
+        const auto_options = {
+          method: 'POST',
+          url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
+          qs: { WSDL: '' },
+          headers:
+               {
+                 SOAPAction: 'http://tempuri.org/UploadFile',
+                 'Content-Type': 'text/xml',
+               },
+          body: auto_xml_string,
+        };
+
+        const autoResponse = await request(auto_options);
+
+        let newAutoResponse;
+
+        if (autoResponse.includes('Failed')) {
+          newAutoResponse = 'Failed';
+        } else {
+          newAutoResponse = 'Succeeded';
+        }
+
+        let autoUrl = 'Upload Failed';
+
+        if (autoResponse && autoResponse.includes('Succeeded') && autoResponse.match(/<URL>(.*)<\/URL>/)) {
+          autoUrl = autoResponse.match(/<URL>(.*)<\/URL>/)[1];
+        }
+
+        console.log(autoResponse);
+
+        req.session.data = {
+          title: 'Contact created successfully',
+          auto: { response: autoResponse, url: autoUrl },
+          home: { response: homeResponse, url: homeUrl },
+          body: newAutoResponse,
+        };
+        return next();
       }
+      const data = req.body.data;
 
-      if (data === '') {
-        return next(Boom.badRequest('Error creating EZLynx file. Type not supplied or error parsing client'));
-      }
-
-      const newData = `<Applicant>
-      <ApplicantType>Applicant</ApplicantType>
-      <PersonalInfo>
-        <Name>
-          <FirstName>Test</FirstName>
-          <LastName>User</LastName>
-        </Name>
-        <DOB>12/16/1993</DOB>
-        <Gender>Male</Gender>
-      </PersonalInfo>
-      <Address>
-        <AddressCode>StreetAddress</AddressCode>
-        <Addr1>
-          <StreetName>Humphreys Drive</StreetName>
-          <StreetNumber>216</StreetNumber>
-        </Addr1>
-        <City>Rising Sun-Lebanon</City>
-        <StateCode>DE</StateCode>
-        <Zip5>19934</Zip5>
-        <Phone>
-          <PhoneType>Home</PhoneType>
-          <PhoneNumber>3026075611</PhoneNumber>
-        </Phone>
-        <Email>test@email.com</Email>
-      </Address>
-    </Applicant>`;
-
-      const jsXML = convert.xml2js(newData);
-
-      console.log(jsXML);
-
-      const xmlData = convert.js2xml(jsXML);
-
-      console.log(xmlData);
+      const xmlData = jsonxml(data);
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
       const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
@@ -80,18 +129,15 @@ module.exports = {
       const xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
       const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
 
-      console.log(xml_string);
-
-
       const options = {
         method: 'POST',
         url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
         qs: { WSDL: '' },
         headers:
-             {
-               SOAPAction: 'http://tempuri.org/UploadFile',
-               'Content-Type': 'text/xml',
-             },
+               {
+                 SOAPAction: 'http://tempuri.org/UploadFile',
+                 'Content-Type': 'text/xml',
+               },
         body: xml_string,
       };
 
