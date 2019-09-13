@@ -9,7 +9,7 @@ module.exports = {
       const options = {
         method: 'POST',
         url: `${appConstant.UPLOAD_PATH}/${req.body.decoded_vendor.username}`,
-        body: JSON.stringify(req.body.Contact),
+        body: JSON.stringify(req.body.data),
         headers: {
           'content-type': 'text/plain',
           'webpassword': req.body.decoded_vendor.password
@@ -24,7 +24,7 @@ module.exports = {
       } else {
         newResponse = 'Succeeded';
       }
-
+      
       req.session.data = {
         title: 'Contact created successfully',
         body: newResponse,
