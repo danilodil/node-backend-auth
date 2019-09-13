@@ -5,7 +5,7 @@ const quoteRushController = require('../controllers/quoteRush');
 
 const router = express.Router();
 
-router.put('/contact/:type', asyncHandler(async (req, res, next) => {
+router.post('/contact/:type', asyncHandler(async (req, res, next) => {
   await quoteRushController.createContact(req, res, next);
 }));
 

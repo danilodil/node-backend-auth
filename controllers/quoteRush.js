@@ -1,25 +1,40 @@
 const request = require('request-promise');
 const Boom = require('boom');
-const base64 = require('base-64');
-const jsonxml = require('jsontoxml');
-const format = require('xml-formatter');
-const stringSimilarity = require('string-similarity');
-const configConstant = require('../constants/configConstants').CONFIG;
-const appConstant = require('../constants/appConstant').ezLynx;
+const appConstant = require('../constants/appConstant').quoteRush;
 
 
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const { username } = req.body.decoded_vendor;
-      console.log('username', username)
+      const options = {
+        method: 'POST',
+        url: `${appConstant.UPLOAD_PATH}/${req.body.decoded_vendor.username}`,
+        body: JSON.stringify(req.body.Contact),
+        headers: {
+          'content-type': 'text/plain',
+          'webpassword': req.body.decoded_vendor.password
+        },
+      };
+
+      const response = await request(options);
+      let newResponse;
+
+      if (response.includes('Failed')) {
+        newResponse = 'Failed';
+      } else {
+        newResponse = 'Succeeded';
+      }
+
       req.session.data = {
-        title: 'Contact created successfully'
+        title: 'Contact created successfully',
+        body: newResponse,
+        fullBody: response,
+        json: req.body.Contact,
       };
       return next();
     } catch (error) {
-        console.error(error);
-        return next(Boom.badRequest('Error creating contact'));
+      console.error('in quoterush', error);
+      return next(Boom.badRequest('Error creating contact'));
     }
   }
 }
