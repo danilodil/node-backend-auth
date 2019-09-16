@@ -24,7 +24,7 @@ module.exports = {
       } else {
         newResponse = 'Succeeded';
       }
-      
+
       req.session.data = {
         title: 'Contact created successfully',
         body: newResponse,
@@ -33,7 +33,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      console.error('in quoterush', error);
       return next(Boom.badRequest('Error creating contact'));
     }
   }
