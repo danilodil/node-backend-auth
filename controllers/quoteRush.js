@@ -20,7 +20,8 @@ module.exports = {
       let newResponse;
 
       if (response.includes('Failed')) {
-        newResponse = 'Failed';
+        throw new Error(response);
+       // newResponse = 'Failed';
       } else {
         newResponse = 'Succeeded';
       }
@@ -29,7 +30,7 @@ module.exports = {
         title: 'Contact created successfully',
         body: newResponse,
         fullBody: response,
-        json: req.body.Contact,
+        json: req.body.data,
       };
       return next();
     } catch (error) {
