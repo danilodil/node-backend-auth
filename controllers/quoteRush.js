@@ -17,7 +17,6 @@ module.exports = {
       };
 
       const response = await request(options);
-      console.log(response);
       let newResponse;
 
       if (response.includes('Failed')) {
