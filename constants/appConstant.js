@@ -71,3 +71,7 @@ exports.erieRater = {
   LOGIN_URL: 'https://www.agentexchange.com/',
   CUSTOMER_URL: 'https://www.agentexchange.com/Customer/PA',
 };
+
+exports.quoteRush = {
+  UPLOAD_PATH: 'https://quoterush.com/Importer/Json/Import',
+};
