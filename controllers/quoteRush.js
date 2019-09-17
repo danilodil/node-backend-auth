@@ -12,16 +12,17 @@ module.exports = {
         body: JSON.stringify(req.body.data),
         headers: {
           'content-type': 'text/plain',
-          'webpassword': req.body.decoded_vendor.password
+          webpassword: req.body.decoded_vendor.password,
         },
       };
 
       const response = await request(options);
+      console.log(response);
       let newResponse;
 
       if (response.includes('Failed')) {
         throw new Error(response);
-       // newResponse = 'Failed';
+        // newResponse = 'Failed';
       } else {
         newResponse = 'Succeeded';
       }
@@ -36,5 +37,5 @@ module.exports = {
     } catch (error) {
       return next(Boom.badRequest('Error creating contact'));
     }
-  }
-}
+  },
+};
