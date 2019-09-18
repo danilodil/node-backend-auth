@@ -79,5 +79,5 @@ exports.quoteRush = {
 exports.turborater = { 
   UPLOAD_PATH: 'http://preview.agencybuzz.com/leads/leadhandler.ashx',
   UPLOAD_PATH_DEV: 'http://preview.agencybuzz.com/leads/leadhandler.ashx',
-  ACC_NUM: 'XILO11' 
+  ACC_NUM: 'XILO11'
 }
