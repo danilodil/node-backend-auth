@@ -56,6 +56,10 @@ module.exports = {
         },
       };
 
+      if (params.agentId) {
+        findObject.where.agentId = params.agentId;
+      }
+
       const vendor = await vendorModel.findOne(findObject);
 
       if (!vendor) {
@@ -67,6 +71,7 @@ module.exports = {
           salesforceAT: params.salesforceAT || '',
           state: params.state,
           carrier: params.carrier,
+          agentId: params.agentId,
         });
 
         req.session.data = {
@@ -83,8 +88,9 @@ module.exports = {
         password: params.password ? params.password : vendor.password,
         companyId: vendor.companyId,
         salesforceAT: params.salesforceAT ? params.salesforceAT : vendor.salesforceAT,
-        state: vendor.state,
-        carrier: vendor.carrier,
+        state: params.state ? params.state : vendor.state,
+        carrier: params.carrier ? params.carrier : vendor.carrier,
+        agentId: params.agentId ? params.agentId : vendor.agentId,
       });
 
       req.session.data = {
