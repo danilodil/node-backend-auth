@@ -5,6 +5,7 @@ const format = require('xml-formatter');
 const jsonxml = require('jsontoxml');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').turborater;
+const convert = require('xml-js');
 
 module.exports = {
   createContact: async (req, res, next) => {
@@ -81,6 +82,8 @@ module.exports = {
           body: body_req,
         };
         const response = await request(options);
+        const json = convert.xml2json(response, {compact: true, spaces: 1});
+
         console.log('response', response);
         let newResponse;
 
