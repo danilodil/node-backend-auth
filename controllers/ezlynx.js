@@ -18,7 +18,12 @@ module.exports = {
 
       if (req.body.runBoth) {
         const homeData = req.body.homeData;
-        const homeXmlData = js2xmlparser('', homeData);
+        let homeXmlData = js2xmlparser
+          .parse('root', homeData)
+          .split('\n');
+        homeXmlData.splice(0, 2);
+        homeXmlData.splice(-1, 1);
+        homeXmlData = homeXmlData.join('\n');
 
         const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
         const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
