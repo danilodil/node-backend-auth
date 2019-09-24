@@ -7,6 +7,7 @@ const Boom = require('boom');
 const base64 = require('base-64');
 const format = require('xml-formatter');
 const jsonxml = require('jsontoxml');
+const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
 
@@ -17,7 +18,12 @@ module.exports = {
 
       if (req.body.runBoth) {
         const homeData = req.body.homeData;
-        const homeXmlData = jsonxml(homeData);
+        let homeXmlData = js2xmlparser
+          .parse('root', homeData)
+          .split('\n');
+        homeXmlData.splice(0, 2);
+        homeXmlData.splice(-1, 1);
+        homeXmlData = homeXmlData.join('\n');
 
         const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
         const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
@@ -115,7 +121,19 @@ module.exports = {
       }
       const data = req.body.data;
 
-      const xmlData = jsonxml(data);
+      let xmlData;
+
+      if (req.body.type === 'auto') {
+        xmlData = jsonxml(data);
+      } else {
+        xmlData = js2xmlparser
+          .parse('root', data)
+          .split('\n');
+        xmlData.splice(0, 2);
+        xmlData.splice(-1, 1);
+        xmlData = xmlData.join('\n');
+      }
+
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
       const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);

@@ -73,7 +73,7 @@ exports.erieRater = {
 };
 
 exports.quoteRush = {
-  UPLOAD_PATH: 'https://quoterush.com/Importer/Json/Import'
+  UPLOAD_PATH: 'https://quoterush.com/Importer/Json/Import',
 };
 
 exports.turborater = { 
