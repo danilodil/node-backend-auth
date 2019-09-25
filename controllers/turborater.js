@@ -47,17 +47,22 @@ module.exports = {
         };
         const autoResponse = await request(auto_options);
 
-        const jsonHomeResponse = convert.xml2json(homeResponse, {compact: false, spaces: 1});
-        const jsonAutoResponse = convert.xml2json(autoResponse, {compact: false, spaces: 1});
+        const jsonHomeResponse = convert.xml2json(homeResponse, {compact: true, spaces: 0});
+        const jsonAutoResponse = convert.xml2json(autoResponse, {compact: true, spaces: 0});
+        const parseHomeRes = JSON.parse(jsonHomeResponse);
+        const parseAutoRes = JSON.parse(jsonAutoResponse);
 
-        // if ((jsonHomeResponse.Result._text !== 'OK' || jsonHomeResponse.ErrorCode._text !== 0) && (jsonAutoResponse.Result._text !== 'OK' || jsonAutoResponse.ErrorCode._text !== 0)) {
-        //   throw new Error(`Home Error ${jsonHomeResponse.Result._text} && Auto Error ${jsonAutoResponse.Result._text}`);
-        // }
+        if ((parseHomeRes.LeadResponseResult.Result._text !== 'OK' || parseHomeRes.LeadResponseResult.ErrorCode._text !== '0') && (parseAutoRes.LeadResponseResult.Result._text !== 'OK' || parseAutoRes.LeadResponseResult.ErrorCode._text !== '0')) {
+          throw {
+            errorCode: parseHomeRes.LeadResponseResult.ErrorCode._text,
+            description: `Home Error ${parseHomeRes.LeadResponseResult.ErrorDescription._text} && Auto Error ${parseAutoRes.LeadResponseResult.ErrorDescription._text}`
+          };
+        }
 
         req.session.data = {
           title: 'Contact created successfully',
-          autoResponse: jsonAutoResponse,
-          homeResponse: jsonHomeResponse,
+          autoResponse: parseAutoRes,
+          homeResponse: parseHomeRes,
         };
       } else {
         const xmlData = jsonxml(req.body.data);
@@ -75,10 +80,14 @@ module.exports = {
           body: body_req,
         };
         const response = await request(options);
-        const jsonresponse = convert.xml2json(response, {compact: true, spaces: 4});
-        // if (jsonresponse.Result._text !== 'OK' || jsonresponse.ErrorCode._text !== 0) {
-        //   throw new Error(jsonresponse.Result._text);
-        // }
+        const jsonresponse = convert.xml2json(response, {compact: true, spaces: 0});
+        const parseResponse = JSON.parse(jsonresponse);
+        if (parseResponse.LeadResponseResult.Result._text !== 'OK' || parseResponse.LeadResponseResult.ErrorCode._text !== '0') {
+          throw {
+            errorCode: parseResponse.LeadResponseResult.ErrorCode._text,
+            description: parseResponse.LeadResponseResult.ErrorDescription._text
+          };
+        }
 
         req.session.data = {
           title: 'Contact created successfully',
@@ -89,8 +98,11 @@ module.exports = {
       }
       return next();
     } catch (error) {
-      console.error('### Error Turborater', error);
-      return next(Boom.badRequest('Error creating contact'));
+      let errorMessage = 'Error creating contact';
+      if (error.errorCode == '64') {
+        errorMessage = error.description;
+      }
+      return next(Boom.badRequest(errorMessage));
     }
   },
 };
