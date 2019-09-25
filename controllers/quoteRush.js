@@ -34,6 +34,7 @@ module.exports = {
       };
       return next();
     } catch (error) {
+      console.log('###ERROR###', error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
