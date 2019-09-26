@@ -5,7 +5,7 @@ const format = require('xml-formatter');
 const jsonxml = require('jsontoxml');
 const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
-const appConstant = require('../constants/appConstant').ezLynx;
+// const appConstant = require('../constants/appConstant').ezLynx;
 
 const self = module.exports = {
   getToken: async (username, password) => {
@@ -29,7 +29,7 @@ const self = module.exports = {
       return response;
     } catch (error) {
       console.log('Error at Cabrillo token : ', error.stack);
-      return next(Boom.badRequest('Failed to retrieved Cabrillo Token.'));
+      throw new Error('Failed to retrieved Cabrillo Token.');
     }
   },
 
@@ -69,7 +69,7 @@ const self = module.exports = {
         };
         return next();
     } catch (error) {
-      console.log('ERROR ###', error)
+      console.log('ERROR ###', JSON.stringify(error));
       return next(Boom.badRequest('Error creating contact'));
     }
   },
