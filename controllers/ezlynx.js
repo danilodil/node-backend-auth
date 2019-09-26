@@ -123,15 +123,17 @@ module.exports = {
 
       let xmlData;
 
-      if (req.body.type === 'auto') {
+      if (req.params.type === 'Auto') {
         xmlData = jsonxml(data);
-      } else {
+      } else if (req.params.type === 'Home') {
         xmlData = js2xmlparser
           .parse('root', data)
           .split('\n');
         xmlData.splice(0, 2);
         xmlData.splice(-1, 1);
         xmlData = xmlData.join('\n');
+      } else {
+        return next(Boom.badRequest('Error creating ez contact. Incorrect type'));
       }
 
 
