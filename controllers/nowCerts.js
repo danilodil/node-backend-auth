@@ -1,4 +1,5 @@
-/* eslint-disable no-inner-declarations, consistent-return, no-console, no-param-reassign, no-use-before-define */
+/* eslint-disable no-inner-declarations, consistent-return, no-console,
+ no-param-reassign, no-use-before-define */
 
 const request = require('request-promise');
 const Boom = require('boom');
@@ -10,13 +11,12 @@ module.exports = {
     try {
       const { username, password } = req.body.decoded_vendor;
       const params = req.body.autoData;
-      let authResponse;
-      let insuredResponse;
 
-      await authenticate();
-      await insured();
-      await drivers();
-      await vehicles();
+      const authResponse = await authenticate();
+      const insuredResponse = await insured();
+      const driverResponse = await drivers();
+      const vehicleResponse = await vehicles();
+      const propertyResponse = await property();
 
       async function authenticate() {
         try {
@@ -27,7 +27,8 @@ module.exports = {
             body: authData,
           };
           const response = await request(options).catch(error => next(error));
-          authResponse = JSON.parse(response);
+          const authRes = JSON.parse(response);
+          return authRes;
         } catch (error) {
           return next(error);
         }
@@ -42,7 +43,8 @@ module.exports = {
             body: params.data.insured,
             json: true,
           };
-          insuredResponse = await request(options).catch(error => next(error));
+          const response = await request(options).catch(error => next(error));
+          return response;
         } catch (error) {
           return next(error);
         }
@@ -63,8 +65,8 @@ module.exports = {
             json: true,
           };
 
-          const driverResponse = await request(options).catch(error => next(error));
-          return driverResponse;
+          const response = await request(options).catch(error => next(error));
+          return response;
         } catch (error) {
           return next(error);
         }
@@ -85,18 +87,40 @@ module.exports = {
             json: true,
           };
 
-          const vehicleResponse = await request(options).catch(error => next(error));
-          if (vehicleResponse) {
-            req.session.data = {
-              title: 'Contact created successfully',
-              obj: vehicleResponse,
-            };
-            return next();
-          }
+          const vehicleRes = await request(options).catch(error => next(error));
+          return vehicleRes;
         } catch (error) {
           return next(error);
         }
       }
+
+      async function property() {
+        try {
+          params.data.propertyData.insured_database_id = insuredResponse.insuredDatabaseId;
+          const options = {
+            method: 'POST',
+            url: appConstant.PROPERTY_URL,
+            headers: { Authorization: `${authResponse.token_type} ${authResponse.access_token}` },
+            body: params.data.propertyData,
+            json: true,
+          };
+
+          const propertyRes = await request(options).catch(error => next(error));
+          return propertyRes;
+        } catch (error) {
+          return next(error);
+        }
+      }
+
+      req.session.data = {
+        title: 'Contact created successfully',
+        authResponse,
+        insuredResponse,
+        driverResponse,
+        vehicleResponse,
+        propertyResponse,
+      };
+      return next();
     } catch (error) {
       return next(Boom.badRequest('Failed to contact'));
     }

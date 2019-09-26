@@ -81,5 +81,5 @@ exports.nowCerts = {
   DRIVERS_URL: 'https://api.nowcerts.com/api/Driver/BulkInsertDriver',
   VEHICLES_URL: 'https://api.nowcerts.com/api/Vehicle/BulkInsertVehicle',
   INSURED_URL: 'https://api.nowcerts.com/api/Insured/Insert',
-  PROSPECT_URL: 'https://api.nowcerts.com/api/Zapier/InsertProspect',
+  PROPERTY_URL: 'https://api.nowcerts.com/api/Property/InsertOrUpdate',
 };
