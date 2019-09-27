@@ -6,11 +6,12 @@ const jsonxml = require('jsontoxml');
 const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
 // const appConstant = require('../constants/appConstant').ezLynx;
+const convert = require('xml-js');
 
 const self = module.exports = {
   getToken: async (username, password) => {
     try {
-      const data = `grant_type=password&username=${username}&password=${password}&client_id=cabgen2`;
+      const data = `grant_type=cr&username=${username}&password=${password}&vendor=XO&api_key=05a156a5ffc24a388352b90b8f339f54`;
       const options = {
         method: 'post',
         body: data,
@@ -40,9 +41,8 @@ const self = module.exports = {
 
       const xmlHead = '<?xml version="1.0" encoding="utf-8"?>';
       const xmlBody = xmlHead.concat(quoteData);
-      console.log('xml request', xmlBody);
+      console.log('json request', JSON.stringify(req.body.data));
       const encodedData = base64.encode(xmlBody);
-
         const data = {
           Quote: encodedData,
           Vendor: 'XO',
@@ -69,7 +69,8 @@ const self = module.exports = {
         };
         return next();
     } catch (error) {
-      console.log('ERROR ###', JSON.stringify(error));
+      // const jsonresponse = convert.xml2json(error.body, {compact: true, spaces: 0});
+      console.log('ERROR ###', error.message);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
