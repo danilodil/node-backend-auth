@@ -37,11 +37,12 @@ const self = module.exports = {
   createContact: async (req, res, next) => {
     try {
       const token = await self.getToken(req.body.decoded_vendor.username, req.body.decoded_vendor.password);
-      const quoteData = jsonxml(req.body.data);
-
       const xmlHead = '<?xml version="1.0" encoding="utf-8"?>';
+      console.log('requested Data ####################', JSON.stringify(req.body.data));
+      const quoteData = jsonxml(req.body.data);
+      console.log('requested Xml ####################', quoteData);
+
       const xmlBody = xmlHead.concat(quoteData);
-      console.log('json request', JSON.stringify(req.body.data));
       const encodedData = base64.encode(xmlBody);
         const data = {
           Quote: encodedData,
