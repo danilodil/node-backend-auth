@@ -98,6 +98,7 @@ module.exports = {
       }
       return next();
     } catch (error) {
+      console.log('TURBORATER ERROR ##', error);
       let errorMessage = 'Error creating contact';
       if (error.errorCode == '64') {
         errorMessage = error.description;
