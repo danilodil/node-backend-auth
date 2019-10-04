@@ -113,7 +113,7 @@ module.exports = {
           companyId,
           clientId,
           succeeded: true,
-          productType: req.body.productType.toUpperCase(),
+          productType: req.body.productType,
         },
         attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'productType'],
       };
