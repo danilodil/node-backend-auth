@@ -12,9 +12,14 @@ const router = express.Router();
 //   raterController.saveRating,
 // ]);
 
-router.put('/safeco', [
+router.put('/safecoAuto', [
   raterController.getOneByName,
-  safecoRaterController.addToQueue,
+  safecoRaterController.addToAutoQueue,
+]);
+
+router.put('/safecoHome', [
+  raterController.getOneByName,
+  safecoRaterController.addToHomeQueue,
 ]);
 
 module.exports = router;
