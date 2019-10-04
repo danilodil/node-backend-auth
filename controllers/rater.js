@@ -89,6 +89,10 @@ module.exports = {
     console.log(`${req.body.vendorName}: Inside Get Best Rate`);
     try {
       const currentUser = req.body.decoded_user;
+      if (!req.body.productType) {
+        return next(Boom.badRequest('Product type required'));
+      }
+
       let companyId = null;
       let clientId = null;
       if (currentUser.user) {
@@ -109,8 +113,9 @@ module.exports = {
           companyId,
           clientId,
           succeeded: true,
+          productType: req.body.productType.toUpperCase(),
         },
-        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'productType'],
       };
 
       const raterData = await Rater.findAll(newRater);
@@ -167,6 +172,10 @@ module.exports = {
         attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'quoteIds'],
       };
 
+      if (req.body.productType) {
+        newRater.where.productType = params.productType;
+      }
+
       const raterData = await Rater.findOne(newRater);
 
       if (raterData) {
@@ -214,6 +223,10 @@ module.exports = {
         },
       };
 
+      if (req.body.productType) {
+        existRater.where.productType = req.body.productType;
+      }
+
       const raterData = await Rater.findOne(existRater);
       /* create new rater result */
       const isSucceeded = !!((res.status && res.totalPremium));
@@ -230,6 +243,7 @@ module.exports = {
           quoteId: res.quoteId || null,
           quoteIds: res.quoteIds || null,
           stepResult: res.stepResult || null,
+          productType: req.body.productType || null,
         };
         await Rater.create(newRater);
         console.log(`${req.body.vendorName} Rater Created`);

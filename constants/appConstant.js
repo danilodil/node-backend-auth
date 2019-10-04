@@ -56,6 +56,7 @@ exports.safecoRater = {
   NEW_QUOTE_START_URL: 'https://now.agent.safeco.com/start/',
   NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
   NEW_QUOTE_START_AUTO_URL: 'https://safesite.safeco.com/personal/auto/policyinfo.aspx',
+  NEW_QUOTE_START_HOME_URL: 'https://safesite.safeco.com/personal/Home/policyinfo.aspx',
   EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
 };
 
