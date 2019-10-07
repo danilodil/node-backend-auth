@@ -10,7 +10,7 @@ router.get('/', [vendorPassport], asyncHandler(async (req, res, next) => {
   await rater.getBestRating(req, res, next);
 }));
 
-router.post('/filter', asyncHandler(async (req, res, next) => {
+router.get('/:clientId', asyncHandler(async (req, res, next) => {
   await rater.getRateByClientId(req, res, next);
 }));
 

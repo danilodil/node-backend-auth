@@ -272,10 +272,9 @@ module.exports = {
     }
   },
   getRateByClientId: async (req, res, next) => {
-
     const newRater = {
       where: {
-        clientId: req.body.clientId,
+        clientId: req.params.clientId,
         succeeded: true,
       },
     };

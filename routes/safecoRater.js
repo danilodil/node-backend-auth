@@ -2,8 +2,6 @@ const express = require('express');
 
 const safecoRaterController = require('../controllers/safecoRater');
 const raterController = require('../controllers/rater');
-const vendorPassport = require('../lib/passport/vendor-passport');
-
 
 const router = express.Router();
 
@@ -13,12 +11,12 @@ const router = express.Router();
 //   raterController.saveRating,
 // ]);
 
-router.put('/safecoAuto', [vendorPassport], [
+router.put('/safecoAuto', [
   raterController.getOneByName,
   safecoRaterController.addToAutoQueue,
 ]);
 
-router.put('/safecoHome', [vendorPassport], [
+router.put('/safecoHome', [
   raterController.getOneByName,
   safecoRaterController.addToHomeQueue,
 ]);
