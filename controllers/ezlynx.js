@@ -16,6 +16,18 @@ module.exports = {
     try {
       const { username } = req.body.decoded_vendor;
 
+      function returnXmlWithCoApplicant(data) {
+        const coAppObj = { Applicant: data.CoApplicant };
+        const coAppString = jsonxml(coAppObj);
+        delete data.CoApplicant;
+        const xmlString = jsonxml(data);
+        if (xmlString.includes('</Applicant>')) {
+          const newXmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
+          return newXmlString;
+        }
+        return xmlString;
+      }
+
       if (req.body.runBoth) {
         const homeData = req.body.homeData;
         let homeXmlData = js2xmlparser
@@ -69,7 +81,11 @@ module.exports = {
 
         const autoData = req.body.autoData;
 
-        const autoXmlData = jsonxml(autoData);
+        let autoXmlData = jsonxml(autoData);
+
+        if (autoData.CoApplicant) {
+          autoXmlData = returnXmlWithCoApplicant(autoData);
+        }
 
         const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
         const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
@@ -125,6 +141,9 @@ module.exports = {
 
       if (req.params.type === 'Auto') {
         xmlData = jsonxml(data);
+        if (data.CoApplicant) {
+          xmlData = returnXmlWithCoApplicant(data);
+        }
       } else if (req.params.type === 'Home') {
         xmlData = js2xmlparser
           .parse('root', data)
