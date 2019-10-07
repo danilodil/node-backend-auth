@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const passport = require('../lib/passport');
+const passport = require('../lib/passport/index');
 
 const ezlynxIntegration = require('./ezlynx');
 const progressiveRater = require('./progressiveRater');

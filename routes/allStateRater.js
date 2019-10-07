@@ -3,7 +3,6 @@ const express = require('express');
 const allStateController = require('../controllers/allStateRater');
 const raterController = require('../controllers/rater');
 
-
 const router = express.Router();
 
 router.put('/allState/', [

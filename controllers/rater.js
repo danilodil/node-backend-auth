@@ -271,4 +271,18 @@ module.exports = {
       console.log(`${req.body.vendorName} Error Saving Rate: `, error);
     }
   },
+  getRateByClientId: async (req, res, next) => {
+    const newRater = {
+      where: {
+        clientId: req.params.clientId,
+        succeeded: true,
+      },
+    };
+    const raterData = await Rater.findAll(newRater);
+    if (!raterData) {
+      return next(Boom.badRequest('Error retrieving rate'));
+    }
+    req.session.data = raterData;
+    return next();
+  },
 };
