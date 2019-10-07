@@ -25,7 +25,7 @@ router.use('/cseRater', [passport], cseRater);
 router.use('/salesforce', [passport], salesforce);
 router.use('/vendor', vendor);
 router.use('/nationalRater', [passport], nationalRater);
-router.use('/rate', [passport], rater);
+router.use('/rate', rater);
 router.use('/safecoRater', [passport], safecoRater);
 router.use('/allStateRater', [passport], allStateRater);
 router.use('/travelerRater', [passport], travelerRater);
