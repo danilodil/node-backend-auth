@@ -1,12 +1,12 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
-const passport = require('../lib/passport');
+const vendorPassport = require('../lib/passport/vendor-passport');
 
 const rater = require('../controllers/rater');
 
 const router = express.Router();
 
-router.get('/', [passport], asyncHandler(async (req, res, next) => {
+router.get('/', [vendorPassport], asyncHandler(async (req, res, next) => {
   await rater.getBestRating(req, res, next);
 }));
 

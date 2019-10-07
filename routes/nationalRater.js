@@ -2,6 +2,7 @@ const express = require('express');
 
 const nationalRaterController = require('../controllers/nationalRater');
 const raterController = require('../controllers/rater');
+const vendorPassport = require('../lib/passport/vendor-passport');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 //   raterController.saveRating,
 // ]);
 
-router.put('/national', [
+router.put('/national', [vendorPassport], [
   raterController.getOneByName,
   nationalRaterController.addToQueue,
 ]);

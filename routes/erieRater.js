@@ -2,6 +2,7 @@ const express = require('express');
 
 const erieRater = require('../controllers/erieRater');
 const raterController = require('../controllers/rater');
+const vendorPassport = require('../lib/passport/vendor-passport');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 //   raterController.saveRating,
 // ]);
 
-router.put('/erie/', [
+router.put('/erie/', [vendorPassport], [
   raterController.getOneByName,
   erieRater.addToQueue,
 ]);
