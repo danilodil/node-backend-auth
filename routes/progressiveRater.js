@@ -2,7 +2,6 @@ const express = require('express');
 
 const progressiveRaterController = require('../controllers/progressiveRater');
 const raterController = require('../controllers/rater');
-const vendorPassport = require('../lib/passport/vendor-passport');
 
 const router = express.Router();
 
@@ -12,7 +11,7 @@ const router = express.Router();
 //   raterController.saveRating,
 // ]);
 
-router.put('/progressive', [vendorPassport], [
+router.put('/progressive', [
   raterController.getOneByName,
   progressiveRaterController.addToQueue,
 ]);
