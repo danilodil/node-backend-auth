@@ -77,6 +77,11 @@ exports.quoteRush = {
   UPLOAD_PATH: 'https://quoterush.com/Importer/Json/Import',
 };
 
+exports.turborater = {
+  UPLOAD_PATH: 'https://www.inscontact.com/leads/leadhandler.ashx',
+  UPLOAD_PATH_DEV: 'http://preview.agencybuzz.com/leads/leadhandler.ashx',
+  ACC_NUM: 'XILO11',
+};
 exports.nowCerts = {
   AUTHENTICATE_URL: 'https://api.nowcerts.com/api/token',
   DRIVERS_URL: 'https://api.nowcerts.com/api/Driver/BulkInsertDriver',
