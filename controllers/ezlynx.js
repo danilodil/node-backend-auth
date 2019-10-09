@@ -7,6 +7,7 @@ const Boom = require('boom');
 const base64 = require('base-64');
 const format = require('xml-formatter');
 const jsonxml = require('jsontoxml');
+const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
 
@@ -15,9 +16,26 @@ module.exports = {
     try {
       const { username } = req.body.decoded_vendor;
 
+      function returnXmlWithCoApplicant(data) {
+        const coAppObj = { Applicant: data.CoApplicant };
+        const coAppString = jsonxml(coAppObj);
+        delete data.CoApplicant;
+        const xmlString = jsonxml(data);
+        if (xmlString.includes('</Applicant>')) {
+          const newXmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
+          return newXmlString;
+        }
+        return xmlString;
+      }
+
       if (req.body.runBoth) {
         const homeData = req.body.homeData;
-        const homeXmlData = jsonxml(homeData);
+        let homeXmlData = js2xmlparser
+          .parse('root', homeData)
+          .split('\n');
+        homeXmlData.splice(0, 2);
+        homeXmlData.splice(-1, 1);
+        homeXmlData = homeXmlData.join('\n');
 
         const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
         const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
@@ -63,7 +81,11 @@ module.exports = {
 
         const autoData = req.body.autoData;
 
-        const autoXmlData = jsonxml(autoData);
+        let autoXmlData = jsonxml(autoData);
+
+        if (autoData.CoApplicant) {
+          autoXmlData = returnXmlWithCoApplicant(autoData);
+        }
 
         const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
         const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
@@ -115,7 +137,24 @@ module.exports = {
       }
       const data = req.body.data;
 
-      const xmlData = jsonxml(data);
+      let xmlData;
+
+      if (req.params.type === 'Auto') {
+        xmlData = jsonxml(data);
+        if (data.CoApplicant) {
+          xmlData = returnXmlWithCoApplicant(data);
+        }
+      } else if (req.params.type === 'Home') {
+        xmlData = js2xmlparser
+          .parse('root', data)
+          .split('\n');
+        xmlData.splice(0, 2);
+        xmlData.splice(-1, 1);
+        xmlData = xmlData.join('\n');
+      } else {
+        return next(Boom.badRequest('Error creating ez contact. Incorrect type'));
+      }
+
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
       const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
