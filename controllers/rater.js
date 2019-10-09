@@ -2,6 +2,7 @@
 
 const Boom = require('boom');
 const Rater = require('../models/rater');
+const appConstant = require('../constants/appConstant');
 
 module.exports = {
   saveRating: async (req, res, next) => {
@@ -275,14 +276,19 @@ module.exports = {
     const newRater = {
       where: {
         clientId: req.params.clientId,
-        succeeded: true,
       },
     };
-    const raterData = await Rater.findAll(newRater);
+    const raterData = await Rater.findAll(newRater, { attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'quoteIds', 'productType'] });
     if (!raterData) {
       return next(Boom.badRequest('Error retrieving rate'));
     }
-    req.session.data = raterData;
+    
+    const allraterData = raterData;
+    await allraterData.forEach((oneRater) => {
+      oneRater.dataValues.quoteUrl = appConstant.quoteUrl[oneRater.vendorName];
+      return oneRater;
+    });
+    req.session.data = allraterData;
     return next();
   },
 };
