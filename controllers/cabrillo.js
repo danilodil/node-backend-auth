@@ -39,8 +39,10 @@ const self = module.exports = {
       const token = await self.getToken(req.body.decoded_vendor.username, req.body.decoded_vendor.password);
       const xmlHead = '<?xml version="1.0" encoding="utf-8"?>';
       console.log('requested Data ####################', JSON.stringify(req.body.data));
-      const quoteData = jsonxml(req.body.data);
-      console.log('requested Xml ####################', quoteData);
+     // const quoteData = jsonxml(req.body.data);
+      var optionss = {compact: true, ignoreComment: true, spaces: 4};
+      var quoteData = convert.json2xml(req.body.data, optionss);
+      console.log('requested Xml data ####################', quoteData);
 
       const xmlBody = xmlHead.concat(quoteData);
       const encodedData = base64.encode(xmlBody);
