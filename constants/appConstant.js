@@ -90,6 +90,10 @@ exports.nowCerts = {
   PROPERTY_URL: 'https://api.nowcerts.com/api/Property/InsertOrUpdate',
 };
 
+exports.appulate = {
+  UPLOAD_API_URL: 'https://appulate.com/api/uplink/upload',
+};
+
 exports.quoteUrl = {
   PROGRESSIVE: 'https://www.foragentsonly.com/login/',
   CSECA: 'https://spinn.csespi.com/innovation',

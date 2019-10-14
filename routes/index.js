@@ -19,6 +19,7 @@ const erieRater = require('./erieRater');
 const quoteRushIntegration = require('./quoteRush');
 const turboraterIntegration = require('./turborater');
 const nowCertsIntegration = require('./nowCerts');
+const appulateIntegration = require('./appulate');
 
 router.use('/ezlynx', [passport], [vendorPassport], ezlynxIntegration);
 router.use('/qq', [passport], [vendorPassport], qqIntegration);
@@ -35,5 +36,6 @@ router.use('/erieRater', [passport], [vendorPassport], erieRater);
 router.use('/quote-rush', [passport], [vendorPassport], quoteRushIntegration);
 router.use('/turborater', [passport], [vendorPassport], turboraterIntegration);
 router.use('/nowCerts', [passport], [vendorPassport], nowCertsIntegration);
+router.use('/appulate', [passport], [vendorPassport], appulateIntegration);
 
 module.exports = router;
