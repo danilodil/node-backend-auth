@@ -5,7 +5,7 @@ const appulateController = require('../controllers/appulate');
 
 const router = express.Router();
 
-router.put('/upsert', asyncHandler(async (req, res, next) => {
+router.put('/upload', asyncHandler(async (req, res, next) => {
   await appulateController.createContact(req, res, next);
 }));
 
