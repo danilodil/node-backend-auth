@@ -14,7 +14,7 @@ module.exports = {
       }
       const options = {
         method: 'POST',
-        url: appConstant.UPLOAD_PATH,
+        url: appConstant.UPLOAD_API_URL,
         json: true,
         body: {
           Credentials: {

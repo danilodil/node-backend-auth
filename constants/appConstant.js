@@ -91,7 +91,7 @@ exports.nowCerts = {
 };
 
 exports.appulate = {
-  UPLOAD_PATH: 'https://appulate.com/api/uplink/upload',
+  UPLOAD_API_URL: 'https://appulate.com/api/uplink/upload',
 };
 
 exports.quoteUrl = {
