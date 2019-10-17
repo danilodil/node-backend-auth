@@ -1,12 +1,9 @@
 const request = require('request-promise');
 const Boom = require('boom');
 const base64 = require('base-64');
-const format = require('xml-formatter');
-const jsonxml = require('jsontoxml');
-const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
-// const appConstant = require('../constants/appConstant').ezLynx;
 const convert = require('xml-js');
+const { saveRatingFromJob } = require('./rater');
 
 const self = module.exports = {
   getToken: async (username, password) => {
@@ -35,6 +32,7 @@ const self = module.exports = {
   },
 
   createContact: async (req, res, next) => {
+    let resObj = {}
     try {
       const token = await self.getToken(req.body.decoded_vendor.username, req.body.decoded_vendor.password);
       const xmlHead = '<?xml version="1.0" encoding="utf-8"?>';
@@ -63,15 +61,30 @@ const self = module.exports = {
           options.url = "https://test.cabgen.com/agents/bridge/rate";
         }
         const response = await request(options);
+        const jsonresponse = JSON.parse(convert.xml2json(response, { compact: true, spaces: 4 }));
+        req.body.vendorName = req.body.decoded_vendor.vendorName;
+        const respObj = {
+          status: jsonresponse.Response.Status._text,
+          totalPremium: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.QuotedPremiumAmt._cdata,
+          downPayment: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.PaymentPlan.DownPaymentAmt._cdata,
+          quoteId: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.SavedQuoteID._cdata,
+          stepResult: JSON.stringify(jsonresponse)
+        };
+        saveRatingFromJob(req, respObj).catch(() => console.error('error'));
         req.session.data = {
           title: 'Contact created successfully',
-          body: response,
-        };
+          response: respObj
+        }
         return next();
     } catch (error) {
-      // const jsonresponse = convert.xml2json(error.body, {compact: true, spaces: 0});
       console.log('ERROR CABRILLO###', error.message);
-      return next(Boom.badRequest('Error creating contact'));
+      const errObj = {
+        status: 'Failed',
+        error: error.message,
+        stepResult: error
+      };
+      saveRatingFromJob(req, errObj).catch(() => console.error('error'));
+      return next(Boom.badRequest('Error creating contact'))
     }
   },
 };
