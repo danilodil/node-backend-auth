@@ -89,3 +89,17 @@ exports.nowCerts = {
   INSURED_URL: 'https://api.nowcerts.com/api/Insured/Insert',
   PROPERTY_URL: 'https://api.nowcerts.com/api/Property/InsertOrUpdate',
 };
+
+exports.appulate = {
+  UPLOAD_API_URL: 'https://appulate.com/api/uplink/upload',
+};
+
+exports.quoteUrl = {
+  PROGRESSIVE: 'https://www.foragentsonly.com/login/',
+  CSECA: 'https://spinn.csespi.com/innovation',
+  NATIONALGENERAL: 'https://www.natgenagency.com/',
+  SAFECO: 'http://www.safeconow.com/',
+  ALLSTATE: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
+  TRAVELER: 'https://www.travelers.com/foragents',
+  ERIE: 'https://www.agentexchange.com/',
+};
