@@ -2,9 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 const passport = require('../lib/passport/index');
-const vendorPassport  = require('../lib/passport/vendor-passport');
+const vendorPassport = require('../lib/passport/vendor-passport');
 
 const ezlynxIntegration = require('./ezlynx');
+const ricochetIntegration = require('./ricochet');
 const progressiveRater = require('./progressiveRater');
 const cseRater = require('./cseRater');
 const qqIntegration = require('./qq-integration');
@@ -21,6 +22,7 @@ const turboraterIntegration = require('./turborater');
 const nowCertsIntegration = require('./nowCerts');
 const appulateIntegration = require('./appulate');
 
+router.use('/ricochet', [passport], [vendorPassport], ricochetIntegration);
 router.use('/ezlynx', [passport], [vendorPassport], ezlynxIntegration);
 router.use('/qq', [passport], [vendorPassport], qqIntegration);
 router.use('/progressiveRater', [passport], [vendorPassport], progressiveRater);
