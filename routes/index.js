@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const passport = require('../lib/passport/index');
-const vendorPassport  = require('../lib/passport/vendor-passport');
+const vendorPassport = require('../lib/passport/vendor-passport');
 
 const ezlynxIntegration = require('./ezlynx');
 const progressiveRater = require('./progressiveRater');
