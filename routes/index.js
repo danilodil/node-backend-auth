@@ -1,7 +1,8 @@
 const express = require('express');
 
 const router = express.Router();
-const passport = require('../lib/passport');
+const passport = require('../lib/passport/index');
+const vendorPassport  = require('../lib/passport/vendor-passport');
 
 const ezlynxIntegration = require('./ezlynx');
 const progressiveRater = require('./progressiveRater');
@@ -17,20 +18,24 @@ const travelerRater = require('./travelerRater');
 const erieRater = require('./erieRater');
 const quoteRushIntegration = require('./quoteRush');
 const turboraterIntegration = require('./turborater');
+const nowCertsIntegration = require('./nowCerts');
+const appulateIntegration = require('./appulate');
 
-router.use('/ezlynx', [passport], ezlynxIntegration);
-router.use('/qq', [passport], qqIntegration);
-router.use('/progressiveRater', [passport], progressiveRater);
-router.use('/cseRater', [passport], cseRater);
-router.use('/salesforce', [passport], salesforce);
+router.use('/ezlynx', [passport], [vendorPassport], ezlynxIntegration);
+router.use('/qq', [passport], [vendorPassport], qqIntegration);
+router.use('/progressiveRater', [passport], [vendorPassport], progressiveRater);
+router.use('/cseRater', [passport], [vendorPassport], cseRater);
+router.use('/salesforce', [passport], [vendorPassport], salesforce);
 router.use('/vendor', vendor);
-router.use('/nationalRater', [passport], nationalRater);
+router.use('/nationalRater', [passport], [vendorPassport], nationalRater);
 router.use('/rate', [passport], rater);
-router.use('/safecoRater', [passport], safecoRater);
-router.use('/allStateRater', [passport], allStateRater);
-router.use('/travelerRater', [passport], travelerRater);
-router.use('/erieRater', [passport], erieRater);
-router.use('/quote-rush', [passport], quoteRushIntegration);
-router.use('/turborater', [passport], turboraterIntegration);
+router.use('/safecoRater', [passport], [vendorPassport], safecoRater);
+router.use('/allStateRater', [passport], [vendorPassport], allStateRater);
+router.use('/travelerRater', [passport], [vendorPassport], travelerRater);
+router.use('/erieRater', [passport], [vendorPassport], erieRater);
+router.use('/quote-rush', [passport], [vendorPassport], quoteRushIntegration);
+router.use('/turborater', [passport], [vendorPassport], turboraterIntegration);
+router.use('/nowCerts', [passport], [vendorPassport], nowCertsIntegration);
+router.use('/appulate', [passport], [vendorPassport], appulateIntegration);
 
 module.exports = router;
