@@ -282,7 +282,7 @@ module.exports = {
     if (!raterData) {
       return next(Boom.badRequest('Error retrieving rate'));
     }
-    
+
     const allraterData = raterData;
     await allraterData.forEach((oneRater) => {
       oneRater.dataValues.quoteUrl = appConstant.quoteUrl[oneRater.vendorName];
