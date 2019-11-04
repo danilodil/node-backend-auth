@@ -2,6 +2,7 @@
 
 const Boom = require('boom');
 const Rater = require('../models/rater');
+const appConstant = require('../constants/appConstant');
 
 module.exports = {
   saveRating: async (req, res, next) => {
@@ -89,6 +90,10 @@ module.exports = {
     console.log(`${req.body.vendorName}: Inside Get Best Rate`);
     try {
       const currentUser = req.body.decoded_user;
+      if (!req.body.productType) {
+        return next(Boom.badRequest('Product type required'));
+      }
+
       let companyId = null;
       let clientId = null;
       if (currentUser.user) {
@@ -109,8 +114,9 @@ module.exports = {
           companyId,
           clientId,
           succeeded: true,
+          productType: req.body.productType,
         },
-        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult'],
+        attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'productType'],
       };
 
       const raterData = await Rater.findAll(newRater);
@@ -167,6 +173,10 @@ module.exports = {
         attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'quoteIds'],
       };
 
+      if (req.body.productType) {
+        newRater.where.productType = params.productType;
+      }
+
       const raterData = await Rater.findOne(newRater);
 
       if (raterData) {
@@ -214,6 +224,10 @@ module.exports = {
         },
       };
 
+      if (req.body.productType) {
+        existRater.where.productType = req.body.productType;
+      }
+
       const raterData = await Rater.findOne(existRater);
       /* create new rater result */
       const isSucceeded = !!((res.status && res.totalPremium));
@@ -230,6 +244,7 @@ module.exports = {
           quoteId: res.quoteId || null,
           quoteIds: res.quoteIds || null,
           stepResult: res.stepResult || null,
+          productType: req.body.productType || null,
         };
         await Rater.create(newRater);
         console.log(`${req.body.vendorName} Rater Created`);
@@ -256,5 +271,24 @@ module.exports = {
     } catch (error) {
       console.log(`${req.body.vendorName} Error Saving Rate: `, error);
     }
+  },
+  getRateByClientId: async (req, res, next) => {
+    const newRater = {
+      where: {
+        clientId: req.params.clientId,
+      },
+    };
+    const raterData = await Rater.findAll(newRater, { attributes: ['companyId', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'quoteIds', 'productType'] });
+    if (!raterData) {
+      return next(Boom.badRequest('Error retrieving rate'));
+    }
+
+    const allraterData = raterData;
+    await allraterData.forEach((oneRater) => {
+      oneRater.dataValues.quoteUrl = appConstant.quoteUrl[oneRater.vendorName];
+      return oneRater;
+    });
+    req.session.data = allraterData;
+    return next();
   },
 };

@@ -37,6 +37,9 @@ const Rater = sequelize.define('Rater', {
   quoteIds: {
     type: DataTypes.JSON,
   },
+  productType: {
+    type: DataTypes.STRING,
+  },
 });
 
 module.exports = Rater;
