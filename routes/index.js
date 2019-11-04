@@ -18,6 +18,7 @@ const travelerRater = require('./travelerRater');
 const erieRater = require('./erieRater');
 const quoteRushIntegration = require('./quoteRush');
 const turboraterIntegration = require('./turborater');
+const cabrilloIntegration = require('./cabrillo');
 const nowCertsIntegration = require('./nowCerts');
 const appulateIntegration = require('./appulate');
 
@@ -36,6 +37,7 @@ router.use('/erieRater', [passport], [vendorPassport], erieRater);
 router.use('/quote-rush', [passport], [vendorPassport], quoteRushIntegration);
 router.use('/turborater', [passport], [vendorPassport], turboraterIntegration);
 router.use('/nowCerts', [passport], [vendorPassport], nowCertsIntegration);
+router.use('/cabrillo', [passport], cabrilloIntegration);
 router.use('/appulate', [passport], [vendorPassport], appulateIntegration);
 
 module.exports = router;
