@@ -48,7 +48,13 @@ async function erie(req) {
     let response = null;
 
     let browserParams = {
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // args: ['--no-sandbox', '--disable-setuid-sandbox', '--proxy-server=77.237.228.219:1212'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--proxy-server=104.236.248.219:3128',
+        '--ignore-certificate-errors',
+      ],
       slowMo: 300,
     };
     if (ENVIRONMENT.nodeEnv === 'local') {
@@ -431,7 +437,7 @@ async function erie(req) {
           };
           dataObj[`driverGender${j}`] = {
             element: '#selGender',
-            value: bodyData.drivers[j].gender.charAt(0) || staticDataObj.drivers[0].gender,
+            value: bodyData.drivers[j].gender ? bodyData.drivers[j].gender.charAt(0) : staticDataObj.drivers[0].gender,
           };
           dataObj[`relationship${j}`] = {
             element: '#selRelationship',
