@@ -249,24 +249,15 @@ module.exports = {
   },
   addSFViolation: async (req, res, next) => {
     const { username, password, salesforceAT } = req.body.decoded_vendor;
-    const { client } = req.body.decoded_user;
+    const { violationData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password} ${salesforceAT}`))
+    await conn.login(username, (`${password}${salesforceAT}`))
       .catch(() => next(Boom.badRequest('Error creating violation on salesforce!')));
 
-    const name = (req.body.applicantGivenName && req.body.applicantSurname) ? `${req.body.applicantGivenName} ${req.body.applicantSurname}` : '';
-    const sfViolation = {
-      Name: name,
-      CanaryAMS__Accident_Violation_Description__c: req.body.priorPenaltiesText,
-      CanaryAMS__Contact__c: client.sfContactId,
-      CanaryAMS__Insurance_Quote__c: client.sfInsuranceId,
-      CanaryAMS__Insured__c: req.body.sfInsuredId,
-    };
-
-    const rets = await conn.sobject('CanaryAMS__MVR_Violation_Information__c').create([sfViolation]);
+    const rets = await conn.sobject('CanaryAMSMVRViolationInformation__c').create([violationData.data]);
     if (rets[0].success === false) {
       return res.status(400).json({
         message: 'Error creating violation on salesforce',
@@ -379,113 +370,15 @@ module.exports = {
   },
   updateSFPropertyOld: async (req, res, next) => {
     const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { propertyData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password} ${salesforceAT}`))
+    await conn.login(username, (`${password}${salesforceAT}`))
       .catch(() => next(Boom.badRequest('Error updating property on salesforce!')));
 
-    const returnExists = (value) => {
-      if (value || value === false) {
-        return true;
-      }
-      return false;
-    };
-
-    const createRatesHtml = (rates) => {
-      if (rates) {
-        let ratesHtml = `<div class="header">
-                                      <h3 class="main-header-title">Rates</h3>
-                                  </div>`;
-        for (let i = 0; i < rates.length; i += 1) {
-          ratesHtml += `<div class="main-header">
-                              <div class="form-group">
-                                <div class="group">
-                                    <div class="info-label-container">
-                                        <p class="info-label">${i === 0 ? 'Low' : i === 1 ? 'Good' : i === 2 ? 'Better' : 'Best'} Coverage</p>
-                                    </div>
-                                    <p class="info">${rates[i].price} /mo.</p>
-                                </div>
-                              </div>
-                            </div>`;
-          if (!rates[i + 1]) {
-            return ratesHtml;
-          }
-        }
-      }
-      return '';
-    };
-
-    const sfProperty = {
-      Id: req.body.homes[0].sfPropertyId,
-    };
-    switch (true) {
-      case (returnExists(req.body.homes[0]['city'])):
-        sfProperty['CanaryAMS__City__c'] = req.body.homes[0]['city'];
-      case returnExists(req.body.homes[0]['state']):
-        sfProperty['CanaryAMS__State__c'] = req.body.homes[0].state;
-      case returnExists(req.body.homes[0]['zipCode']):
-        sfProperty['CanaryAMS__Zip_Code__c'] = req.body.homes[0].zipCode;
-      // case (returnExists(req.body.homes[0]['purchasedNew'])):
-      //     sfProperty['CanaryAMS__Purchased_New__c'] = req.body.homes[0].purchasedNew;
-      case (returnExists(req.body.homes[0]['marketValue'])):
-        sfProperty['CanaryAMS__Market_Value__c'] = req.body.homes[0].marketValue;
-      case (returnExists(req.body.homes[0]['purchasePrice'])):
-        sfProperty['CanaryAMS__Purchase_Price__c'] = req.body.homes[0].purchasePrice;
-      // case (returnExists(req.body.homes[0]['purchaseDate'])):
-      //     sfProperty['CanaryAMS__Purchase_Date__c'] = convertDateString(req.body.homes[0].purchaseDate);
-      // case (returnExists(req.body.homes[0]['estimatedReplacementCost'])):
-      //     sfProperty['CanaryAMS__Estimated_Replacement_Cost__c'] = req.body.homes[0].estimatedReplacementCost;
-      case (returnExists(req.body.homes[0]['yearBuilt'])):
-        sfProperty['CanaryAMS__Year_Built__c'] = req.body.homes[0].yearBuilt;
-      case (returnExists(req.body.homes[0]['totalSquareFootage'])):
-        sfProperty['CanaryAMS__Square_Feet__c'] = req.body.homes[0]['totalSquareFootage'];
-      // case returnExists(req.body.homes[0]['residenceType']):
-      //     sfProperty['CanaryAMS__Residence_Type__c'] = req.body.homes[0].residenceType;
-      case returnExists(req.body.homes[0]['numOfBeds']):
-        sfProperty['CanaryAMS__Number_of_Bedrooms__c'] = req.body.homes[0].numOfBeds;
-      case returnExists(req.body.homes[0]['numOfBaths']):
-        sfProperty['CanaryAMS__Bath_1_Count__c'] = req.body.homes[0].numOfBaths;
-      // case (returnExists(req.body.homes[0]['distanceFromTidalWater'])):
-      //     sfProperty['CanaryAMS__Distance_to_Tidal_Water__c'] = req.body.homes[0].distanceFromTidalWater;
-      case (returnExists(req.body.homes[0]['hasGatedCommunity'])):
-        sfProperty['CanaryAMS__Gated_Community__c'] = req.body.hasGatedCommunity;
-      // case (returnExists(req.body['birthDate'])):
-      //     sfProperty['CanaryAMS__Garage_Type__c'] = convertDateString(req.body.birthDate);
-      // case (returnExists(req.body.homes[0]['driverLicenseNumber'])):
-      //     sfProperty['CanaryAMS__Garage_Number_of_Vehicles__c'] = req.body.homes[0].driverLicenseNumber;
-      case (returnExists(req.body.homes[0]['primaryUse'])):
-        sfProperty['CanaryAMS__Usage_Type__c'] = req.body.homes[0].primaryUse;
-      case (returnExists(req.body.homes[0]['structureType'])):
-        sfProperty['CanaryAMS__Structure_Type__c'] = req.body.homes[0].structureType;
-      case (returnExists(req.body.homes[0]['roofMaterial'])):
-        sfProperty['CanaryAMS__Roof_Material__c'] = req.body.homes[0]['roofMaterial'];
-      case returnExists(req.body.homes[0]['roofType']):
-        sfProperty['CanaryAMS__Roof_Type__c'] = req.body.homes[0].roofType;
-      case returnExists(req.body.homes[0]['hasPets']):
-        sfProperty['CanaryAMS__Pets__c'] = req.body.homes[0].hasPets;
-      case returnExists(req.body.homes[0]['numOfStories']):
-        sfProperty['CanaryAMS__NumStories__c'] = req.body.homes[0].numOfStories;
-      case (returnExists(req.body.homes[0]['hasBasement'])):
-        sfProperty['CanaryAMS__Foundation__c'] = (req.body.homes[0].hasBasement === true ? 'Basement' : '');
-      // case (returnExists(req.body.homes[0]['hasPool'])):
-      //     sfProperty['CanaryAMS__Pool__c'] = req.body.homes[0].hasPool;
-      case (returnExists(req.body.homes[0]['exteriorMaterials'])):
-        sfProperty['CanaryAMS__Construction__c'] = req.body.homes[0].exteriorMaterials;
-      // case (returnExists(req.body.homes[0]['hasRoofingImprovement'])):
-      //     sfProperty['CanaryAMS__Roofing_Improvement__c'] = req.body.homes[0].hasRoofingImprovement;
-      // case (returnExists(req.body.homes[0]['roofingImprovementYear'])):
-      //     sfProperty['CanaryAMS__RoofingImprovementYear__c'] = req.body.homes[0].roofingImprovementYear;
-      // case (returnExists(req.body.homes[0]['hasWindMitigationForm'])):
-      //     sfProperty['CanaryAMS__Have_Wind_Mitigation_Form__c'] = req.body.homes[0].hasWindMitigationForm;
-      case (returnExists(req.body.homes[0]['windMitigationInspectionDate'])):
-        sfProperty['CanaryAMS__Wind_Mitigation_Inspection_Date__c'] = req.body.homes[0].windMitigationInspectionDate;
-      case (returnExists(req.body['hasRatesCreated']) && req.body.hasRatesCreated === true):
-        sfProperty['CanaryAMS__Notes_Long__c'] = createRatesHtml(req.body.rates);
-    }
-
-    const data = await conn.sobject('CanaryAMS__Property__c').update([sfProperty]);
+    const data = await conn.sobject('CanaryAMSProperty__c').update([propertyData.data]);
     if (!data[0].success) {
       return res.status(400).json({
         message: 'Error updating property on salesforce',
