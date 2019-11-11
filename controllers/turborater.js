@@ -85,7 +85,7 @@ module.exports = {
         const response = await request(options);
         const jsonresponse = convert.xml2json(response, { compact: true, spaces: 0 });
         const parseResponse = JSON.parse(jsonresponse);
-        console.log(parseResponse)
+        console.log(parseResponse);
         if (parseResponse.LeadResponseResult.Result._text !== 'OK' || parseResponse.LeadResponseResult.ErrorCode._text !== '0') {
           throw {
             errorCode: parseResponse.LeadResponseResult.ErrorCode._text,
