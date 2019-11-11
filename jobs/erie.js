@@ -48,17 +48,16 @@ async function erie(req) {
     let response = null;
 
     let browserParams = {
-      // args: ['--no-sandbox', '--disable-setuid-sandbox', '--proxy-server=77.237.228.219:1212'],
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--proxy-server=104.236.248.219:3128',
+        '--proxy-server=http=178.215.190.240:49465',
         '--ignore-certificate-errors',
       ],
       slowMo: 300,
     };
     if (ENVIRONMENT.nodeEnv === 'local') {
-      browserParams = { headless: false };
+      browserParams = { headless: false, args: ['--proxy-server=http=178.215.190.240:49465'] };
     }
     const browser = await puppeteer.launch(browserParams);
     let page = await browser.newPage();
