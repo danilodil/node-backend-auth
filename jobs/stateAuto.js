@@ -207,7 +207,15 @@ const self = module.exports = {
               } else if (row.type === 'radio') {
                 const radio = await page.$(element);
                 if (radio && row.value === true) {
-                  radio.click();
+                  if (row.isAddCSS) {
+                    await page.evaluate((ele) => {
+                      const radioBtn = document.querySelector(ele);
+                      radioBtn.classList.add('mat-radio-checked');
+                      radioBtn.click();
+                    }, element);
+                  } else {
+                    radio.click();
+                  }
                   await page.waitFor(500);
                 }
               }
@@ -483,9 +491,9 @@ const self = module.exports = {
             const isYearMM = !isVIN;
             dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-VIN`, value: isVIN });
             dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-yearMakeModel`, value: isYearMM });
-            // TODO** Fails on Type Business. Its not adding the two radios below. Need to also add commute miles one way on Commute answer
+            // TODO** Fails on Type Business. Its not adding the two radios below.(working)
+            // Need to also add commute miles one way on Commute answer (done)
             dataObj.push({ type: 'select', element: `vehicle${index}-primary-use`, value: vehicle.primaryUse || staticVehicle.primaryUse, beforeDelay: 1000 });
-            dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-no`, value: true });
             dataObj.push({ type: 'radio', element: `vehicle${index}-usedForDelivery-no`, value: true });
             dataObj.push({ type: 'input', element: `vehicle${index}-vin-input`, value: vehicle.vehicleVin || staticVehicle.vehicleVin });
             if (!isVIN) {
@@ -494,10 +502,10 @@ const self = module.exports = {
               dataObj.push({ type: 'select', element: `vehicle${index}-model`, value: vehicle.model || staticVehicle.model });
             }
             if (vehicle.primaryUse === 'Business') {
-              dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-yes`, value: true });
+              dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-yes`, value: true, isAddCSS: true, afterDelay: 1000, beforeDelay: 1000 });
             }
             if (vehicle.primaryUse === 'Commute') {
-              dataObj.push({ type: 'input', element: `vehicle${index}-commuting-miles"`, value: '5000' });
+              dataObj.push({ type: 'input', element: `vehicle${index}-commuting-miles`, value: '5000' });
             }
           }
         }
