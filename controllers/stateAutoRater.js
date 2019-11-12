@@ -3,15 +3,15 @@
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
 const moment = require('moment');
-const { travelerRater } = require('../constants/appConstant');
+const { stateAutoRater } = require('../constants/appConstant');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate, ageCount } = require('../lib/utils');
-const { travelerQueue } = require('../jobs/traveler');
+const { stateAutoQueue } = require('../jobs/stateAuto');
 
 module.exports = {
 
-  traveler: async (req, res, next) => {
+  stateAuto: async (req, res, next) => {
     try {
       const { username, password } = req.body.decoded_vendor;
       const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
@@ -40,30 +40,31 @@ module.exports = {
         browserParams = { headless: false };
       }
       const browser = await puppeteer.launch(browserParams);
-      let page = await browser.newPage();
+      const page = await browser.newPage();
       const navigationPromise = page.waitForNavigation();
       const populatedData = await populateData();
 
       await loginStep();
-      await searchStep();
-      await addCustomerStep();
-      await policyStep();
-      await customerInfoStep();
-      await vehicleStep();
-      await driverStep();
-      await underwritingStep();
-      await coverageStep();
-      await summaryStep();
+      await customerStep();
+      //   await searchStep();
+      //   await addCustomerStep();
+      //   await policyStep();
+      //   await customerInfoStep();
+      //   await vehicleStep();
+      //   await driverStep();
+      //   await underwritingStep();
+      //   await coverageStep();
+      //   await summaryStep();
 
       async function loginStep() {
-        console.log('Traveler Login Step');
+        console.log('State Auto Login Step');
         try {
-          await page.goto(travelerRater.LOGIN_URL, { waitUntil: 'networkidle2', timeout: 0 });
+          await page.goto(stateAutoRater.LOGIN_URL, { waitUntil: 'networkidle2', timeout: 0 });
           await page.waitFor(500);
-          await page.waitForSelector('#username');
-          await page.type('#username', username);
-          await page.type('#password', password);
-          await page.click('#btn-trans-login');
+          await page.waitForSelector('#eid-username-input');
+          await page.type('#eid-username-input', username);
+          await page.type('#eid-password-input', password);
+          await page.click('button > .eid-large-button.eid-login-button.ui-button.ui-widget.ui-state-default.ui-corner-all.ui-button-text-only');
           await page.waitForNavigation({ timeout: 0 });
           stepResult.login = true;
         } catch (error) {
@@ -80,7 +81,7 @@ module.exports = {
           await page.select('select[name="state"]', populatedData.searchState.value);
           await page.click('#search-button');
           await page.waitFor(5000);
-          const redirectUrl = `https://plagt.travelers.com/AGENTHQPortalMain.asp?AppCN=PLAGTPROD&StartPage=enteserv/ENTESERVAccountSearch.aspx&QueryString=NOFOCUS=Y|searchType=01|searchParms=txtName^${populatedData.lastName.value}~ddlState^${populatedData.state.value}~txtZipCode^~txtZipExt^|submitType=2|agenthq=y`;
+          const redirectUrl = `https://plagt.stateAutos.com/AGENTHQPortalMain.asp?AppCN=PLAGTPROD&StartPage=enteserv/ENTESERVAccountSearch.aspx&QueryString=NOFOCUS=Y|searchType=01|searchParms=txtName^${populatedData.lastName.value}~ddlState^${populatedData.state.value}~txtZipCode^~txtZipExt^|submitType=2|agenthq=y`;
           await page.goto(redirectUrl, { waitUntil: 'networkidle0' });
           await page.waitFor(8000);
           await page.evaluate(async () => {
@@ -97,37 +98,18 @@ module.exports = {
         }
       }
 
-      async function addCustomerStep() {
-        console.log('Traveler Add Customer Step');
+      async function customerStep() {
+        console.log('State Auto Customer Step');
         try {
           await page.waitFor(6000);
           await page.evaluate(async (populatedDataObj) => {
-            const iframe = document.querySelector('#Parent').getElementsByTagName('frame')[2].contentDocument;
-            const childFrames = iframe.documentElement;
-            if (childFrames) {
-              childFrames.querySelector(`#${populatedDataObj.firstName.element}`).value = populatedDataObj.firstName.value;
-              childFrames.querySelector(`#${populatedDataObj.lastName.element}`).value = populatedDataObj.lastName.value;
-              childFrames.querySelector(`#${populatedDataObj.mailingAddress.element}`).value = populatedDataObj.mailingAddress.value;
-              childFrames.querySelector(`#${populatedDataObj.city.element}`).value = populatedDataObj.city.value;
-              childFrames.querySelector(`#${populatedDataObj.phone1.element}`).value = populatedDataObj.phone1.value;
-              childFrames.querySelector(`#${populatedDataObj.phone2.element}`).value = populatedDataObj.phone2.value;
-              childFrames.querySelector(`#${populatedDataObj.phone3.element}`).value = populatedDataObj.phone3.value;
-              childFrames.querySelector(`#${populatedDataObj.state.element}`).value = populatedDataObj.state.value;
-              childFrames.querySelector(`#${populatedDataObj.zipcode.element}`).value = populatedDataObj.zipcode.value;
-              const processQuote = await childFrames.querySelector('#process');
-              processQuote.removeAttribute('disabled');
-              processQuote.click();
-            }
+            const formFields = document.getElementsByTagName('mat-form-field');
+            // const selectMenus = document.getElementsByTagName('select');
+            formFields.forEach(async (field) => {
+              await page.type(field, 'Hello World');
+            });
           }, populatedData);
           await page.waitFor(4000);
-          while (true) {
-            await page.waitFor(1000);
-            const pageQuote = await browser.pages();
-            if (pageQuote.length > 2) {
-              page = pageQuote[2];
-              break;
-            }
-          }
         } catch (error) {
           await exitFail(error, 'Add Customer');
         }
@@ -155,26 +137,14 @@ module.exports = {
         console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
-          await page.waitFor(3000);
+          await page.waitFor(30000);
           await page.waitForSelector(populatedData.phone.element);
-          // await page.focus(populatedData.phone.element);
-          // await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
-          // await page.keyboard.type(populatedData.phone.value, { delay: 80 });
-          await page.type(populatedData.birthDate.element, populatedData.birthDate.value, { delay: 300 });
-          await page.waitFor(1000);
+          await page.focus(populatedData.phone.element);
+          await page.keyboard.type(populatedData.phone.value, { delay: 80 });
+          await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
-          await page.waitFor(3000);
-          const overlay = await page.$('#overlayContainer');
-          if (overlay) {
-            console.log('Overlay Hit');
-            const btn = await page.$('#overlayContainer #overlayFooter [id="overlayButton-addressDifference-Use Suggested"]');
-            if (btn) {
-              console.log('Button Hit');
-              btn.click();
-              await page.waitFor(1000);
-            }
-          }
+          await page.waitFor(2000);
           if (await page.$('select[data-label=County]')) {
             console.log('#inside country');
             const countryName = await page.evaluate(element => document.querySelector(element).innerText, 'select[data-label=County] > option:nth-child(2)');
@@ -397,7 +367,7 @@ module.exports = {
           console.log('Premium###', totalPremium);
           stepResult.summary = true;
           req.session.data = {
-            title: 'Successfully retrieved traveler rate.',
+            title: 'Successfully retrieved stateAuto rate.',
             status: true,
             totalPremium: totalPremium.replace('00Pay', '') || null,
             months: months || null,
@@ -409,16 +379,6 @@ module.exports = {
         } catch (error) {
           await exitFail(error, 'summary');
         }
-      }
-
-      async function typeInInputElements(inputSelector, text) {
-        await page.evaluate((selector, inputText) => {
-          const inputElement = document.querySelector(selector);
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-          nativeInputValueSetter.call(inputElement, inputText);
-          const ev2 = new Event('input', { bubbles: true });
-          inputElement.dispatchEvent(ev2);
-        }, inputSelector, text);
       }
 
       async function exitFail(error, step) {
@@ -471,7 +431,7 @@ module.exports = {
           birthDate: '12/16/1997',
           gender: 'Male',
           email: 'test@gmail.com',
-          phone: '1111111111',
+          phone: '9999997777',
           liability: '100000/300000',
           propertyDamage: '100000',
           motorist: 'VAL:25000/50000,CD:UM,LMTCD:PERPERSON/PERACC',
@@ -512,23 +472,12 @@ module.exports = {
         dataObj.lastName = { element: 'txtLastName', value: bodyData.lastName || staticDataObj.lastName };
         dataObj.mailingAddress = { element: 'txtStreet', value: bodyData.mailingAddress || staticDataObj.mailingAddress };
         dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
-        if (bodyData.phone || staticDataObj.phone) {
-          const phoneSplit = (bodyData.phone || staticDataObj.phone).replace(/\\D/g, "");
-          const phone1 = phoneSplit.substring(0, 3);
-          const phone2 = phoneSplit.substring(3, 6);
-          const phone3 = phoneSplit.substring(6);
-          dataObj.phone1 = { element: 'txtPh1', value: phone1 };
-          dataObj.phone2 = { element: 'txtPh2', value: phone2 };
-          dataObj.phone3 = { element: 'txtPh3', value: phone3 };
-        }
-        dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
         dataObj.searchState = { element: 'select[name="state"]', value: bodyData.state || staticDataObj.state };
         dataObj.state = { element: 'ddState', value: bodyData.state || staticDataObj.state };
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
         dataObj.businessType = { element: 'LineOfBusinessValue', value: staticDataObj.businessType };
         dataObj.effectiveDate = { element: 'EffectiveDate', value: tomorrow };
         dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
-        // dataObj.mobilePhone = { element: 'tbody > #G5 #\\31 2125315651', value: bodyData.phone || staticDataObj.phone };
         dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: bodyData.birthDate || staticDataObj.birthDate };
         dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
         // vehicle
@@ -570,7 +519,7 @@ module.exports = {
       raterStore: req.session.raterStore,
       body: req.body,
     };
-    const job = await travelerQueue.add(raterData);
+    const job = await stateAutoQueue.add(raterData);
     req.session.data = { jobId: job.id };
     return next();
   },

@@ -48,11 +48,16 @@ async function erie(req) {
     let response = null;
 
     let browserParams = {
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--proxy-server=http=178.215.190.240:49465',
+        '--ignore-certificate-errors',
+      ],
       slowMo: 300,
     };
     if (ENVIRONMENT.nodeEnv === 'local') {
-      browserParams = { headless: false };
+      browserParams = { headless: false, args: ['--proxy-server=http=178.215.190.240:49465'] };
     }
     const browser = await puppeteer.launch(browserParams);
     let page = await browser.newPage();
@@ -431,7 +436,7 @@ async function erie(req) {
           };
           dataObj[`driverGender${j}`] = {
             element: '#selGender',
-            value: bodyData.drivers[j].gender.charAt(0) || staticDataObj.drivers[0].gender,
+            value: bodyData.drivers[j].gender ? bodyData.drivers[j].gender.charAt(0) : staticDataObj.drivers[0].gender,
           };
           dataObj[`relationship${j}`] = {
             element: '#selRelationship',
