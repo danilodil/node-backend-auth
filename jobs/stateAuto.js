@@ -7,6 +7,7 @@ const puppeteer = require('puppeteer');
 const stringSimilarity = require('string-similarity');
 const moment = require('moment');
 const { stateAutoRater } = require('../constants/appConstant');
+const { saveRatingFromJob } = require('../controllers/rater');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate, ageCount } = require('../lib/utils');
@@ -25,11 +26,9 @@ const self = module.exports = {
 
       const stepResult = {
         login: false,
-        policy: false,
         customerInfo: false,
         vehicles: false,
         drivers: false,
-        underWriting: false,
         coverage: false,
         summary: false,
       };
@@ -50,8 +49,10 @@ const self = module.exports = {
       await customerStep();
       await driverStep();
       await vehicleStep();
-      // TODO** Add Insurance Coverage modal step
-      // TODO** Retrieve rate step
+      await coverageStep();
+      await summaryStep();
+      // TODO** Add Insurance Coverage modal step (done)
+      // TODO** Retrieve rate step (done)
 
       async function loginStep() {
         console.log('State Auto Login Step');
@@ -89,6 +90,12 @@ const self = module.exports = {
             dialogBtn.click();
             await page.waitFor(500);
           }
+          const cancelBtn = await page.$('body > app-root > sa-dialog:nth-child(4) > div.dialog-container.active > article > div > section > address-scrubbing > form > div > div.row > div > div > button.rbtn1_gry_white');
+          if (cancelBtn) {
+            cancelBtn.focus();
+            cancelBtn.click();
+            await page.waitFor(500);
+          }
           const customerEl = await page.$('[data-test-id="customer-info-pni-first-name"]');
           if (customerEl) {
             nextBtn.click();
@@ -111,6 +118,7 @@ const self = module.exports = {
           const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
           nextBtn.click();
           await page.waitFor(1000);
+          stepResult.drivers = true;
         } catch (error) {
           await exitFail(error, 'Drivers');
         }
@@ -126,9 +134,60 @@ const self = module.exports = {
           await page.waitFor(2000);
           const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
           nextBtn.click();
-          await page.waitFor(1000);
+          stepResult.vehicles = true;
         } catch (error) {
-          await exitFail(error, 'Drivers');
+          await exitFail(error, 'Vehicle');
+        }
+      }
+
+      async function coverageStep() {
+        try {
+          console.log('State Auto Coverage Step');
+          await page.waitFor(2000);
+          await page.waitForSelector('[data-test-id="current-carrier-modal-company"]');
+          await selectElement('[data-test-id="current-carrier-modal-company"]', '00000');
+          const submitBtn = await page.$('[data-test-id="current-carrier-modal-submit"]');
+          submitBtn.click();
+          await page.waitFor(1000);
+          const dialogBtn = await page.$('[data-test-id="safety-360-modal-cancel-button"]');
+          if (dialogBtn) {
+            dialogBtn.click();
+            await page.waitFor(500);
+          }
+          await page.waitFor(1000);
+          stepResult.coverage = true;
+        } catch (error) {
+          await exitFail(error, 'Coverage');
+        }
+      }
+
+      async function summaryStep() {
+        try {
+          console.log('State Auto Summary Step');
+          await page.waitFor(3000);
+          await page.waitForSelector('#current-page-content-wrapper-id > div > personal-auto-quote > form > div > div:nth-child(4) > div > personal-premium > div > div:nth-child(1) > span.premium-amount.ng-star-inserted');
+          const premiumDetails = await page.evaluate(() => {
+            const downPaymentsObj = {};
+            const ele = document.querySelector('[data-test-id="effective-date-term"]');
+            downPaymentsObj.plan = ele.options[ele.selectedIndex].text;
+            downPaymentsObj.monthlyPremium = document.querySelector('#current-page-content-wrapper-id > div > personal-auto-quote > form > div > div:nth-child(4) > div > personal-premium > div > div:nth-child(2) > span.premium-amount.ng-star-inserted').innerText.replace(/\$/g, '');
+            downPaymentsObj.totalPremium = document.querySelector('#current-page-content-wrapper-id > div > personal-auto-quote > form > div > div:nth-child(4) > div > personal-premium > div > div:nth-child(1) > span.premium-amount.ng-star-inserted').innerText.replace(/\$/g, '');
+            return downPaymentsObj;
+          });
+          stepResult.summary = true;
+          response = {
+            title: 'Successfully retrieved state Auto rate.',
+            status: true,
+            totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+            months: premiumDetails.plan ? premiumDetails.plan : null,
+            monthlyPremium: premiumDetails.monthlyPremium ? premiumDetails.monthlyPremium.replace(/,/g, '') : null,
+            stepResult,
+          };
+          browser.close();
+          saveRatingFromJob(req, response);
+          console.log('response', response);
+        } catch (error) {
+          await exitFail(error, 'Summary');
         }
       }
 
@@ -317,7 +376,7 @@ const self = module.exports = {
       async function populateData() {
         const staticDataObj = {
           businessType: 'AUTO',
-          mailingAddress: '670 Park Avenue',
+          mailingAddress: '27 Old Solomons Island Road',
           city: 'Anapolis',
           state: 'MD',
           zipCode: '24101',
@@ -360,8 +419,9 @@ const self = module.exports = {
               maritalStatus: 'S',
               relationshipTonamedInsured: 'IN',
               licenseState: 'MD',
-              yearLicenseIssued: '2009',
+              yearLicenseIssued: '2014',
               dateWhenLicensed: yeasterDay,
+              licenseNumber: 'F560148000125',
             },
           ],
         };
@@ -392,7 +452,7 @@ const self = module.exports = {
               dataObj.push({ type: 'input', element: `driver${index}-info-pni-dob`, value: driver.birthDate || staticDriver.birthDate });
               dataObj.push({ type: 'input', element: `driver${index}-license-number`, value: driver.licenseNumber || staticDriver.licenseNumber });
               dataObj.push({ type: 'select', element: `driver${index}-license-state`, value: driver.licenseState || staticDriver.licenseState });
-              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: driver.yearLicenseIssued || staticDriver.yearLicenseIssued });
+              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: staticDriver.yearLicenseIssued });
               dataObj.push({ type: 'select', element: `driver${index}-marital-status`, value: driver.maritalStatus || staticDriver.maritalStatus });
               dataObj.push({ type: 'select', element: `driver${index}-relationship-to-primary`, value: driver.relation || staticDriver.relation });
               const gender = (driver.gender || staticDriver.gender);
@@ -403,7 +463,7 @@ const self = module.exports = {
             } else {
               dataObj.push({ type: 'input', element: `driver${index}-license-number`, value: driver.licenseNumber || staticDriver.licenseNumber });
               dataObj.push({ type: 'select', element: `driver${index}-license-state`, value: driver.licenseState || staticDriver.licenseState });
-              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: driver.yearLicenseIssued || staticDriver.yearLicenseIssued });
+              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: staticDriver.yearLicenseIssued });
               dataObj.push({ type: 'select', element: `driver${index}-marital-status`, value: driver.maritalStatus || staticDriver.maritalStatus });
               const gender = (driver.gender || staticDriver.gender);
               const isFemale = gender.toLowerCase().includes('f');
@@ -432,6 +492,12 @@ const self = module.exports = {
               dataObj.push({ type: 'select', element: `vehicle${index}-year`, value: vehicle.year || staticVehicle.year });
               dataObj.push({ type: 'select', element: `vehicle${index}-make`, value: vehicle.make || staticVehicle.make });
               dataObj.push({ type: 'select', element: `vehicle${index}-model`, value: vehicle.model || staticVehicle.model });
+            }
+            if (vehicle.primaryUse === 'Business') {
+              dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-yes`, value: true });
+            }
+            if (vehicle.primaryUse === 'Commute') {
+              dataObj.push({ type: 'input', element: `vehicle${index}-commuting-miles"`, value: '5000' });
             }
           }
         }
