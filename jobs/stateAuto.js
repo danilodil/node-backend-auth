@@ -3,6 +3,7 @@
 /* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
 
 const Boom = require('boom');
+const Queue = require('bull');
 const puppeteer = require('puppeteer');
 const moment = require('moment');
 const { stateAutoRater } = require('../constants/appConstant');
