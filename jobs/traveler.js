@@ -10,7 +10,7 @@ const ENVIRONMENT = require('../constants/configConstants').CONFIG;
 const { formatDate, ageCount } = require('../lib/utils');
 
 const travelerQueue = new Queue('traveler', ENVIRONMENT.redisUrl);
-const maxJobsPerWorker = 1;
+const maxJobsPerWorker = 2;
 
 module.exports = {
   travelerQueue,
@@ -176,7 +176,8 @@ async function traveler(req) {
         await page.waitFor(30000);
         await page.waitForSelector(populatedData.phone.element);
         await page.focus(populatedData.phone.element);
-        await page.keyboard.type(populatedData.phone.value, { delay: 80 });
+        await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
+        // await page.keyboard.type(populatedData.phone.value, { delay: 80 });
         await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
         await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
         await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
@@ -420,6 +421,16 @@ async function traveler(req) {
       } catch (error) {
         await exitFail(error, 'summary');
       }
+    }
+
+    async function typeInInputElements(inputSelector, text) {
+      await page.evaluate((selector, inputText) => {
+        const inputElement = document.querySelector(selector);
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeInputValueSetter.call(inputElement, inputText);
+        const ev2 = new Event('input', { bubbles: true });
+        inputElement.dispatchEvent(ev2);
+      }, inputSelector, text);
     }
 
     async function exitFail(error, step) {

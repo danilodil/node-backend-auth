@@ -109,6 +109,9 @@ module.exports = {
               childFrames.querySelector(`#${populatedDataObj.lastName.element}`).value = populatedDataObj.lastName.value;
               childFrames.querySelector(`#${populatedDataObj.mailingAddress.element}`).value = populatedDataObj.mailingAddress.value;
               childFrames.querySelector(`#${populatedDataObj.city.element}`).value = populatedDataObj.city.value;
+              childFrames.querySelector(`#${populatedDataObj.phone1.element}`).value = populatedDataObj.phone1.value;
+              childFrames.querySelector(`#${populatedDataObj.phone2.element}`).value = populatedDataObj.phone2.value;
+              childFrames.querySelector(`#${populatedDataObj.phone3.element}`).value = populatedDataObj.phone3.value;
               childFrames.querySelector(`#${populatedDataObj.state.element}`).value = populatedDataObj.state.value;
               childFrames.querySelector(`#${populatedDataObj.zipcode.element}`).value = populatedDataObj.zipcode.value;
               const processQuote = await childFrames.querySelector('#process');
@@ -152,14 +155,26 @@ module.exports = {
         console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
-          await page.waitFor(30000);
+          await page.waitFor(3000);
           await page.waitForSelector(populatedData.phone.element);
-          await page.focus(populatedData.phone.element);
-          await page.keyboard.type(populatedData.phone.value, { delay: 80 });
-          await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
+          // await page.focus(populatedData.phone.element);
+          // await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
+          // await page.keyboard.type(populatedData.phone.value, { delay: 80 });
+          await page.type(populatedData.birthDate.element, populatedData.birthDate.value, { delay: 300 });
+          await page.waitFor(1000);
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
-          await page.waitFor(2000);
+          await page.waitFor(3000);
+          const overlay = await page.$('#overlayContainer');
+          if (overlay) {
+            console.log('Overlay Hit');
+            const btn = await page.$('#overlayContainer #overlayFooter [id="overlayButton-addressDifference-Use Suggested"]');
+            if (btn) {
+              console.log('Button Hit');
+              btn.click();
+              await page.waitFor(1000);
+            }
+          }
           if (await page.$('select[data-label=County]')) {
             console.log('#inside country');
             const countryName = await page.evaluate(element => document.querySelector(element).innerText, 'select[data-label=County] > option:nth-child(2)');
@@ -396,6 +411,16 @@ module.exports = {
         }
       }
 
+      async function typeInInputElements(inputSelector, text) {
+        await page.evaluate((selector, inputText) => {
+          const inputElement = document.querySelector(selector);
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          nativeInputValueSetter.call(inputElement, inputText);
+          const ev2 = new Event('input', { bubbles: true });
+          inputElement.dispatchEvent(ev2);
+        }, inputSelector, text);
+      }
+
       async function exitFail(error, step) {
         console.log(`Error during Traveler ${step} step:`, error);
         if (req && req.session && req.session.data) {
@@ -446,7 +471,7 @@ module.exports = {
           birthDate: '12/16/1997',
           gender: 'Male',
           email: 'test@gmail.com',
-          phone: '9999997777',
+          phone: '1111111111',
           liability: '100000/300000',
           propertyDamage: '100000',
           motorist: 'VAL:25000/50000,CD:UM,LMTCD:PERPERSON/PERACC',
@@ -487,12 +512,23 @@ module.exports = {
         dataObj.lastName = { element: 'txtLastName', value: bodyData.lastName || staticDataObj.lastName };
         dataObj.mailingAddress = { element: 'txtStreet', value: bodyData.mailingAddress || staticDataObj.mailingAddress };
         dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
+        if (bodyData.phone || staticDataObj.phone) {
+          const phoneSplit = (bodyData.phone || staticDataObj.phone).replace(/\\D/g, "");
+          const phone1 = phoneSplit.substring(0, 3);
+          const phone2 = phoneSplit.substring(3, 6);
+          const phone3 = phoneSplit.substring(6);
+          dataObj.phone1 = { element: 'txtPh1', value: phone1 };
+          dataObj.phone2 = { element: 'txtPh2', value: phone2 };
+          dataObj.phone3 = { element: 'txtPh3', value: phone3 };
+        }
+        dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
         dataObj.searchState = { element: 'select[name="state"]', value: bodyData.state || staticDataObj.state };
         dataObj.state = { element: 'ddState', value: bodyData.state || staticDataObj.state };
         dataObj.zipcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode };
         dataObj.businessType = { element: 'LineOfBusinessValue', value: staticDataObj.businessType };
         dataObj.effectiveDate = { element: 'EffectiveDate', value: tomorrow };
         dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
+        // dataObj.mobilePhone = { element: 'tbody > #G5 #\\31 2125315651', value: bodyData.phone || staticDataObj.phone };
         dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: bodyData.birthDate || staticDataObj.birthDate };
         dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
         // vehicle
