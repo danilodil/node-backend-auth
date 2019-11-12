@@ -19,6 +19,7 @@ const self = module.exports = {
       const { username, password } = req.body.decoded_vendor;
       const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
       const yeasterDay = formatDate(moment(new Date()).subtract(1, 'days'));
+      const sixMonthsFromNow = formatDate(moment(new Date()).add(6, 'months'));
 
       const bodyData = await utils.cleanObj(req.body.data);
       bodyData.drivers.splice(10, bodyData.drivers.length);
@@ -51,8 +52,6 @@ const self = module.exports = {
       await vehicleStep();
       await coverageStep();
       await summaryStep();
-      // TODO** Add Insurance Coverage modal step (done)
-      // TODO** Retrieve rate step (done)
 
       async function loginStep() {
         console.log('State Auto Login Step');
@@ -133,7 +132,12 @@ const self = module.exports = {
           await fillPage();
           await page.waitFor(2000);
           const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
+          await page.waitFor(1000);
+          const modal = await page.$('[data-test-id="current-carrier-modal-company"]');
           nextBtn.click();
+          if (!modal) {
+            nextBtn.click();
+          }
           stepResult.vehicles = true;
         } catch (error) {
           await exitFail(error, 'Vehicle');
@@ -145,7 +149,9 @@ const self = module.exports = {
           console.log('State Auto Coverage Step');
           await page.waitFor(2000);
           await page.waitForSelector('[data-test-id="current-carrier-modal-company"]');
-          await selectElement('[data-test-id="current-carrier-modal-company"]', '00000');
+          // await selectElement('[data-test-id="current-carrier-modal-company"]', '00000');
+          await fillPage();
+          await page.waitFor(2000);
           const submitBtn = await page.$('[data-test-id="current-carrier-modal-submit"]');
           submitBtn.click();
           await page.waitFor(1000);
@@ -185,6 +191,15 @@ const self = module.exports = {
           };
           browser.close();
           saveRatingFromJob(req, response);
+          // req.session.data = {
+          //   title: 'Successfully retrieved state Auto rate.',
+          //   status: true,
+          //   totalPremium: premiumDetails.totalPremium ? premiumDetails.totalPremium.replace(/,/g, '') : null,
+          //   months: premiumDetails.plan ? premiumDetails.plan : null,
+          //   monthlyPremium: premiumDetails.monthlyPremium ? premiumDetails.monthlyPremium.replace(/,/g, '') : null,
+          //   stepResult,
+          // }
+          // return next();
           console.log('response', response);
         } catch (error) {
           await exitFail(error, 'Summary');
@@ -389,6 +404,9 @@ const self = module.exports = {
           state: 'MD',
           zipCode: '24101',
           primaryResidence: 'OTH',
+          priorInsuranceCarrier: 'Other Non-Standard',
+          priorInsuranceMonths: '5',
+          priorBodilyInjuryLimits: '300000',
           reasonForPriorInsurance: 'NOPRIOR',
           firstName: 'Test',
           lastName: 'User',
@@ -446,6 +464,29 @@ const self = module.exports = {
         dataObj.push({ type: 'select', element: 'customer-info-producer-code', value: '0009450' });
         dataObj.push({ type: 'select', element: 'customer-info-agent-of-record', value: '187696' });
         dataObj.push({ type: 'radio', element: 'customer-info-multi-policy-discount-no', value: true });
+        let carrier = (bodyData.priorInsuranceCarrier && bodyData.priorInsurance !== 'No') ? bodyData.priorInsuranceCarrier.toLowerCase() : 'No Prior Insurance';
+        if (!carrier.includes('owners') && !carrier.includes('farm bureau') && !carrier.includes('kentucky') && !carrier.includes('pekin') && !carrier.includes('state auto') && !carrier.includes('west')) {
+          carrier = 'Other Non-standard';
+        }
+        dataObj.push({ type: 'select', element: 'current-carrier-modal-company', value: carrier });
+        dataObj.push({ type: 'radio', element: 'current-carrier-modal-coverage-inforce-yes', value: carrier !== 'No Prior' });
+        let months = 0;
+        if (bodyData.priorInsuranceYears) {
+          const ytM = +bodyData.priorInsuranceYears * 12;
+          months += ytM;
+        }
+        if (bodyData.priorInsuranceMonths) {
+          months += +bodyData.priorInsuranceMonths;
+        }
+        if (!bodyData.priorInsuranceMonths && !bodyData.priorInsuranceYears) {
+          months = staticDataObj.priorInsuranceMonths;
+        }
+        dataObj.push({ type: 'input', element: 'current-carrier-modal-coverage-months', value: months });
+        dataObj.push({ type: 'input', element: 'current-carrier-modal-coverage-effective-date', value: tomorrow });
+        dataObj.push({ type: 'input', element: 'current-carrier-modal-coverage-expiration-date', value: sixMonthsFromNow });
+        dataObj.push({ type: 'select', element: 'current-carrier-modal-prior-liability-limits', value: bodyData.priorBodilyInjuryLimits || staticDataObj.priorBodilyInjuryLimits });
+        
+        
 
         if (bodyData.drivers && bodyData.drivers.length > 0) {
           for (let i = 0; i < bodyData.drivers.length; i++) {
@@ -492,7 +533,6 @@ const self = module.exports = {
             dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-VIN`, value: isVIN });
             dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-yearMakeModel`, value: isYearMM });
             // TODO** Fails on Type Business. Its not adding the two radios below.(working)
-            // Need to also add commute miles one way on Commute answer (done)
             dataObj.push({ type: 'select', element: `vehicle${index}-primary-use`, value: vehicle.primaryUse || staticVehicle.primaryUse, beforeDelay: 1000 });
             dataObj.push({ type: 'radio', element: `vehicle${index}-usedForDelivery-no`, value: true });
             dataObj.push({ type: 'input', element: `vehicle${index}-vin-input`, value: vehicle.vehicleVin || staticVehicle.vehicleVin });

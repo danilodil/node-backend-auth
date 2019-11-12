@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.put('/stateAuto/', [
   raterController.getOneByName,
-  stateAutoRaterJob.stateAuto,
+  stateAutoRater.addToQueue,
 ]);
 
 module.exports = router;
