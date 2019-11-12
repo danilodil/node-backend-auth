@@ -48,6 +48,10 @@ const self = module.exports = {
 
       await loginStep();
       await customerStep();
+      await driverStep();
+      await vehicleStep();
+      // TODO** Add Insurance Coverage modal step
+      // TODO** Retrieve rate step
 
       async function loginStep() {
         console.log('State Auto Login Step');
@@ -67,46 +71,234 @@ const self = module.exports = {
       async function customerStep() {
         console.log('State Auto Customer Step');
         try {
-          const url = (`${stateAutoRater.NEW_QUOTE_URL}?postalCode=21401&state=MD&lob=AUTOP&effectiveDate=2019-12-01`);
+          const url = (`${stateAutoRater.NEW_QUOTE_URL}?postalCode=${bodyData.zipCode}&state=${bodyData.state}&lob=AUTOP&effectiveDate=2019-12-01`);
           await page.goto(url, { waitUntil: 'networkidle2', timeout: 0 });
           await page.waitFor(500);
           await page.waitForSelector('[data-test-id="customer-info-pni-first-name"]');
           await fillPage();
-          await page.waitFor(500);
+          await page.waitFor(3000);
+          await page.waitForSelector('[data-test-id="customer-info-agent-of-record"]');
+          await selectElement('[data-test-id="customer-info-agent-of-record"]', '187696');
+          await page.waitFor(2000);
+          const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
+          nextBtn.click();
+          await page.waitFor(1000);
+          let dialogBtn = await page.$('[data-test-id="address-continue-button-id"]');
+          // TODO** This only works if the address is incorrect. We need to add logic to make sure we account for if the address is correct. Also, if it is close theres a different model that popups up, we need to account for this as well. 
+          if (dialogBtn) {
+            dialogBtn.click();
+            await page.waitFor(500);
+          }
+          const customerEl = await page.$('[data-test-id="customer-info-pni-first-name"]');
+          if (customerEl) {
+            nextBtn.click();
+            await page.waitFor(3000);
+          }
+          stepResult.customerInfo = true;
         } catch (error) {
           await exitFail(error, 'Add Customer');
         }
       }
 
+      async function driverStep() {
+        try {
+          console.log('State Auto Driver Step');
+          await page.waitFor(500);
+          await page.waitForSelector('[data-test-id="driver1-license-number"]');
+          await addMultiple('drivers');
+          await fillPage();
+          await page.waitFor(2000);
+          const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
+          nextBtn.click();
+          await page.waitFor(1000);
+        } catch (error) {
+          await exitFail(error, 'Drivers');
+        }
+      }
+
+      async function vehicleStep() {
+        try {
+          console.log('State Auto Vehicle Step');
+          await page.waitFor(500);
+          await page.waitForSelector('[data-test-id="vehicle1-addVehiclesBy-VIN"]');
+          await addMultiple('vehicles');
+          await fillPage();
+          await page.waitFor(2000);
+          const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
+          nextBtn.click();
+          await page.waitFor(1000);
+        } catch (error) {
+          await exitFail(error, 'Drivers');
+        }
+      }
+
       async function fillPage() {
         try {
-          console.log('Fill Page Hit');
           await page.waitFor(500);
-          await page.evaluate(async (data) => {
-            const fields = document.querySelectorAll('[data-test-id]');
-            for (const row of data) {
-              for (const field of fields) {
-                if (field && field.attributes && field.attributes['data-test-id'] && field.attributes['data-test-id'].nodeValue) {
-                  const nodeV = field.attributes['data-test-id'].nodeValue;
-                  if (nodeV === row.element) {
-                    if (row.type === 'input') {
-                    //   field.type(row.value);
-                      field.value = row.value;
-                      field.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-                      field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete' }));
-                    } else if (row.type === 'select') {
-                    //   field.select(row.value);
-                      field.value = row.value;
-                    }
-                    //   field.value = row.value;
-                  }
+          for (const row of populatedData) {
+            const element = `[data-test-id="${row.element}"]`;
+            const field = await page.$(element);
+            if (field) {
+              if (row.type === 'input') {
+                await typeInInputElements(element, row.value);
+              } else if (row.type === 'select') {
+                if (row.beforeDelay) {console.log('Before Delay');await page.waitFor(row.beforeDelay)};
+                await selectElement(element, row.value);
+                if (row.afterDelay) {console.log('After Delay');await page.waitFor(row.afterDelay)};
+              } else if (row.type === 'radio') {
+                const radio = await page.$(element);
+                if (radio && row.value === true) {
+                  radio.click();
+                  await page.waitFor(500);
                 }
               }
             }
-          }, populatedData);
+          }
         } catch (error) {
           await exitFail(error, 'Add Customer');
         }
+      }
+
+      async function addMultiple(type) {
+        try {
+          if (bodyData[type] && bodyData[type].length > 0) {
+            let btnEl = null;
+            if (type === 'drivers') {
+              btnEl = await page.$('[data-test-id="drivers-add-driver"]');
+            } else if (type === 'vehicles') {
+              const btns = await page.$$('.rbtn2_1');
+              btnEl = btns[2];
+            }
+            for (let i=0;i<bodyData[type].length;i++) {
+              if (i>0) {
+                btnEl.click();
+                await page.waitFor(2000);
+              }
+            }
+          }
+        } catch (error) {
+          await exitFail(error, 'Add Multiple');
+        }
+      }
+
+      async function selectElement(selector, option) {
+        await page.evaluate(async (sel, opt) => {
+          const element = document.querySelector(sel);
+          // eslint-disable-next-line no-nested-ternary
+          const options = element.options;
+
+          const bestValue = await getBestValue(opt, options);
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+          nativeInputValueSetter.call(element, bestValue);
+          // eslint-disable-next-line no-nested-ternary
+          const ev2 = new Event('change', { bubbles: true });
+          element.dispatchEvent(ev2);
+
+
+          function compareTwoStrings(first, second) {
+            first = first.replace(/\s+/g, '');
+            second = second.replace(/\s+/g, '');
+
+            if (!first.length && !second.length) return 1;// if both are empty strings
+            if (!first.length || !second.length) return 0;// if only one is empty string
+            if (first === second) return 1;// identical
+            if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+            if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
+
+            const firstBigrams = new Map();
+            for (let i = 0; i < first.length - 1; i++) {
+              const bigram = first.substring(i, i + 2);
+              const count = firstBigrams.has(bigram)
+                ? firstBigrams.get(bigram) + 1
+                : 1;
+              firstBigrams.set(bigram, count);
+            }
+
+            let intersectionSize = 0;
+            for (let i = 0; i < second.length - 1; i++) {
+              const bigram = second.substring(i, i + 2);
+              const count = firstBigrams.has(bigram)
+                ? firstBigrams.get(bigram)
+                : 0;
+
+              if (count > 0) {
+                firstBigrams.set(bigram, count - 1);
+                intersectionSize++;
+              }
+            }
+
+            return (2.0 * intersectionSize) / (first.length + second.length - 2);
+          }
+          function findBestMatch(mainString, targetStrings) {
+            if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+            const ratings = [];
+            let bestMatchIndex = 0;
+
+            for (let i = 0; i < targetStrings.length; i++) {
+              const currentTargetString = targetStrings[i];
+              const currentRating = compareTwoStrings(mainString, currentTargetString);
+              ratings.push({ target: currentTargetString, rating: currentRating });
+              if (currentRating > ratings[bestMatchIndex].rating) {
+                bestMatchIndex = i;
+              }
+            }
+
+
+            const bestMatch = ratings[bestMatchIndex];
+
+            return { ratings, bestMatch, bestMatchIndex };
+          }
+          function areArgsValid(mainString, targetStrings) {
+            if (typeof mainString !== 'string') return false;
+            if (!Array.isArray(targetStrings)) return false;
+            if (!targetStrings.length) return false;
+            if (targetStrings.find(s => typeof s !== 'string')) return false;
+            return true;
+          }
+
+          async function getBestValue(value, data) {
+            try {
+              const optionsArray = [...data];
+              const nArr = optionsArray.map(entry => entry.text.toLowerCase());
+              const vArr = optionsArray.map(entry => entry.value.toLowerCase());
+              if (value && value.length && value.length > 0 && value.length < 2) {
+                if (vArr.indexOf(value.toLowerCase()) !== -1) {
+                  return value;
+                }
+              } else if (value && value.length > 1) {
+                const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
+                const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+                let i = 0;
+                if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+                  i = nBestMatch.bestMatchIndex;
+                } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+                  i = vBestMatch.bestMatchIndex;
+                } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
+                  i = nBestMatch.bestMatchIndex;
+                }
+                const bestValue = optionsArray[i].value;
+                return bestValue;
+              } else if (value) {
+                return value || '';
+              } else {
+                return '';
+              }
+            } catch (error) {
+              console.log(`Error: ${error}`);
+            }
+          }
+        }, selector, option);
+      }
+
+      async function typeInInputElements(inputSelector, text) {
+        await page.evaluate((selector, inputText) => {
+          const inputElement = document.querySelector(selector);
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          nativeInputValueSetter.call(inputElement, inputText);
+          const ev2 = new Event('input', { bubbles: true });
+          inputElement.dispatchEvent(ev2);
+        }, inputSelector, text);
       }
 
       async function exitFail(error, step) {
@@ -126,9 +318,9 @@ const self = module.exports = {
         const staticDataObj = {
           businessType: 'AUTO',
           mailingAddress: '670 Park Avenue',
-          city: 'Moody',
-          state: 'AL',
-          zipCode: '36140',
+          city: 'Anapolis',
+          state: 'MD',
+          zipCode: '24101',
           primaryResidence: 'OTH',
           reasonForPriorInsurance: 'NOPRIOR',
           firstName: 'Test',
@@ -152,7 +344,7 @@ const self = module.exports = {
           vehicles: [
             {
               vehicleVin: 'KMHDH6AE1DU001708',
-              vehicleUse: 'BU',
+              primaryUse: 'Pleasure',
               annualMiles: '500',
               yearsVehicleOwned: '5',
               ownerShip: 'L',
@@ -167,8 +359,8 @@ const self = module.exports = {
               birthDate: '12/16/1993',
               maritalStatus: 'S',
               relationshipTonamedInsured: 'IN',
-              licenseState: 'AL',
-              ageWhen1stLicensed: '17',
+              licenseState: 'MD',
+              yearLicenseIssued: '2009',
               dateWhenLicensed: yeasterDay,
             },
           ],
@@ -179,92 +371,75 @@ const self = module.exports = {
         dataObj.push({ type: 'input', element: 'customer-info-pni-last-name', value: bodyData.lastName || staticDataObj.lastName });
         dataObj.push({ type: 'input', element: 'customer-info-pni-dob', value: bodyData.birthDate || staticDataObj.birthDate });
         dataObj.push({ type: 'input', element: 'customer-info-personal-address-line', value: bodyData.mailingAddress || staticDataObj.mailingAddress });
-        // dataObj.pty = { element: 'txtCity', value: bodyData.city || staticDataObj.city });
-        // dataObj.pate = { element: 'ddState', value: bodyData.state || staticDataObj.state });
-        // dataObj.ppcode = { element: 'txtZip5', value: bodyData.zipCode || staticDataObj.zipCode });
-        const bestOccValue = await self.returnClosestValue(bodyData.occupation || staticDataObj.occupation, 'occupations', 'oth');
-        dataObj.push({ type: 'select', element: 'customer-info-pni-occupation', value: bestOccValue });
-        const bestEdValue = await self.returnClosestValue(bodyData.education || staticDataObj.education, 'educations', 'hsd');
-        dataObj.push({ type: 'select', element: 'customer-info-pni-education', value: bestEdValue });
+        const city = bodyData.city ? bodyData.city.toUpperCase() : staticDataObj.city.toUpperCase();
+        dataObj.push({ type: 'select', element: 'customer-info-personal-address-city', value: city });
+        dataObj.push({ type: 'select', element: 'customer-info-pni-occupation', value: bodyData.occupation || staticDataObj.occupation });
+        dataObj.push({ type: 'select', element: 'customer-info-pni-education', value: bodyData.education || staticDataObj.education });
         dataObj.push({ type: 'select', element: 'customer-info-producer-code', value: '0009450' });
         dataObj.push({ type: 'select', element: 'customer-info-agent-of-record', value: '187696' });
-        // dataObj.effectiveDate = { element: 'EffectiveDate', value: tomorrow };
-        // dataObj.businessType = { element: 'LineOfBusinessValue', value: staticDataObj.businessType };
-        // dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
-        // dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
-        // // vehicle
-        // dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: bodyData.vehicles[0].vehicleVin || staticDataObj.vehicles[0].vehicleVin };
-        // dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicles[0].vehicleUse };
-        // dataObj.annualMilege = { element: 'input[data-label="Annual Mileage"]', value: staticDataObj.vehicles[0].annualMiles };
-        // dataObj.ownerShip = { element: 'select[data-label="Ownership Status"]', value: staticDataObj.vehicles[0].ownerShip };
-        // // driver
-        // dataObj.maritalStatus = { element: 'select[data-label="Marital Status"]', value: staticDataObj.drivers[0].maritalStatus };
-        // dataObj.relationship = { element: 'select[data-label="Relationship to Named Insured"]', value: staticDataObj.drivers[0].relationshipTonamedInsured };
-        // dataObj.ageWhen1stLicensed = { element: 'input[data-label="Age 1st Licensed US/Canada"]', value: bodyData.drivers[0].ageWhen1stLicensed || staticDataObj.drivers[0].ageWhen1stLicensed };
-        // dataObj.dateWhenLicensed = { element: 'input[data-label="Date Licensed"]', value: bodyData.drivers[0].licensedDate || staticDataObj.drivers[0].dateWhenLicensed };
+        dataObj.push({ type: 'radio', element: 'customer-info-multi-policy-discount-no', value: true });
 
-        // dataObj.insuranceStatus = { element: 'select[data-label="Insurance Status"]', value: staticDataObj.reasonForPriorInsurance };
-        // dataObj.ReasonForinsurance = { element: 'select[data-label="Reason for No Prior Insurance"]', value: 'FIRSTCAR' };
-        // dataObj.primaryResidence = { element: 'select[data-label="Primary Residence"]', value: staticDataObj.primaryResidence };
+        if (bodyData.drivers && bodyData.drivers.length > 0) {
+          for (let i = 0; i < bodyData.drivers.length; i++) {
+            const driver = bodyData.drivers[i];
+            const staticDriver = staticDataObj.drivers[0];
+            const index = (i + 1);
+            if (i > 0) {
+              dataObj.push({ type: 'input', element: `driver${index}-first-name`, value: driver.firstName || staticDriver.firstName });
+              dataObj.push({ type: 'input', element: `driver${index}-last-name`, value: driver.lastName || staticDriver.lastName });
+              dataObj.push({ type: 'select', element: `driver${index}-occupation`, value: driver.occupation || staticDriver.occupation });
+              dataObj.push({ type: 'select', element: `driver${index}-education-level`, value: driver.education || staticDriver.education });
+              dataObj.push({ type: 'input', element: `driver${index}-info-pni-dob`, value: driver.birthDate || staticDriver.birthDate });
+              dataObj.push({ type: 'input', element: `driver${index}-license-number`, value: driver.licenseNumber || staticDriver.licenseNumber });
+              dataObj.push({ type: 'select', element: `driver${index}-license-state`, value: driver.licenseState || staticDriver.licenseState });
+              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: driver.yearLicenseIssued || staticDriver.yearLicenseIssued });
+              dataObj.push({ type: 'select', element: `driver${index}-marital-status`, value: driver.maritalStatus || staticDriver.maritalStatus });
+              dataObj.push({ type: 'select', element: `driver${index}-relationship-to-primary`, value: driver.relation || staticDriver.relation });
+              const gender = (driver.gender || staticDriver.gender);
+              const isFemale = gender.toLowerCase().includes('f');
+              const isMale = !isFemale;
+              dataObj.push({ type: 'radio', element: `driver${index}-gender-female`, value: isFemale });
+              dataObj.push({ type: 'radio', element: `driver${index}-gender-male`, value: isMale });
+            } else {
+              dataObj.push({ type: 'input', element: `driver${index}-license-number`, value: driver.licenseNumber || staticDriver.licenseNumber });
+              dataObj.push({ type: 'select', element: `driver${index}-license-state`, value: driver.licenseState || staticDriver.licenseState });
+              dataObj.push({ type: 'select', element: `driver${index}-first-year-licensed`, value: driver.yearLicenseIssued || staticDriver.yearLicenseIssued });
+              dataObj.push({ type: 'select', element: `driver${index}-marital-status`, value: driver.maritalStatus || staticDriver.maritalStatus });
+              const gender = (driver.gender || staticDriver.gender);
+              const isFemale = gender.toLowerCase().includes('f');
+              const isMale = !isFemale;
+              dataObj.push({ type: 'radio', element: `driver${index}-gender-female`, value: isFemale });
+              dataObj.push({ type: 'radio', element: `driver${index}-gender-male`, value: isMale });
+            }
+          }
+        }
 
-        // dataObj.liability = { element: 'select[data-label="Liability"]', value: bodyData.coverage[0] ? bodyData.coverage[0].liability : staticDataObj.liability };
-        // dataObj.propertyDamage = { element: 'select[data-label="Property Damage"]', value: bodyData.coverage[0] ? bodyData.coverage[0].propertyDamage : staticDataObj.propertyDamage };
-        // dataObj.motorist = { element: 'select[data-label="Uninsd/Underinsd Motorist"]', value: bodyData.coverage[0] ? bodyData.coverage[0].motorist : staticDataObj.motorist };
-        // dataObj.medicalPayment = { element: 'select[data-label="Medical Payments"]', value: bodyData.coverage[0] ? bodyData.coverage[0].medicalPayment : staticDataObj.medicalPayment };
-        // dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: bodyData.coverage[0] ? bodyData.coverage[0].comprehensive : staticDataObj.comprehensive };
-        // dataObj.collision = { element: 'select[data-label="Collision"]', value: bodyData.coverage[0] ? bodyData.coverage[0].collision : staticDataObj.collision };
-        // dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0] ? bodyData.coverage[0].roadAssistant : staticDataObj.roadAssistant };
-        // dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: bodyData.coverage[0] ? bodyData.coverage[0].rentalETE : staticDataObj.rentalETE };
-        // dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0] ? bodyData.coverage[0].equipment : staticDataObj.equipment };
-        // dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: bodyData.coverage[0] ? bodyData.coverage[0].driverPlan : staticDataObj.driverPlan };
-
+        if (bodyData.vehicles && bodyData.vehicles.length > 0) {
+          for (let i = 0; i < bodyData.vehicles.length; i++) {
+            const vehicle = bodyData.vehicles[i];
+            const staticVehicle = staticDataObj.vehicles[0];
+            const index = (i + 1);
+            const isVIN = vehicle.vehicleVin ? true : false;
+            const isYearMM = !isVIN;
+            dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-VIN`, value: isVIN });
+            dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-yearMakeModel`, value: isYearMM });
+            // TODO** Fails on Type Business. Its not adding the two radios below. Need to also add commute miles one way on Commute answer
+            dataObj.push({ type: 'select', element: `vehicle${index}-primary-use`, value: vehicle.primaryUse || staticVehicle.primaryUse, beforeDelay: 1000 });
+            dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-no`, value: true });
+            dataObj.push({ type: 'radio', element: `vehicle${index}-usedForDelivery-no`, value: true });
+            dataObj.push({ type: 'input', element: `vehicle${index}-vin-input`, value: vehicle.vehicleVin || staticVehicle.vehicleVin });
+            if (!isVIN) {
+              dataObj.push({ type: 'select', element: `vehicle${index}-year`, value: vehicle.year || staticVehicle.year });
+              dataObj.push({ type: 'select', element: `vehicle${index}-make`, value: vehicle.make || staticVehicle.make });
+              dataObj.push({ type: 'select', element: `vehicle${index}-model`, value: vehicle.model || staticVehicle.model });
+            }
+          }
+        }
         return dataObj;
       }
     } catch (error) {
       console.log('Error at State Auto:', error);
       return next(Boom.badRequest('Failed to retrieved State Auto rate.'));
-    }
-  },
-  returnClosestValue: async (value, array, defaultValue) => {
-    try {
-      async function returnValueIfExists(val) {
-        if (val && val !== 'undefined' && typeof val !== 'undefined' && val !== null) {
-          return val;
-        }
-        return null;
-      }
-      const returnBestValue = async (arr, val, defaultVal) => {
-        try {
-          if (returnValueIfExists(val)) {
-            const objs = await self.returnArray(arr);
-            const displays = objs.map(opt => opt.display);
-            const bestValueIndex = stringSimilarity.findBestMatch(val, displays).bestMatchIndex;
-            const bestValue = (bestValueIndex ? objs[bestValueIndex].value : null);
-            return bestValue;
-          } if (returnValueIfExists(defaultVal)) {
-            return defaultVal;
-          }
-          return val;
-        } catch (error) {
-          console.log(error);
-          return null;
-        }
-      };
-
-      const bestValue = await returnBestValue(array, value, defaultValue);
-
-      return bestValue;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
-  },
-  returnArray: async (value) => {
-    switch (value) {
-      case 'occupations':
-        return [{ value: 'admin', display: 'Administrative/Clerical' }, { value: 'cs', display: 'Civil Servant' }, { value: 'cr', display: 'Construction/Repair' }, { value: 'cf', display: 'Craftsman' }, { value: 'Dis', display: 'Disabled' }, { value: 'dr', display: 'Doctor' }, { value: 'ep', display: 'Editor/Publisher' }, { value: 'eng', display: 'Engineer/Scientist' }, { value: 'fa', display: 'Farmer' }, { value: 'ff', display: 'Fire Fighter' }, { value: 'FulTmStdnt', display: 'Full-Time Student' }, { value: 'hm', display: 'Homemaker' }, { value: 'lale', display: 'Labor Leader' }, { value: 'le', display: 'Law Enforcement' }, { value: 'la', display: 'Lawyer' }, { value: 'ma', display: 'Manager' }, { value: 'me', display: 'Media' }, { value: 'mc', display: 'Merchant' }, { value: 'Mil', display: 'Military' }, { value: 'nr', display: 'News Reporter' }, { value: 'oth', display: 'Other' }, { value: 'oop', display: 'Other Office Professional' }, { value: 'pea', display: 'Professional Entertainer/Athlete' }, { value: 'profPol', display: 'Professional Politician' }, { value: 'pp', display: 'Proprietor' }, { value: 'pubLec', display: 'Public Lecturer' }, { value: 'rta', display: 'Radio/TV Announcer' }, { value: 'Retrd', display: 'Retired' }, { value: 'sa', display: 'Sales' }, { value: 'se', display: 'Service' }, { value: 'te', display: 'Teacher' }, { value: 'un', display: 'Unemployed' }];
-      case 'educations':
-        return [{ value: 'shsc', display: 'Some High School Coursework' }, { value: 'hsd', display: 'High School Diploma' }, { value: 'scc', display: 'Some College Coursework' }, { value: 'voc', display: 'Vocational/Technical Degree' }, { value: 'asso', display: 'Associates Degree' }, { value: 'bach', display: 'Bachelors Degree' }, { value: 'mas', display: 'Masters Degree' }, { value: 'doc', display: 'Doctoral Degree' }, { value: 'med', display: 'Medical Degree' }, { value: 'law', display: 'Law Degree' }];
     }
   },
 };

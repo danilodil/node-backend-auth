@@ -39,6 +39,7 @@ exports.stateAutoRater = {
   LOGIN_URL: 'https://empidn.stateauto.com/',
   NEW_QUOTE_URL: 'https://std-spa-personal.stateauto.com/auto/submission/customer-info/',
   SEARCH_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
+  DRIVERS_URL: 'https://std-spa-personal.stateauto.com/auto/submission/drivers',
   LOGIN_REATTEMPT: 2,
 };
 
