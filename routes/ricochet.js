@@ -1,10 +1,10 @@
 const express = require('express');
-const ezlynxController = require('../controllers/ezlynx');
+const ricochetController = require('../controllers/ricochet');
 
 const router = express.Router();
 
 router.put('/upsert/:type/:clientId', async (req, res, next) => {
-  await ezlynxController.createContact(req, res, next);
+  await ricochetController.createContact(req, res, next);
 });
 
 module.exports = router;

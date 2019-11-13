@@ -35,6 +35,14 @@ exports.progressiveRater = {
   LOGIN_REATTEMPT: 2,
 };
 
+exports.stateAutoRater = {
+  LOGIN_URL: 'https://empidn.stateauto.com/',
+  NEW_QUOTE_URL: 'https://std-spa-personal.stateauto.com/auto/submission/customer-info/',
+  SEARCH_QUOTE_URL: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
+  DRIVERS_URL: 'https://std-spa-personal.stateauto.com/auto/submission/drivers',
+  LOGIN_REATTEMPT: 2,
+};
+
 exports.cseRater = {
   LOGIN_URL: 'https://spinn.csespi.com/innovation',
 };
@@ -56,6 +64,7 @@ exports.safecoRater = {
   NEW_QUOTE_START_URL: 'https://now.agent.safeco.com/start/',
   NEW_QUOTE_START_NEWBUSINESS: 'https://safesite.safeco.com/personal/policyservice/NewBusinessMenu.aspx',
   NEW_QUOTE_START_AUTO_URL: 'https://safesite.safeco.com/personal/auto/policyinfo.aspx',
+  NEW_QUOTE_START_HOME_URL: 'https://safesite.safeco.com/personal/Home/policyinfo.aspx',
   EXISTING_QUOTE_URL: 'https://safesite.safeco.com/client/ClientList.aspx',
 };
 
@@ -70,4 +79,36 @@ exports.travelerRater = {
 exports.erieRater = {
   LOGIN_URL: 'https://www.agentexchange.com/',
   CUSTOMER_URL: 'https://www.agentexchange.com/Customer/PA',
+};
+
+exports.quoteRush = {
+  UPLOAD_PATH: 'https://quoterush.com/Importer/Json/Import',
+};
+
+exports.turborater = {
+  UPLOAD_PATH: 'https://www.inscontact.com/leads/leadhandler.ashx',
+  UPLOAD_PATH_DEV: 'https://www.inscontact.com/leads/leadhandler.ashx',
+  // UPLOAD_PATH_DEV: 'http://preview.agencybuzz.com/leads/leadhandler.ashx',
+  ACC_NUM: 'XILO11',
+};
+exports.nowCerts = {
+  AUTHENTICATE_URL: 'https://api.nowcerts.com/api/token',
+  DRIVERS_URL: 'https://api.nowcerts.com/api/Driver/BulkInsertDriver',
+  VEHICLES_URL: 'https://api.nowcerts.com/api/Vehicle/BulkInsertVehicle',
+  INSURED_URL: 'https://api.nowcerts.com/api/Insured/Insert',
+  PROPERTY_URL: 'https://api.nowcerts.com/api/Property/InsertOrUpdate',
+};
+
+exports.appulate = {
+  UPLOAD_API_URL: 'https://appulate.com/api/uplink/upload',
+};
+
+exports.quoteUrl = {
+  PROGRESSIVE: 'https://www.foragentsonly.com/login/',
+  CSECA: 'https://spinn.csespi.com/innovation',
+  NATIONALGENERAL: 'https://www.natgenagency.com/',
+  SAFECO: 'http://www.safeconow.com/',
+  ALLSTATE: 'https://myconnection2.allstate.com/IA/Profile/RoleProfile',
+  TRAVELER: 'https://www.travelers.com/foragents',
+  ERIE: 'https://www.agentexchange.com/',
 };

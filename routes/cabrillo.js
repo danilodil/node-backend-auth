@@ -1,10 +1,10 @@
 const express = require('express');
-const ezlynxController = require('../controllers/ezlynx');
+const cabrilloController = require('../controllers/cabrillo');
 
 const router = express.Router();
 
 router.put('/upsert/:type/:clientId', async (req, res, next) => {
-  await ezlynxController.createContact(req, res, next);
+  await cabrilloController.createContact(req, res, next);
 });
 
 module.exports = router;

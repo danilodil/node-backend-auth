@@ -37,8 +37,8 @@ module.exports = {
         homeXmlData.splice(-1, 1);
         homeXmlData = homeXmlData.join('\n');
 
-        const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
-        const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
+        const homeXml_head = '<?xml version="1.0" encoding="utf-8"?>';
+        const homeXml_body = homeXml_head.concat(homeXmlData, '');
 
         console.log('HOME DATA ###', homeXml_body);
 
