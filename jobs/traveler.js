@@ -176,8 +176,8 @@ async function traveler(req) {
         await page.waitFor(30000);
         await page.waitForSelector(populatedData.phone.element);
         await page.focus(populatedData.phone.element);
-        await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
-        // await page.keyboard.type(populatedData.phone.value, { delay: 80 });
+        // await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
+        await page.keyboard.type(populatedData.phone.value, { delay: 80 });
         await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
         await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
         await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
@@ -191,6 +191,14 @@ async function traveler(req) {
         await page.waitFor(8000);
         await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
         await page.waitFor(5000);
+        const addressBtn = await page.$('[id="overlayButton-addressDifference-Use Original"]');
+        if (addressBtn) {
+          addressBtn.click();
+          await page.waitFor(500);
+        }
+        await page.waitFor(30000);
+        await page.waitForSelector(populatedData.agentCode.element);
+        await page.select(populatedData.agentCode.element, populatedData.agentCode.value);
         if (await page.$('#page > #dialog-modal > #main #dynamicContinueButton')) {
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.evaluate(async () => {
@@ -199,15 +207,22 @@ async function traveler(req) {
             await continueButton.click();
           });
         }
-        await page.waitFor(30000);
-        await page.waitForSelector('#\\33 022120615_0');
+        await page.waitFor(40000);
+        // await page.waitForSelector('#\\33 022120615_0');
         await page.evaluate(async () => {
-          const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2];
-          await hasMovedWithin6Month.click();
-          const reviewdInfoByLaw = document.querySelector('#\\31 468764443_1');
-          await reviewdInfoByLaw.click();
+          const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]');
+          if (hasMovedWithin6Month) {
+            const element = hasMovedWithin6Month.children[2];
+            await element.click();
+          }
+          const reviewdInfoByLaw = document.querySelector('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]').children[0];
+          if (reviewdInfoByLaw) {
+            await reviewdInfoByLaw.click();
+          }
           const reportButton = document.querySelector('#overlayButton-reports-dynamicOrderReport');
-          reportButton.click();
+          if (reportButton) {
+            reportButton.click();
+          }
         });
         stepResult.customerInfo = true;
       } catch (error) {
@@ -531,6 +546,7 @@ async function traveler(req) {
       dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
       dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: bodyData.birthDate || staticDataObj.birthDate };
       dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
+      dataObj.agentCode = { element: 'select[data-label="Agent Code"]', value: '0CJB70'}
       // vehicle
       dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: bodyData.vehicles[0].vehicleVin || staticDataObj.vehicles[0].vehicleVin };
       dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicles[0].vehicleUse };
