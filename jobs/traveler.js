@@ -342,6 +342,7 @@ async function traveler(req) {
         await page.waitFor(1000);
 
         await page.waitForSelector(populatedData.currentCarrier.element);
+        await page.focus(populatedData.currentCarrier.element);
         await page.type(populatedData.currentCarrier.element, populatedData.currentCarrier.value);
 
         await page.waitFor(1000);
@@ -441,6 +442,12 @@ async function traveler(req) {
         await page.focus(populatedData.rentalETE.element);
         await page.select(populatedData.rentalETE.element, populatedData.rentalETE.value);
 
+        await page.evaluate(() => {
+          const personInjuryButton = document.querySelector('span[data-label="Personal Injury Protection"]').children[0];
+          personInjuryButton.removeAttribute('disabled');
+          personInjuryButton.click();
+        });
+
         await page.waitFor(2000);
         await page.evaluate(() => {
           document.querySelector('#dynamicContinueButton').click();
@@ -468,7 +475,7 @@ async function traveler(req) {
           stepResult,
         };
         console.log('##req.session.data', response);
-        // browser.close();
+        browser.close();
         saveRatingFromJob(req, response);
       } catch (error) {
         await exitFail(error, 'summary');
@@ -721,7 +728,7 @@ async function traveler(req) {
       dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0] ? bodyData.coverage[0].roadAssistant : staticDataObj.roadAssistant };
       dataObj.rentalETE = { element: 'select[data-label="Rental ETE"]', value: bodyData.coverage[0] ? bodyData.coverage[0].rentalETE : staticDataObj.rentalETE };
       dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0] ? bodyData.coverage[0].equipment : staticDataObj.equipment };
-      dataObj.unInsuredMotorist = { element: 'select[data-label="Uninsured Motorist PD"]', value: '100000' };
+      dataObj.unInsuredMotorist = { element: 'select[data-label="Uninsured Motorist PD"]', value: '25000' };
       dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: staticDataObj.driverPlan };
       dataObj.assumedScore = { element: 'select[data-label="Assumed Score"]', value: staticDataObj.assumedScore };
       dataObj.currentCarrier = { element: 'input[data-label="Current Auto Insurance Carrier"]', value: staticDataObj.currentCarrier };
