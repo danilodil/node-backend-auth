@@ -16,6 +16,7 @@ module.exports = {
       findObject.where.vendorName = params.vendorName;
       findObject.where.state = params.state;
       findObject.where.carrier = params.carrier;
+      findObject.where.agency = params.agency;
 
       const vendor = await vendorModel.findOne(findObject);
 
@@ -31,6 +32,7 @@ module.exports = {
         salesforceAT: params.salesforceAT || '',
         state: params.state,
         carrier: params.carrier,
+        agency: params.agency,
       });
 
       req.session.data = {
@@ -72,6 +74,7 @@ module.exports = {
           state: params.state,
           carrier: params.carrier,
           agentId: params.agentId,
+          agency: params.agency,
         });
 
         req.session.data = {
@@ -91,6 +94,7 @@ module.exports = {
         state: params.state ? params.state : vendor.state,
         carrier: params.carrier ? params.carrier : vendor.carrier,
         agentId: params.agentId ? params.agentId : vendor.agentId,
+        agency: params.agency ? params.agency : vendor.agency,
       });
 
       req.session.data = {

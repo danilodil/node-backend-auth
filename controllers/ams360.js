@@ -10,11 +10,12 @@ const appConstant = require('../constants/appConstant').ams360;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { username, password, agency } = req.body.decoded_vendor;
+
       const authBody = `<?xml version="1.0" encoding="utf-8"?>
       <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         <soap:Body>
-          <AgencyNo xmlns="http://www.WSAPI.AMS360.com/v2.0">${appConstant.Agency}</AgencyNo><LoginId xmlns="http://www.WSAPI.AMS360.com/v2.0">${username}</LoginId><Password xmlns="http://www.WSAPI.AMS360.com/v2.0">${password}</Password>
+          <AgencyNo xmlns="http://www.WSAPI.AMS360.com/v2.0">${agency}</AgencyNo><LoginId xmlns="http://www.WSAPI.AMS360.com/v2.0">${username}</LoginId><Password xmlns="http://www.WSAPI.AMS360.com/v2.0">${password}</Password>
         </soap:Body>
       </soap:Envelope>`;
 

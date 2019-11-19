@@ -114,7 +114,6 @@ exports.quoteUrl = {
 };
 
 exports.ams360 = {
-  Agency: '1003556-1',
   Version: 'v19119063201',
   AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
   CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
