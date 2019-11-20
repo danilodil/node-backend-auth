@@ -112,3 +112,14 @@ exports.quoteUrl = {
   TRAVELER: 'https://www.travelers.com/foragents',
   ERIE: 'https://www.agentexchange.com/',
 };
+
+exports.commercialEzlynx = {
+  DEV_URL: 'https://uat.webcetera.com/ezlynxapi/api',
+  DEV_USERNAME: 'xi_userUAT',
+  DEV_PASSWORD: 'xi_userUAT',
+  DEV_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
+  PROD_URL: 'https://services.ezlynx.com/ezlynxapi/api',
+  PROD_USERNAME: 'xi_userUAT',
+  PROD_PASSWORD: 'xi_userUAT',
+  PROD_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
+}
