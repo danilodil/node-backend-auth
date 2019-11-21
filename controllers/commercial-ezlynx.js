@@ -13,7 +13,7 @@ module.exports = {
             const app_secret = configConstant.nodeEnv === 'production' ? appConstant.PROD_APP_SECRET : appConstant.DEV_APP_SECRET;
             const auth_options = {
                 method: 'POST',
-                url,
+                url: `${url}/authenticate`,
                 headers: {
                     EZUser: ez_user,
                     EZPassword: ez_password,
@@ -23,11 +23,11 @@ module.exports = {
                     AccountUsername: username
                 },
             };
-
+            console.info('################### auth_options', auth_options)
             const authenticate = await request(auth_options);
             const contact_option = {
                 method: 'POST',
-                url,
+                url: `${url}/Prospect/v1/Commercial`,
                 headers: {
                     EZToken: authenticate.EZToken,
                     EZAppSecret: app_secret,
