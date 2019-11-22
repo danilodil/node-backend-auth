@@ -596,9 +596,9 @@ async function rate(req) {
                         }
                         btn.click();
                     });
-                    // await browser.close();
+                    await browser.close();
                 } else {
-                    // await browser.close();
+                    await browser.close();
                 }
             } catch (error) {
                 await exitFail(error);
