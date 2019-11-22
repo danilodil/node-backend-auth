@@ -169,7 +169,9 @@ async function rate(req) {
                 await page.goto(progressiveRater.NEW_QUOTE_URL, { waitUntil: 'load' });
                 await page.waitForSelector('#QuoteStateList');
                 // TODO: MAKE AL DYNAMIC
-                await page.select('#QuoteStateList', 'AL');
+                // await page.select('#QuoteStateList', 'AL');
+                const state = bodyData.state || 'AL';
+                await page.select('#QuoteStateList', state);
                 await page.select('#Prds', 'AU');
                 await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
                 stepResult.newQuote = true;
@@ -182,12 +184,13 @@ async function rate(req) {
             console.log('Progressive Existing Quote Step');
             try {
                 await page.goto(progressiveRater.SEARCH_QUOTE_URL, { waitUntil: 'load' });
+                const state = bodyData.state || 'AL';
                 if (raterStore.quoteIds && raterStore.quoteIds.quoteNumber && raterStore.quoteIds.quoteNumber !== '') {
                     await page.evaluate((quoteIds) => {
                         const quoteKey = quoteIds.quoteKey;
                         const quoteNumber = quoteIds.quoteNumber;
                         // TODO: MAKE AL DYNAMIC
-                        quoteSearchOpenQuote(`/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quoteKey}&quoteNumber=${quoteNumber}&quoteActivityId=&st_cd=AL&prod_cd=AU&qt_src=DQS&risk_cd=AA`, 'AU');
+                        quoteSearchOpenQuote(`/NewBusiness/QuotingGateway/RouteQuote/?app=OpenQuote&quotekey=${quoteKey}&quoteNumber=${quoteNumber}&quoteActivityId=&st_cd=${state}&prod_cd=AU&qt_src=DQS&risk_cd=AA`, 'AU');
                     }, raterStore.quoteIds);
                 } else {
                     const tdText = await page.$$eval('table tbody tr td p a', tds => tds.map(td => td.innerText));
@@ -704,15 +707,15 @@ async function rate(req) {
                             input.setAttribute('type', 'hidden');
 
                             if (type === 'select-one') {
-                                if (id.includes('drvr_empl_stat')) {
+                                if (id.includes('drvr_empl_stat_ag')) {
                                     const occupations = [
                                         { text: 'Homemaker (full-time)', value: '01' }, { text: 'Retired (full-time)', value: '02' }, { text: 'Unemployed', value: '03' }, { text: 'Student (full-time)', value: '04' }, { text: 'Agriculture/Forestry/Fishing', value: 'AA' }, { text: 'Art/Design/Media', value: 'AB' }, { text: 'Banking/Finance/Real Estate', value: 'AC' }, { text: 'Business/Sales/Office', value: 'AD' }, { text: 'Construction / Energy / Mining', value: 'AE' }, { text: 'Education/Library', value: 'AF' }, { text: 'Engineer/Architect/Science/Math', value: 'AG' }, { text: 'Food Service / Hotel Services', value: 'AH' }, { text: 'Government/Military', value: 'AJ' }, { text: 'Information Technology', value: 'AK' }, { text: 'Insurance', value: 'AL' }, { text: 'Legal/Law Enforcement/Security', value: 'AM' }, { text: 'Medical/Social Services/Religion', value: 'AN' }, { text: 'Personal Care/Service', value: 'AP' }, { text: 'Production / Manufacturing', value: 'AQ' }, { text: 'Repair / Maintenance / Grounds', value: 'AR' }, { text: 'Sports/Recreation', value: 'AS' }, { text: 'Travel / Transportation / Storage', value: 'AT' },
                                     ];
                                     bestValue = await getBestValue(value, occupations);
-                                } else if (id.includes('drvr_occup_lvl')) {
+                                } else if (id.includes('drvr_occup_lvl_ag')) {
                                     const occupations = [{ text: 'Homemaker (full-time)', value: '01' }, { text: 'Retired (full-time)', value: '02' }, { text: 'Unemployed', value: '03' }, { text: 'Student (full-time)', value: '04' }, { text: 'Agriculture/Forestry/Fishing', value: 'AA' }, { text: 'Art/Design/Media', value: 'AB' }, { text: 'Banking/Finance/Real Estate', value: 'AC' }, { text: 'Business/Sales/Office', value: 'AD' }, { text: 'Construction / Energy / Mining', value: 'AE' }, { text: 'Education/Library', value: 'AF' }, { text: 'Engineer/Architect/Science/Math', value: 'AG' }, { text: 'Food Service / Hotel Services', value: 'AH' }, { text: 'Government/Military', value: 'AJ' }, { text: 'Information Technology', value: 'AK' }, { text: 'Insurance', value: 'AL' }, { text: 'Legal/Law Enforcement/Security', value: 'AM' }, { text: 'Medical/Social Services/Religion', value: 'AN' }, { text: 'Personal Care/Service', value: 'AP' }, { text: 'Production / Manufacturing', value: 'AQ' }, { text: 'Repair / Maintenance / Grounds', value: 'AR' }, { text: 'Sports/Recreation', value: 'AS' }, { text: 'Travel / Transportation / Storage', value: 'AT' }];
                                     const index = id.replace(/^\D+/g, '')[0];
-                                    const emplValue = data[`DRV.${index}.drvr_empl_stat`].value;
+                                    const emplValue = data[`DRV.${index}.drvr_empl_stat_ag`].value;
                                     bestValue = await getBestValue(emplValue, occupations);
                                     bestValue += 'Z';
                                 } else {
@@ -955,15 +958,15 @@ async function rate(req) {
                     dataObj[`DRV.${j}.drvr_sfx_nam`] = { type: 'select-one', value: '', name: `DRV.${j}.drvr_sfx_nam` };
                     dataObj[`DRV.${j}.drvr_dob`] = { type: 'text', value: element.applicantBirthDt || staticDetailsObj.drivers[0].applicantBirthDt, name: `DRV.${j}.drvr_dob` };
                     dataObj[`DRV.${j}.drvr_lic_nbr`] = { type: 'text', value: element.driverLicenseNumber || staticDetailsObj.drivers[0].driverLicenseNumber, name: `DRV.${j}.drvr_lic_nbr` };
-                    dataObj[`DRV.${j}.drvr_ssn`] = { type: 'text', value: '', name: `DRV.${j}.drvr_ssn` };
+                    dataObj[`DRV.${j}.drvr_ssn`] = { type: 'text', value: `00${j}00000${j}`, name: `DRV.${j}.drvr_ssn` };
                     dataObj[`DRV.${j}.drvr_sex`] = { type: 'select-one', value: element.applicantGenderCd || staticDetailsObj.drivers[0].applicantGenderCd, name: `DRV.${j}.drvr_sex` };
                     dataObj[`DRV.${j}.drvr_mrtl_stat_map`] = { type: 'select-one', value: element.applicantMaritalStatusCd || staticDetailsObj.drivers[0].applicantMaritalStatusCd, name: `DRV.${j}.drvr_mrtl_stat_map` };
                     dataObj[`DRV.${j}.drvr_rel_desc_cd`] = { type: 'select-one', value: 'O', name: `DRV.${j}.drvr_rel_desc_cd` };
                     dataObj[`DRV.${j}.drvr_stat_dsply`] = { type: 'select-one', value: 'R', name: `DRV.${j}.drvr_stat_dsply` };
                     dataObj[`DRV.${j}.drvr_lic_stat`] = { type: 'select-one', value: 'V', name: `DRV.${j}.drvr_lic_stat` };
                     dataObj[`DRV.${j}.drvr_years_lic`] = { type: 'select-one', value: element.drivingExperience || staticDetailsObj.drivers[0].drivingExperience, name: `DRV.${j}.drvr_years_lic` };
-                    dataObj[`DRV.${j}.drvr_empl_stat`] = { type: 'select-one', value: element.employment || staticDetailsObj.drivers[0].employment, name: `DRV.${j}.drvr_empl_stat` };
-                    dataObj[`DRV.${j}.drvr_occup_lvl`] = { type: 'select-one', value: element.occupation || staticDetailsObj.drivers[0].occupation, name: `DRV.${j}.drvr_occup_lvl` };
+                    dataObj[`DRV.${j}.drvr_empl_stat_ag`] = { type: 'select-one', value: element.employment || staticDetailsObj.drivers[0].employment, name: `DRV.${j}.drvr_empl_stat_ag` };
+                    dataObj[`DRV.${j}.drvr_occup_lvl_ag`] = { type: 'select-one', value: element.occupation || staticDetailsObj.drivers[0].occupation, name: `DRV.${j}.drvr_occup_lvl_ag` };
                     dataObj[`DRV.${j}.drvr_ed_lvl`] = { type: 'select-one', value: element.education || staticDetailsObj.drivers[0].education, name: `DRV.${j}.drvr_ed_lvl` };
                     dataObj[`DRV.${j}.drvr_fil_ind`] = { type: 'select-one', value: 'N', name: `DRV.${j}.drvr_fil_ind` };
                     dataObj[`DRV.${j}.drvr_sr_ind`] = { type: 'select-one', value: 'N', name: `DRV.${j}.drvr_sr_ind` };
@@ -972,8 +975,10 @@ async function rate(req) {
                 }
             }
 
-            dataObj['DRV.0.VIO.0.drvr_viol_cd'] = { type: 'select-one', value: staticDetailsObj.priorIncident, name: 'DRV.0.VIO.0.drvr_viol_cd' };
-            dataObj['DRV.0.VIO.0.drvr_viol_dt_dsply'] = { type: 'text', value: staticDetailsObj.priorIncidentDate, name: 'DRV.0.VIO.0.drvr_viol_dt_dsply' };
+            // dataObj['DRV.0.VIO.0.drvr_viol_cd'] = { type: 'select-one', value: staticDetailsObj.priorIncident, name: 'DRV.0.VIO.0.drvr_viol_cd' };
+            // dataObj['DRV.0.VIO.0.drvr_viol_dt_dsply'] = { type: 'text', value: staticDetailsObj.priorIncidentDate, name: 'DRV.0.VIO.0.drvr_viol_dt_dsply' };
+            dataObj['DRV.0.VIO.0.drvr_viol_cd'] = { type: 'select-one', value: null, name: 'DRV.0.VIO.0.drvr_viol_cd' };
+            dataObj['DRV.0.VIO.0.drvr_viol_dt_dsply'] = { type: 'text', value: null, name: 'DRV.0.VIO.0.drvr_viol_dt_dsply' };
             dataObj[`pol_eff_dt`] = { type: 'text', value: tomorrowDate, name: 'pol_eff_dt' };
             dataObj[`nam_opr`] = { type: 'select-one', value: 'N', name: 'nam_opr' };
             dataObj[`DRV.0.drvr_frst_nam`] = { type: 'text', value: bodyData.firstName || staticDetailsObj.firstName, name: 'DRV.0.drvr_frst_nam' };
@@ -984,7 +989,7 @@ async function rate(req) {
             dataObj[`email_adr`] = { type: 'text', value: bodyData.email || staticDetailsObj.email, name: 'email_adr' };
             dataObj[`INSDPHONE.0.insd_phn_typ`] = { type: 'select-one', value: 'H', name: 'INSDPHONE.0.insd_phn_typ' };
             dataObj[`INSDPHONE.0.insd_phn_nbr`] = { type: 'text', value: bodyData.phone && bodyData.phone.replace('-', '') || staticDetailsObj.phone, name: 'INSDPHONE.0.insd_phn_nbr' };
-            dataObj[`insd_str`] = { type: 'text', value: bodyData.mailingAddress || staticDetailsObj.mailingAddress, name: 'insd_str' };
+            dataObj[`insd_str`] = { type: 'text', value: bodyData.mailingAddress.slice(',', 30) || staticDetailsObj.mailingAddress, name: 'insd_str' };
             dataObj[`insd_str2`] = { type: 'text', value: '', name: 'insd_str2' };
             dataObj[`insd_city_cd`] = { type: 'text', value: bodyData.city || staticDetailsObj.city, name: 'insd_city_cd' };
             dataObj[`insd_st_cd`] = { type: 'select-one', value: bodyData.state || staticDetailsObj.state, name: 'insd_st_cd' };
