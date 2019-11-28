@@ -22,28 +22,30 @@ module.exports = {
                     Accept: 'application/json',
                     AccountUsername: username
                 },
+                resolveWithFullResponse: true
             };
-            console.info('################### auth_options', auth_options)
             const authenticate = await request(auth_options);
             const contact_option = {
                 method: 'POST',
-                url: `${url}/Prospect/v1/Commercial`,
+                url: `${url}/Applicant/v2/Commercial`,
+                json: true,
                 headers: {
-                    EZToken: authenticate.EZToken,
+                    EZToken: authenticate.headers.eztoken,
                     EZAppSecret: app_secret,
                     Accept: 'application/json',
                     AccountUsername: username
                 },
-                body: req.body.data
+                body: { ...req.body.data, AssignedTo: username }
             }
-
+            console.info('################### contact_option', contact_option)
             const response = await request(contact_option);
+            console.info('################### ApplicantID', response)
             req.session.data = {
                 response
             };
             return next();
         } catch (error) {
-            console.error('Commercial ezlynx error ##', error);
+            console.error('Commercial ezlynx error ##', error.message);
             return next(Boom.badRequest('Error creating contact'));
         }
     }
