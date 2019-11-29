@@ -37,9 +37,7 @@ module.exports = {
                 },
                 body: { ...req.body.data, AssignedTo: username }
             }
-            console.info('################### contact_option', contact_option)
             const response = await request(contact_option);
-            console.info('################### ApplicantID', response)
             req.session.data = {
                 response
             };
