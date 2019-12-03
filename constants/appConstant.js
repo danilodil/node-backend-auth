@@ -112,3 +112,9 @@ exports.quoteUrl = {
   TRAVELER: 'https://www.travelers.com/foragents',
   ERIE: 'https://www.agentexchange.com/',
 };
+
+exports.ams360 = {
+  Version: 'v19119063201',
+  AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
+  CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
+};

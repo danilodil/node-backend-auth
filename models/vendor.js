@@ -27,6 +27,9 @@ const Vendor = sequelize.define('Vendor', {
   agentId: {
     type: DataTypes.INTEGER,
   },
+  agency: {
+    type: DataTypes.STRING,
+  },
 });
 
 module.exports = Vendor;
