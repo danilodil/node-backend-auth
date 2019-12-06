@@ -118,3 +118,7 @@ exports.ams360 = {
   AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
   CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
 };
+
+exports.wealthBox = {
+  apiURL: 'https://api.crmworkspace.com/',
+};
