@@ -113,8 +113,23 @@ exports.quoteUrl = {
   ERIE: 'https://www.agentexchange.com/',
 };
 
+exports.commercialEzlynx = {
+  DEV_URL: 'https://uat.webcetera.com/ezlynxapi/api',
+  DEV_USERNAME: 'xi_userUAT',
+  DEV_PASSWORD: 'COjoanin93!123@',
+  DEV_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
+  PROD_URL: 'https://services.ezlynx.com/ezlynxapi/api',
+  PROD_USERNAME: 'xi_userUAT',
+  PROD_PASSWORD: 'COjoanin93!123@',
+  PROD_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
+}
+
 exports.ams360 = {
   Version: 'v19119063201',
   AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
   CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
+};
+
+exports.wealthBox = {
+  apiURL: 'https://api.crmworkspace.com/',
 };

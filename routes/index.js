@@ -23,7 +23,9 @@ const turboraterIntegration = require('./turborater');
 const cabrilloIntegration = require('./cabrillo');
 const nowCertsIntegration = require('./nowCerts');
 const appulateIntegration = require('./appulate');
+const commercialEzlynxIntegration = require('./commercial-ezlynx');
 const ams360Integration = require('./ams360');
+const wealthboxIntegration = require('./wealthbox');
 
 router.use('/ricochet', [passport], [vendorPassport], ricochetIntegration);
 router.use('/ezlynx', [passport], [vendorPassport], ezlynxIntegration);
@@ -44,6 +46,8 @@ router.use('/turborater', [passport], [vendorPassport], turboraterIntegration);
 router.use('/nowCerts', [passport], [vendorPassport], nowCertsIntegration);
 router.use('/cabrillo', [passport], cabrilloIntegration);
 router.use('/appulate', [passport], [vendorPassport], appulateIntegration);
+router.use('/commercial-ezlynx', [passport], [vendorPassport], commercialEzlynxIntegration);
 router.use('/ams360', [passport], [vendorPassport], ams360Integration);
+router.use('/wealthbox', [passport], [vendorPassport], wealthboxIntegration);
 
 module.exports = router;
