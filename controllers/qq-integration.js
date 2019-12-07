@@ -32,7 +32,6 @@ module.exports = {
         }
         return '';
       } catch (error) {
-        console.log(`Error on value: ${value}`, error);
       }
     };
     const data = {

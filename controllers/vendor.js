@@ -29,7 +29,7 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
-        salesforceAT: params.salesforceAT || '',
+        accessToken: params.accessToken || '',
         state: params.state,
         carrier: params.carrier,
         agency: params.agency,
@@ -47,7 +47,7 @@ module.exports = {
   upsert: async (req, res, next) => {
     try {
       const params = req.body;
-      if (!params.companyId || !params.username) {
+      if (!params.companyId || (!params.username && !params.accessToken)) {
         return next(Boom.badRequest('Invalid data!'));
       }
 
@@ -70,7 +70,7 @@ module.exports = {
           username: params.username,
           password: params.password,
           companyId: params.companyId,
-          salesforceAT: params.salesforceAT || '',
+          accessToken: params.accessToken || '',
           state: params.state,
           carrier: params.carrier,
           agentId: params.agentId,
@@ -90,7 +90,7 @@ module.exports = {
         username: params.username ? params.username : vendor.username,
         password: params.password ? params.password : vendor.password,
         companyId: vendor.companyId,
-        salesforceAT: params.salesforceAT ? params.salesforceAT : vendor.salesforceAT,
+        accessToken: params.accessToken ? params.accessToken : vendor.accessToken,
         state: params.state ? params.state : vendor.state,
         carrier: params.carrier ? params.carrier : vendor.carrier,
         agentId: params.agentId ? params.agentId : vendor.agentId,
@@ -104,7 +104,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest('Error updating vendor!'));
     }
   },

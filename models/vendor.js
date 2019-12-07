@@ -15,7 +15,7 @@ const Vendor = sequelize.define('Vendor', {
   password: {
     type: DataTypes.STRING,
   },
-  salesforceAT: {
+  accessToken: {
     type: DataTypes.STRING,
   },
   state: {
