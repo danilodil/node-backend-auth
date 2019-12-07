@@ -31,7 +31,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      console.log('error', error);
       return next(Boom.badRequest('Failed to contact'));
     }
   },

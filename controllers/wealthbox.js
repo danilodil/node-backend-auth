@@ -26,11 +26,10 @@ async function authentication(email, password) {
 module.exports = {
   createContact: async function createContact(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { wealthboxId, clientData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -39,7 +38,7 @@ module.exports = {
         body: clientData,
         json: true,
         headers: {
-          'access-token': token,
+          'ACCESS_TOKEN': accessToken,
         },
       };
 

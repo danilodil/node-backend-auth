@@ -75,8 +75,6 @@ module.exports = {
           homeUrl = homeResponse.match(/<URL>(.*)<\/URL>/)[1];
         }
 
-        console.log(homeResponse);
-
         const autoData = req.body.autoData;
 
         let autoXmlData = jsonxml(autoData);
@@ -122,8 +120,6 @@ module.exports = {
         if (autoResponse && autoResponse.includes('Succeeded') && autoResponse.match(/<URL>(.*)<\/URL>/)) {
           autoUrl = autoResponse.match(/<URL>(.*)<\/URL>/)[1];
         }
-
-        console.log(autoResponse);
 
         req.session.data = {
           title: 'Contact created successfully',
@@ -192,8 +188,6 @@ module.exports = {
         url = response.match(/<URL>(.*)<\/URL>/)[1];
       }
 
-      console.log(response);
-
       req.session.data = {
         title: 'Contact created successfully',
         body: newResponse,
@@ -204,7 +198,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },

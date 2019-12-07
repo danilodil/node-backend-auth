@@ -26,7 +26,6 @@ const self = module.exports = {
       const response = await request(options);
       return response;
     } catch (error) {
-      console.log('Error at Cabrillo token : ', error.stack);
       throw new Error('Failed to retrieved Cabrillo Token.');
     }
   },
@@ -77,7 +76,6 @@ const self = module.exports = {
       };
       return next();
     } catch (error) {
-      console.log('ERROR CABRILLO###', error.message);
       const errObj = {
         status: 'Failed',
         error: error.message,
