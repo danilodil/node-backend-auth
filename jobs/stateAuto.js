@@ -145,6 +145,16 @@ async function stateAuto(req, next) {
         await addMultiple('vehicles');
         await fillPage();
         await page.waitFor(2000);
+        await page.evaluate(() => {
+            const areThereAnyEmployeeButton = document.querySelector('[data-test-id="vehicle1-employeePresent-no"] > label > input');
+            if (areThereAnyEmployeeButton) {
+              areThereAnyEmployeeBtn.click();
+            }
+            const isUsedForDelivery = document.querySelector('[data-test-id="vehicle1-usedForDelivery-no"] > label > input');
+            if (isUsedForDelivery) {
+              isUsedForDelivery.click();
+            }
+          });
         const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
         await page.waitFor(1000);
         const modal = await page.$('[data-test-id="current-carrier-modal-company"]');
@@ -236,15 +246,7 @@ async function stateAuto(req, next) {
             } else if (row.type === 'radio') {
               const radio = await page.$(element);
               if (radio && row.value === true) {
-                if (row.isAddCSS) {
-                  await page.evaluate((ele) => {
-                    const radioBtn = document.querySelector(ele);
-                    radioBtn.classList.add('mat-radio-checked');
-                    radioBtn.click();
-                  }, element);
-                } else {
-                  radio.click();
-                }
+                radio.click();
                 await page.waitFor(500);
               }
             }
@@ -555,9 +557,9 @@ async function stateAuto(req, next) {
             dataObj.push({ type: 'select', element: `vehicle${index}-make`, value: vehicle.make || staticVehicle.make });
             dataObj.push({ type: 'select', element: `vehicle${index}-model`, value: vehicle.model || staticVehicle.model });
           }
-          if (vehicle.primaryUse === 'Business') {
-            dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-yes`, value: true, isAddCSS: true, afterDelay: 1000, beforeDelay: 1000 });
-          }
+          // if (vehicle.primaryUse === 'Business') {
+          //   dataObj.push({ type: 'radio', element: `vehicle${index}-employeePresent-yes`, value: true, isAddCSS: true, afterDelay: 1000, beforeDelay: 1000 });
+          // }
           if (vehicle.primaryUse === 'Commute') {
             dataObj.push({ type: 'input', element: `vehicle${index}-commuting-miles`, value: '5000' });
           }

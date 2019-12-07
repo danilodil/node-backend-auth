@@ -123,3 +123,9 @@ exports.commercialEzlynx = {
   PROD_PASSWORD: 'COjoanin93!123@',
   PROD_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
 }
+
+exports.ams360 = {
+  Version: 'v19119063201',
+  AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
+  CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
+};

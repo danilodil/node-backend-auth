@@ -31,6 +31,7 @@ async function traveler(req) {
     const { username, password } = req.body.decoded_vendor;
     const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
     const yeasterDay = formatDate(moment(new Date()).subtract(1, 'days'));
+    const expirationDate = formatDate(moment(new Date()).add(5, 'days'));
 
     const bodyData = await utils.cleanObj(req.body.data);
     bodyData.drivers.splice(10, bodyData.drivers.length);
@@ -176,8 +177,8 @@ async function traveler(req) {
         await page.waitFor(30000);
         await page.waitForSelector(populatedData.phone.element);
         await page.focus(populatedData.phone.element);
-        await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
-        // await page.keyboard.type(populatedData.phone.value, { delay: 80 });
+        // await typeInInputElements(populatedData.phone.element, populatedData.phone.value);
+        await page.keyboard.type(populatedData.phone.value, { delay: 80 });
         await page.type(populatedData.birthDate.element, populatedData.birthDate.value);
         await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
         await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
@@ -191,6 +192,14 @@ async function traveler(req) {
         await page.waitFor(8000);
         await page.click('#page > #dialog-modal > #main #dynamicContinueButton');
         await page.waitFor(5000);
+        const addressBtn = await page.$('[id="overlayButton-addressDifference-Use Original"]');
+        if (addressBtn) {
+          addressBtn.click();
+          await page.waitFor(500);
+        }
+        await page.waitFor(30000);
+        await page.waitForSelector(populatedData.agentCode.element);
+        await page.select(populatedData.agentCode.element, populatedData.agentCode.value);
         if (await page.$('#page > #dialog-modal > #main #dynamicContinueButton')) {
           await page.waitForSelector('#page > #dialog-modal > #main #dynamicContinueButton');
           await page.evaluate(async () => {
@@ -199,15 +208,35 @@ async function traveler(req) {
             await continueButton.click();
           });
         }
-        await page.waitFor(30000);
-        await page.waitForSelector('#\\33 022120615_0');
+        await page.waitFor(40000);
         await page.evaluate(async () => {
-          const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]').children[2];
-          await hasMovedWithin6Month.click();
-          const reviewdInfoByLaw = document.querySelector('#\\31 468764443_1');
-          await reviewdInfoByLaw.click();
+          const quoteWithAssumedScore = document.querySelector('span[data-label="Quote with Assumed Score"]');
+          if (quoteWithAssumedScore) {
+            const element = quoteWithAssumedScore.children[1];
+            await element.click();
+          }
+        });
+
+        if (await page.$(populatedData.assumedScore.element)) {
+          await selectElement(populatedData.assumedScore.element, populatedData.assumedScore.value);
+          await page.evaluate(() => {
+            document.querySelector('#overlayButton-reports-dynamicContinue').click();
+          });
+        }
+        await page.evaluate(async () => {
+          const hasMovedWithin6Month = document.querySelector('span[data-label="Moved within the last 6 months?"]');
+          if (hasMovedWithin6Month) {
+            const element = hasMovedWithin6Month.children[2];
+            await element.click();
+          }
+          const reviewdInfoByLaw = document.querySelector('span[data-label="I affirm that I have reviewed this information with the customer as required by law."]').children[0];
+          if (reviewdInfoByLaw) {
+            await reviewdInfoByLaw.click();
+          }
           const reportButton = document.querySelector('#overlayButton-reports-dynamicOrderReport');
-          reportButton.click();
+          if (reportButton) {
+            reportButton.click();
+          }
         });
         stepResult.customerInfo = true;
       } catch (error) {
@@ -311,7 +340,23 @@ async function traveler(req) {
         await page.waitForSelector(populatedData.insuranceStatus.element);
         await page.select(populatedData.insuranceStatus.element, populatedData.insuranceStatus.value);
         await page.waitFor(1000);
-        await page.select(populatedData.ReasonForinsurance.element, populatedData.ReasonForinsurance.value);
+
+        await page.waitForSelector(populatedData.currentCarrier.element);
+        await page.focus(populatedData.currentCarrier.element);
+        await page.type(populatedData.currentCarrier.element, populatedData.currentCarrier.value);
+
+        await page.waitFor(1000);
+        await page.waitForSelector(populatedData.continueInsurance.element);
+        await page.select(populatedData.continueInsurance.element, populatedData.continueInsurance.value);
+
+        await page.waitFor(1000);
+        await page.select(populatedData.lengthofTimewithCompany.element, populatedData.lengthofTimewithCompany.value);
+
+        await page.waitFor(1000);
+        await page.type(populatedData.expirationDate.element, populatedData.expirationDate.value);
+
+        await page.select(populatedData.InjuryLimits.element, populatedData.InjuryLimits.value);
+
         await page.evaluate(() => {
           const anyVehicleWithoutRegister = document.querySelector('span[data-label="Are any vehicles not registered to the Named Insured, resident parents, or resident child <26 of the Named Insured?"]').children[2];
           anyVehicleWithoutRegister.click();
@@ -327,8 +372,10 @@ async function traveler(req) {
           policyDeclined.click();
         });
 
-        await page.select(populatedData.primaryResidence.element, populatedData.primaryResidence.value);
-        await page.select(populatedData.primaryResidence.element, 'DW');
+        await page.waitFor(1000);
+        await page.focus(populatedData.primaryResidence.element);
+        await selectElement(populatedData.primaryResidence.element, populatedData.primaryResidence.value);
+
         await page.evaluate(() => {
           document.querySelector('#dynamicContinueButton').click();
         });
@@ -358,7 +405,7 @@ async function traveler(req) {
             document.querySelector('#dynamicContinueButton').click();
           });
         }
-        await page.waitFor(2000);
+        await page.waitFor(3000);
         await page.select(populatedData.driverPlan.element, populatedData.driverPlan.value);
         await page.waitFor(10000);
         await page.waitFor(populatedData.liability.element);
@@ -378,6 +425,9 @@ async function traveler(req) {
         await page.focus(populatedData.comprehensive.element);
         await page.select(populatedData.comprehensive.element, populatedData.comprehensive.value);
 
+        await page.focus(populatedData.unInsuredMotorist.element);
+        await page.select(populatedData.unInsuredMotorist.element, populatedData.unInsuredMotorist.value);
+
         await page.select('select[data-label="Glass Deductible"]', '50');
 
         await page.focus(populatedData.collision.element);
@@ -388,6 +438,15 @@ async function traveler(req) {
 
         await page.focus(populatedData.equipment.element);
         await page.select(populatedData.equipment.element, populatedData.equipment.value);
+
+        await page.focus(populatedData.rentalETE.element);
+        await page.select(populatedData.rentalETE.element, populatedData.rentalETE.value);
+
+        await page.evaluate(() => {
+          const personInjuryButton = document.querySelector('span[data-label="Personal Injury Protection"]').children[0];
+          personInjuryButton.removeAttribute('disabled');
+          personInjuryButton.click();
+        });
 
         await page.waitFor(2000);
         await page.evaluate(() => {
@@ -433,6 +492,115 @@ async function traveler(req) {
       }, inputSelector, text);
     }
 
+    async function selectElement(selector, option) {
+      await page.evaluate(async (sel, opt) => {
+        const element = document.querySelector(sel);
+        const options = element.options;
+
+        const bestValue = await getBestValue(opt, options);
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+        nativeInputValueSetter.call(element, bestValue);
+        const ev2 = new Event('change', { bubbles: true });
+        element.dispatchEvent(ev2);
+
+
+        function compareTwoStrings(first, second) {
+          first = first.replace(/\s+/g, '');
+          second = second.replace(/\s+/g, '');
+
+          if (!first.length && !second.length) return 1;// if both are empty strings
+          if (!first.length || !second.length) return 0;// if only one is empty string
+          if (first === second) return 1;// identical
+          if (first.length === 1 && second.length === 1) return 0; // both are 1-letter strings
+          if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
+
+          const firstBigrams = new Map();
+          for (let i = 0; i < first.length - 1; i++) {
+            const bigram = first.substring(i, i + 2);
+            const count = firstBigrams.has(bigram)
+              ? firstBigrams.get(bigram) + 1
+              : 1;
+            firstBigrams.set(bigram, count);
+          }
+
+          let intersectionSize = 0;
+          for (let i = 0; i < second.length - 1; i++) {
+            const bigram = second.substring(i, i + 2);
+            const count = firstBigrams.has(bigram)
+              ? firstBigrams.get(bigram)
+              : 0;
+
+            if (count > 0) {
+              firstBigrams.set(bigram, count - 1);
+              intersectionSize++;
+            }
+          }
+
+          return (2.0 * intersectionSize) / (first.length + second.length - 2);
+        }
+        function findBestMatch(mainString, targetStrings) {
+          if (!areArgsValid(mainString, targetStrings)) throw new Error('Bad arguments: First argument should be a string, second should be an array of strings');
+
+          const ratings = [];
+          let bestMatchIndex = 0;
+
+          for (let i = 0; i < targetStrings.length; i++) {
+            const currentTargetString = targetStrings[i];
+            const currentRating = compareTwoStrings(mainString, currentTargetString);
+            ratings.push({ target: currentTargetString, rating: currentRating });
+            if (currentRating > ratings[bestMatchIndex].rating) {
+              bestMatchIndex = i;
+            }
+          }
+
+
+          const bestMatch = ratings[bestMatchIndex];
+
+          return { ratings, bestMatch, bestMatchIndex };
+        }
+        function areArgsValid(mainString, targetStrings) {
+          if (typeof mainString !== 'string') return false;
+          if (!Array.isArray(targetStrings)) return false;
+          if (!targetStrings.length) return false;
+          if (targetStrings.find(s => typeof s !== 'string')) return false;
+          return true;
+        }
+
+        async function getBestValue(value, data) {
+          try {
+            const optionsArray = [...data];
+            const nArr = optionsArray.map(entry => entry.text.toLowerCase());
+            const vArr = optionsArray.map(entry => entry.value.toLowerCase());
+            if (value && value.length && value.length > 0 && value.length < 2) {
+              if (vArr.indexOf(value.toLowerCase()) !== -1) {
+                return value;
+              }
+            } else if (value && value.length > 1) {
+              const nBestMatch = await findBestMatch(value.toLowerCase(), nArr);
+              const vBestMatch = await findBestMatch(value.toLowerCase(), vArr);
+              let i = 0;
+              if (nBestMatch.bestMatch.rating > vBestMatch.bestMatch.rating) {
+                i = nBestMatch.bestMatchIndex;
+              } else if (vBestMatch.bestMatch.rating > nBestMatch.bestMatch.rating) {
+                i = vBestMatch.bestMatchIndex;
+              } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
+                i = nBestMatch.bestMatchIndex;
+              }
+              const bestValue = optionsArray[i].value;
+              return bestValue;
+            } else if (value) {
+              return value || '';
+            } else {
+              return '';
+            }
+          } catch (error) {
+            console.log(`Error: ${error}`);
+          }
+        }
+      }, selector, option);
+    }
+
+
     async function exitFail(error, step) {
       console.log(`Error during traveler ${step} step:`, error);
       response = {
@@ -476,7 +644,7 @@ async function traveler(req) {
         state: 'AL',
         zipCode: '36140',
         primaryResidence: 'OTH',
-        reasonForPriorInsurance: 'NOPRIOR',
+        reasonForPriorInsurance: 'CURRENTLYINSURED',
         firstName: 'Test',
         lastName: 'User',
         birthDate: '12/16/1997',
@@ -493,6 +661,10 @@ async function traveler(req) {
         equipment: '2500',
         driverPlan: 'F1',
         vehicleType: 'PP',
+        assumedScore: 'IS12',
+        currentCarrier: 'Other Companies/Company Car',
+        continueInsurance: '5',
+        injuryLimits: 'L',
         vehicles: [
           {
             vehicleVin: 'KMHDH6AE1DU001708',
@@ -531,6 +703,7 @@ async function traveler(req) {
       dataObj.phone = { element: 'tbody > #G3 #\\31 472665286', value: bodyData.phone || staticDataObj.phone };
       dataObj.birthDate = { element: 'tbody > #G8 #\\31 680138008', value: bodyData.birthDate || staticDataObj.birthDate };
       dataObj.vehicleType = { element: 'select[data-label="Vehicle Type"]', value: staticDataObj.vehicleType };
+      dataObj.agentCode = { element: 'select[data-label="Agent Code"]', value: '0CJB70' };
       // vehicle
       dataObj.vehicleVin = { element: 'input[data-label="VIN"]', value: bodyData.vehicles[0].vehicleVin || staticDataObj.vehicles[0].vehicleVin };
       dataObj.primaryUse = { element: 'select[data-label="Vehicle Use"]', value: staticDataObj.vehicles[0].vehicleUse };
@@ -553,10 +726,16 @@ async function traveler(req) {
       dataObj.comprehensive = { element: 'select[data-label="Comprehensive"]', value: bodyData.coverage[0] ? bodyData.coverage[0].comprehensive : staticDataObj.comprehensive };
       dataObj.collision = { element: 'select[data-label="Collision"]', value: bodyData.coverage[0] ? bodyData.coverage[0].collision : staticDataObj.collision };
       dataObj.roadAssistant = { element: 'select[data-label="Roadside Assistance"]', value: bodyData.coverage[0] ? bodyData.coverage[0].roadAssistant : staticDataObj.roadAssistant };
-      dataObj.rentalETE = { element: 'select[data-label"Rental ETE"]', value: bodyData.coverage[0] ? bodyData.coverage[0].rentalETE : staticDataObj.rentalETE };
+      dataObj.rentalETE = { element: 'select[data-label="Rental ETE"]', value: bodyData.coverage[0] ? bodyData.coverage[0].rentalETE : staticDataObj.rentalETE };
       dataObj.equipment = { element: 'select[data-label="Custom Equipment - Increased Limit"]', value: bodyData.coverage[0] ? bodyData.coverage[0].equipment : staticDataObj.equipment };
-      dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: bodyData.coverage[0] ? bodyData.coverage[0].driverPlan : staticDataObj.driverPlan };
-
+      dataObj.unInsuredMotorist = { element: 'select[data-label="Uninsured Motorist PD"]', value: '25000' };
+      dataObj.driverPlan = { element: 'select[data-label="Responsible Driver Plan"]', value: staticDataObj.driverPlan };
+      dataObj.assumedScore = { element: 'select[data-label="Assumed Score"]', value: staticDataObj.assumedScore };
+      dataObj.currentCarrier = { element: 'input[data-label="Current Auto Insurance Carrier"]', value: staticDataObj.currentCarrier };
+      dataObj.continueInsurance = { element: 'select[data-label="Continuous Insurance"]', value: staticDataObj.continueInsurance };
+      dataObj.lengthofTimewithCompany = { element: 'select[data-label="Length of time with Current Company"]', value: '5' };
+      dataObj.expirationDate = { element: 'input[data-label="Current Policy Expiration Date"]', value: expirationDate };
+      dataObj.InjuryLimits = { element: 'select[data-label="Current Bodily Injury Limits"]', value: staticDataObj.injuryLimits };
       return dataObj;
     }
   } catch (error) {
