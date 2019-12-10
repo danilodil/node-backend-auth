@@ -4,11 +4,11 @@ const jsforce = require('jsforce');
 
 module.exports = {
   addProperty: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password} ${salesforceAT}`))
+    await conn.login(username, (`${password} ${accessToken}`))
       .catch(() => next(Boom.badRequest(`Error creating ${req.body.objectName} on salesforce`)));
 
     const rets = await conn.sobject(req.body.objectName).create([req.body.sfProperties]);
@@ -25,12 +25,12 @@ module.exports = {
     return next();
   },
   updateProperty: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password} ${salesforceAT}`))
+    await conn.login(username, (`${password} ${accessToken}`))
       .catch(() => next(Boom.badRequest(`Error updating ${req.body.objectName} on salesforce`)));
 
     const rets = await conn.sobject(req.body.objectName).update([req.body.sfProperties]);
@@ -50,14 +50,14 @@ module.exports = {
 
   */
   addSFAccount: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { accountData, contactData, insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
 
-    await conn.login(username, `${password}${salesforceAT}`)
+    await conn.login(username, `${password}${accessToken}`)
       .catch(() => next(Boom.badRequest('Error creating account on salesforce!')));
 
     const rets = await conn.sobject('Account').create([accountData.data]);
@@ -98,13 +98,13 @@ module.exports = {
     return next();
   },
   addSFAccountHome: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { accountData, contactData, insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, `${password}${salesforceAT}`)
+    await conn.login(username, `${password}${accessToken}`)
       .catch(() => next(Boom.badRequest('Error creating home account on salesforce!')));
 
     const rets = await conn.sobject('Account').create([accountData.data]);
@@ -145,13 +145,13 @@ module.exports = {
     return next();
   },
   addSFInsured: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error creating insured on salesforce!')));
 
     const ret3 = await conn.sobject('CanaryAMSInsured__c').create([insuranceData.data]);
@@ -171,12 +171,12 @@ module.exports = {
     return next();
   },
   addSFHomeInsured: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { insuranceData } = req.body;
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error creating home insured on salesforce!')));
 
     const ret3 = await conn.sobject('CanaryAMSInsured__c').create([insuranceData.data]);
@@ -196,13 +196,13 @@ module.exports = {
     return next();
   },
   addSFVehicle: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { vehicleData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error creating vehicle on salesforce!')));
 
     const rets = await conn.sobject('CanaryAMSVehicle__c').create([vehicleData.data]);
@@ -222,13 +222,13 @@ module.exports = {
     return next();
   },
   addSFPropertyOld: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { propertyData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error creating property on salesforce!')));
 
     const rets = await conn.sobject('CanaryAMSProperty__c').create([propertyData.data]);
@@ -248,13 +248,13 @@ module.exports = {
     return next();
   },
   addSFViolation: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { violationData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error creating violation on salesforce!')));
 
     const rets = await conn.sobject('CanaryAMSMVRViolationInformation__c').create([violationData.data]);
@@ -270,13 +270,13 @@ module.exports = {
     return next();
   },
   updateSFAccount: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { accountData, contactData, insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating account on salesforce!')));
 
     const data = await conn.sobject('Account').update([accountData.data]);
@@ -308,13 +308,13 @@ module.exports = {
     return next();
   },
   updateSFPropertyAccount: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { accountData, contactData, insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating property account on salesforce!')));
 
     const data = await conn.sobject('Account').update([accountData.data]);
@@ -347,13 +347,13 @@ module.exports = {
     return next();
   },
   updateSFVehicle: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { vehicleData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating vehicle on salesforce!')));
 
     const data = await conn.sobject('CanaryAMSVehicle__c').update([vehicleData.data]);
@@ -369,13 +369,13 @@ module.exports = {
     return next();
   },
   updateSFPropertyOld: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { propertyData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating property on salesforce!')));
 
     const data = await conn.sobject('CanaryAMSProperty__c').update([propertyData.data]);
@@ -391,13 +391,13 @@ module.exports = {
     return next();
   },
   updateSFInsured: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating insured on salesforce!')));
 
     const data = await conn.sobject('CanaryAMSInsured__c').update([insuranceData]);
@@ -414,13 +414,13 @@ module.exports = {
     return next();
   },
   updateSFHomeInsured: async (req, res, next) => {
-    const { username, password, salesforceAT } = req.body.decoded_vendor;
+    const { username, password, accessToken } = req.body.decoded_vendor;
     const { insuranceData } = req.body;
 
     const conn = new jsforce.Connection({
       loginUrl: 'https://login.salesforce.com',
     });
-    await conn.login(username, (`${password}${salesforceAT}`))
+    await conn.login(username, (`${password}${accessToken}`))
       .catch(() => next(Boom.badRequest('Error updating home insured on salesforce!')));
 
     const data = await conn.sobject('CanaryAMSInsured__c').update([insuranceData.data]);

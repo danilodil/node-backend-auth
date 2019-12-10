@@ -40,8 +40,6 @@ module.exports = {
         const homeXml_head = '<?xml version="1.0" encoding="utf-8"?>';
         const homeXml_body = homeXml_head.concat(homeXmlData, '');
 
-        console.log('HOME DATA ###', homeXml_body);
-
         const home_encodedData = base64.encode(homeXml_body);
 
         const home_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
@@ -76,9 +74,6 @@ module.exports = {
         if (homeResponse && homeResponse.includes('Succeeded') && homeResponse.match(/<URL>(.*)<\/URL>/)) {
           homeUrl = homeResponse.match(/<URL>(.*)<\/URL>/)[1];
         }
-
-        console.log(homeResponse);
-
         const autoData = req.body.autoData;
 
         let autoXmlData = jsonxml(autoData);
@@ -125,8 +120,6 @@ module.exports = {
           autoUrl = autoResponse.match(/<URL>(.*)<\/URL>/)[1];
         }
 
-        console.log(autoResponse);
-
         req.session.data = {
           title: 'Contact created successfully',
           auto: { response: autoResponse, url: autoUrl },
@@ -158,8 +151,6 @@ module.exports = {
 
       const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
       const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
-
-      console.log('DATA ###', xml_body);
 
       const encodedData = base64.encode(xml_body);
 
@@ -196,8 +187,6 @@ module.exports = {
         url = response.match(/<URL>(.*)<\/URL>/)[1];
       }
 
-      console.log(response);
-
       req.session.data = {
         title: 'Contact created successfully',
         body: newResponse,
@@ -208,7 +197,6 @@ module.exports = {
       };
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
