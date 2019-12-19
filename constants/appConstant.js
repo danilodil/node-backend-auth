@@ -129,7 +129,8 @@ exports.commercialEzlynx = {
 exports.ams360 = {
   Version: 'v19119063201',
   AUTHENTICATE_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=Authenticate',
-  CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx?op=InsertCustomer',
+  // CUSTOMER_URL: 'https://wsapi.ams360.com/v3/WSAPIservice.svc',
+  CUSTOMER_URL: 'https://affwsapi.ams360.com/v2/service.asmx',
 };
 
 exports.wealthBox = {
