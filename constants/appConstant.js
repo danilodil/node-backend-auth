@@ -1,5 +1,7 @@
 const ENVIRONMENT = require('./configConstants').CONFIG;
 
+const ROOT_PATH = process.cwd();
+
 if (ENVIRONMENT.nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
@@ -133,4 +135,13 @@ exports.ams360 = {
 
 exports.wealthBox = {
   apiURL: 'https://api.crmworkspace.com/',
+};
+
+exports.nodeMailer = {
+  EMAIL: 'customer-success@xilo.io',
+  PAW: 'tothetop!123@',
+};
+
+exports.EMAIL_TEMPLATE = {
+  ERROR_LOG: `${ROOT_PATH}/constants/templates/emailLogging.html`,
 };

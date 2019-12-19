@@ -3,26 +3,6 @@ const Boom = require('boom');
 
 const { apiURL } = require('../constants/appConstant').wealthBox;
 
-
-async function authentication(email, password) {
-  try {
-    const options = {
-      method: 'POST',
-      url: `${apiURL}v1/authentication`,
-      body: {
-        email,
-        password,
-      },
-      json: true,
-    };
-
-    const response = await request(options);
-    return response.token;
-  } catch (error) {
-    return error;
-  }
-}
-
 module.exports = {
   createContact: async function createContact(req, res, next) {
     try {
@@ -38,7 +18,7 @@ module.exports = {
         body: clientData,
         json: true,
         headers: {
-          'ACCESS_TOKEN': accessToken,
+          'access-token': accessToken,
         },
       };
 
@@ -61,11 +41,10 @@ module.exports = {
   },
   createTask: async function createTask(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { taskData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -75,7 +54,7 @@ module.exports = {
         body: taskData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
@@ -89,11 +68,10 @@ module.exports = {
   },
   createEvent: async function createEvent(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { eventData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -103,7 +81,7 @@ module.exports = {
         body: eventData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
@@ -117,11 +95,10 @@ module.exports = {
   },
   createProject: async function createProject(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { projectData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -131,7 +108,7 @@ module.exports = {
         body: projectData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
@@ -145,11 +122,10 @@ module.exports = {
   },
   createNote: async function createNote(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { noteData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -159,13 +135,13 @@ module.exports = {
         body: noteData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
       const response = await request(options);
 
-      req.session.data = response;
+      req.session.data = response.id;
       return next();
     } catch (error) {
       return next(Boom.badRequest(error));
@@ -173,11 +149,10 @@ module.exports = {
   },
   createOpportunity: async function createOpportunity(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { opportunityData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -187,7 +162,7 @@ module.exports = {
         body: opportunityData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
@@ -201,11 +176,10 @@ module.exports = {
   },
   createWorkflow: async function createWorkflow(req, res, next) {
     try {
-      const { username, password } = req.body.decoded_vendor;
+      const { accessToken } = req.body.decoded_vendor;
       const { workFlowData } = req.body;
 
-      const token = await authentication(username, password);
-      if (!token) {
+      if (!accessToken) {
         return next(Boom.notFound('Wealthbox token not found'));
       }
 
@@ -215,7 +189,7 @@ module.exports = {
         body: workFlowData,
         json: true,
         headers: {
-          'access-token': token,
+          'access-token': accessToken,
         },
       };
 
