@@ -1,0 +1,107 @@
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>XILOemail</title>
+    <style>* {
+        margin: 0;
+        padding: 0;
+        font-family: Helvetica, Arial, sans-serif;
+    }
+
+    body {
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: none;
+        width: 100% !important;
+        height: 100%;
+        background-color: #FFFFFF;
+    }
+
+    .tag p {
+        padding-top: 20px;
+    }
+
+    table {
+        text-align: left;
+    }
+
+    table.head-wrap img {
+        width: 175px;
+    }
+
+    table.head-wrap {
+        padding-top: 10px;
+        width: 100%;
+        /* background: #f1f1f1; */
+    }
+
+    table.body-wrap {
+        width: 100%;
+    }
+
+    table.body-wrap p {
+        color: #5b5b60;
+        font-weight: 600;
+        letter-spacing: 0.1px;
+    }
+
+    table.body-wrap td{
+        padding-top: 8px;
+    }
+
+    table.body-wrap .error{
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    table.body-wrap .tag {
+        border-top: 2px solid #eaeaea;
+    }
+
+    table.body-wrap .tag span {
+        font-weight: bold;
+    }
+
+    p {
+        margin-bottom: 10px;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .container {
+        display: block !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        clear: both !important;
+        text-align: center;
+    }
+
+    .content {
+        margin: 0 auto;
+        display: block;
+        padding: 0 20px;
+    }
+
+    .content table {
+        width: 100%;
+    }
+
+    </style>
+</head>
+<body>
+<table class="body-wrap">
+    <tr>
+        <td class="container-fluid">
+            <div class="content">
+                <table>
+                    <tr>
+                        <td><p>Error Details</p>
+                            <p class="error"><%= emailBody %></p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</body>

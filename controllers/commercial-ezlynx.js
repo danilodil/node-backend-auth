@@ -39,7 +39,7 @@ module.exports = {
             }
             const response = await request(contact_option);
             req.session.data = {
-                response
+                ezlynxId: response
             };
             return next();
         } catch (error) {

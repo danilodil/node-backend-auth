@@ -6,10 +6,11 @@ const appConstant = require('../constants/appConstant').quoteRush;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
+      const data = req.body.data;
       const options = {
         method: 'POST',
         url: `${appConstant.UPLOAD_PATH}/${req.body.decoded_vendor.username}`,
-        body: JSON.stringify(req.body.data),
+        body: JSON.stringify(data),
         headers: {
           'content-type': 'text/plain',
           webpassword: req.body.decoded_vendor.password,
@@ -21,7 +22,6 @@ module.exports = {
 
       if (response.includes('Failed')) {
         throw new Error(response);
-        // newResponse = 'Failed';
       } else {
         newResponse = 'Succeeded';
       }
