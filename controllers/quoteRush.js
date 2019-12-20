@@ -6,7 +6,7 @@ const appConstant = require('../constants/appConstant').quoteRush;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const data = { ...req.body.homeData, ...req.body.autoData };
+      const data = req.body.data;
       const options = {
         method: 'POST',
         url: `${appConstant.UPLOAD_PATH}/${req.body.decoded_vendor.username}`,
@@ -22,7 +22,6 @@ module.exports = {
 
       if (response.includes('Failed')) {
         throw new Error(response);
-        // newResponse = 'Failed';
       } else {
         newResponse = 'Succeeded';
       }
