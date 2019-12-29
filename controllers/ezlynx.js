@@ -82,9 +82,13 @@ module.exports = {
         }
   
         let url = 'Upload Failed';
-  
+        
         if (response && response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
           url = response.match(/<URL>(.*)<\/URL>/)[1];
+        }
+
+        if (url && url.toLowerCase().includes('failed')) {
+          newResponse = 'Failed';
         }
   
         req.session.data = {
