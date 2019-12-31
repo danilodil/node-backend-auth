@@ -121,9 +121,9 @@ exports.commercialEzlynx = {
   DEV_PASSWORD: 'COjoanin93!123@',
   DEV_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
   PROD_URL: 'https://services.ezlynx.com/ezlynxapi/api',
-  PROD_USERNAME: 'xi_userUAT',
-  PROD_PASSWORD: 'COjoanin93!123@',
-  PROD_APP_SECRET: 'b700d95d-ea87-4c37-b2bc-0082c0d04450',
+  PROD_USERNAME: 'wxi_userPROD',
+  PROD_PASSWORD: 'Cojoanin93!123@',
+  PROD_APP_SECRET: 'a70a8478-c2ce-4dd2-ae27-77175031906a',
 }
 
 exports.ams360 = {
