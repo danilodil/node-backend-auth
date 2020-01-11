@@ -95,10 +95,9 @@ module.exports = {
       }
 
       let companyId = null;
-      let clientId = null;
+      let clientId = req.query.clientId ? req.query.clientId : null;;
       if (currentUser.user) {
         companyId = currentUser.user.companyUserId;
-        clientId = currentUser.user.id;
       }
       if (currentUser.client) {
         companyId = currentUser.client.companyClientId;
@@ -140,6 +139,7 @@ module.exports = {
       req.session.data = bestRate;
       return next();
     } catch (error) {
+      console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
     }
   },
