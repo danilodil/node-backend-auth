@@ -40,6 +40,9 @@ const Rater = sequelize.define('Rater', {
   productType: {
     type: DataTypes.STRING,
   },
+  url: {
+    type: DataTypes.STRING,
+  },
 });
 
 module.exports = Rater;
