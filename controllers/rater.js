@@ -50,6 +50,8 @@ module.exports = {
           quoteId: req.session.data.quoteId || null,
           quoteIds: req.session.data.quoteIds || null,
           stepResult: req.session.data.stepResult || null,
+          productType: 'AUTO',
+          url: req.session.data.url || null,
         };
         await Rater.create(newRater);
         console.log(`${req.body.vendorName} Rater Created`);
@@ -69,7 +71,11 @@ module.exports = {
         updateObj.months = data.months;
         updateObj.downPayment = data.downPayment;
         updateObj.succeeded = true;
+        updateObj.url = data.url || null;
         updateObj.error = null;
+        if (updateObj.productType !== 'AUTO') {
+          updateObj.productType = 'AUTO'
+        }
         await raterData.update(updateObj);
         console.log(`${req.body.vendorName} Rater Updated`);
       } else if (raterData) {
@@ -95,10 +101,9 @@ module.exports = {
       }
 
       let companyId = null;
-      let clientId = null;
+      let clientId = req.query.clientId ? req.query.clientId : null;;
       if (currentUser.user) {
         companyId = currentUser.user.companyUserId;
-        clientId = currentUser.user.id;
       }
       if (currentUser.client) {
         companyId = currentUser.client.companyClientId;
@@ -140,6 +145,52 @@ module.exports = {
       req.session.data = bestRate;
       return next();
     } catch (error) {
+      console.log(error);
+      return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
+    }
+  },
+  getRates: async (req, res, next) => {
+    console.log(`${req.body.vendorName}: Inside Get Best Rate`);
+    try {
+      const currentUser = req.body.decoded_user;
+      if (!req.body.productType) {
+        return next(Boom.badRequest('Product type required'));
+      }
+
+      let companyId = null;
+      let clientId = req.query.clientId ? req.query.clientId : null;;
+      if (currentUser.user) {
+        companyId = currentUser.user.companyUserId;
+      }
+      if (currentUser.client) {
+        companyId = currentUser.client.companyClientId;
+        clientId = currentUser.client.id;
+      }
+
+      if (!companyId || !clientId) {
+        return next(Boom.badRequest('Invalid User'));
+      }
+
+      const newRater = {
+        where: {
+          companyId,
+          clientId,
+          succeeded: true,
+          productType: req.body.productType,
+        },
+        attributes: ['companyId', 'url', 'vendorName', 'clientId', 'createdAt', 'totalPremium', 'months', 'downPayment', 'succeeded', 'quoteId', 'stepResult', 'productType'],
+      };
+
+      const raterData = await Rater.findAll(newRater);
+
+      if (!raterData) {
+        return next(Boom.badRequest(`${req.body.vendorName} Error retrieving best rate`));
+      }
+
+      req.session.data = raterData;
+      return next();
+    } catch (error) {
+      console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
     }
   },

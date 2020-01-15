@@ -200,8 +200,6 @@ module.exports = {
           }
         }
 
-        // console.log('AUTO RESPONSE ###: ', autoXml_body)
-        // console.log('HOME RESPONSE ###: ', homeResponse)
         // console.log('HOME DATA ###: ', homeXml_body)
 
         req.session.data = {

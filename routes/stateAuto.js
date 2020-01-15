@@ -7,6 +7,12 @@ const raterController = require('../controllers/rater');
 
 const router = express.Router();
 
+// router.put('/stateAuto', [
+//   raterController.getOneByName,
+//   stateAutoRaterJob.stateAuto,
+//   raterController.saveRating,
+// ]);
+
 router.put('/stateAuto/', [
   raterController.getOneByName,
   stateAutoRater.addToQueue,

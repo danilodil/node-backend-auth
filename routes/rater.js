@@ -6,8 +6,12 @@ const rater = require('../controllers/rater');
 
 const router = express.Router();
 
-router.get('/', [vendorPassport], asyncHandler(async (req, res, next) => {
+router.get('/list/best', [vendorPassport], asyncHandler(async (req, res, next) => {
   await rater.getBestRating(req, res, next);
+}));
+
+router.get('/list/all', [vendorPassport], asyncHandler(async (req, res, next) => {
+  await rater.getRates(req, res, next);
 }));
 
 router.get('/:clientId', asyncHandler(async (req, res, next) => {

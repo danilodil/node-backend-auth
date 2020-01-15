@@ -16,6 +16,7 @@ const maxJobsPerWorker = 1;
 
 module.exports = {
     progressiveQueue,
+    rate
 };
 
 progressiveQueue.process(maxJobsPerWorker, async (job, done) => {
@@ -175,6 +176,36 @@ async function rate(req) {
                 await page.select('#Prds', 'AU');
                 await page.evaluate(() => document.querySelector('#quoteActionSelectButton').click());
                 stepResult.newQuote = true;
+                // const url = progressiveRater.NEW_QUOTE_URL_2.replace('AL', bodyData.state);
+                // await page.goto(url, { waitUntil: 'load' });
+                // await page.waitForSelector('#NamedInsured_Embedded_Questions_List_AgentCode');
+                // console.log('Page Reached');
+                // // TODO: MAKE AL DYNAMIC
+                // await page.select('#QuoteStateList', 'AL');
+                // const state = bodyData.state || 'AL';
+                // await page.select('#QuoteStateList', state);
+                // await page.waitFor(500);
+                // const quoteVersion = await page.evaluate(async () => {
+                //     const newVersionBtn = document.querySelector('#selectProductButton');
+                //     if (newVersionBtn) {
+                //         newVersionBtn.click();
+                //         return 'new';
+                //     } else {
+                //         const oldVersion = document.querySelector('#Prds');
+                //         if (!oldVersion) {
+                //             return null;
+                //         }
+                //         document.querySelector('#quoteActionSelectButton').click()
+                //         return 'old';
+                //     }
+                // });
+                // if (!quoteVersion) {
+                //     await exitFail('Could not determine quote version', 'newQuote');
+                // } else if (quoteVersion === 'old') {
+                //     await page.select('#Prds', 'AU');
+                // } else if (quoteVersion === 'new') {
+                //     console.log('New hit');
+                // }
             } catch (error) {
                 await exitFail(error, 'newQuote');
             }
@@ -549,6 +580,7 @@ async function rate(req) {
                     return details;
                 });
                 stepResult.coverage = true;
+                payDetails['url'] = 'https://www.foragentsonly.com/newbusiness/quotesearch/';
                 await exitSuccessFinal(payDetails);
             } catch (error) {
                 await exitFail(error, 'coverages');
@@ -557,11 +589,19 @@ async function rate(req) {
 
         async function exitFail(error, step) {
             console.log(`Error during Progressive ${step} step:`, error);
+            const date = new Date();
+            const randomNumber = Math.round((Math.random() * 100));
+            if (pageQuote) {
+                await pageQuote.screenshot({path: `progressive-error-${randomNumber}.png`});
+            } else {
+                await page.screenshot({path:  `progressive-error-${randomNumber}.png`});
+            }
             response = {
                 title: 'Failed to retrieve Progressive rate',
                 status: false,
                 error: `There was an error at ${step} step`,
                 stepResult,
+                url: 'https://www.foragentsonly.com/newbusiness/quotesearch/'
             };
             browser.close();
             saveRatingFromJob(req, response);
@@ -574,6 +614,7 @@ async function rate(req) {
                     status: true,
                     quoteIds: quoteObj,
                     stepResult,
+                    url: 'https://www.foragentsonly.com/newbusiness/quotesearch/'
                 };
                 browser.close();
                 await saveRatingFromJob(req, response);
@@ -615,6 +656,7 @@ async function rate(req) {
                     downPayment: (payDetails && payDetails.downPayment) ? payDetails.downPayment : null,
                     stepResult,
                     quoteIds: quoteObj,
+                    url: payDetails.url || null
                 };
                 await saveRatingFromJob(req, response);
                 await saveStep(true);
