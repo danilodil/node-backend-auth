@@ -47,6 +47,9 @@ module.exports = {
           xmlData.splice(0, 2);
           xmlData.splice(-1, 1);
           xmlData = xmlData.join('\n');
+          if (data.CoApplicant) {
+            xmlData = returnXmlWithCoApplicant(data);
+          }
         }
 
         const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
@@ -120,10 +123,13 @@ module.exports = {
           homeXmlData.splice(0, 2);
           homeXmlData.splice(-1, 1);
           homeXmlData = homeXmlData.join('\n');
-  
+          if (homeData.CoApplicant) {
+            homeXmlData = returnXmlWithCoApplicant(homeData);
+          }
+
           const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
-          const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
-  
+          let homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
+          
           const home_encodedData = base64.encode(homeXml_body);
   
           const home_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
@@ -200,7 +206,7 @@ module.exports = {
           }
         }
 
-        // console.log('HOME DATA ###: ', homeXml_body)
+        // console.log('HOME DATA ###: ', homeResponse)
 
         req.session.data = {
           title: 'Contact created successfully',
