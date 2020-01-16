@@ -206,7 +206,7 @@ module.exports = {
           }
         }
 
-        console.log('HOME DATA ###: ', homeResponse)
+        // console.log('HOME DATA ###: ', homeResponse)
 
         req.session.data = {
           title: 'Contact created successfully',
