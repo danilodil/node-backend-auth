@@ -52,9 +52,10 @@ module.exports = {
           }
         }
 
+        
         const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
-        const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
-  
+        let xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
+        
         const encodedData = base64.encode(xml_body);
   
         const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
@@ -127,8 +128,11 @@ module.exports = {
             homeXmlData = returnXmlWithCoApplicant(homeData);
           }
 
+          
           const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
           let homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
+          
+          // console.log(homeXml_body);
           
           const home_encodedData = base64.encode(homeXml_body);
   
