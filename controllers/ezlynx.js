@@ -94,8 +94,6 @@ module.exports = {
         if (url && url.toLowerCase().includes('failed')) {
           newResponse = 'Failed';
         }
-
-        console.log(response);
   
         req.session.data = {
           title: 'Contact created successfully',
@@ -197,7 +195,6 @@ module.exports = {
           };
   
           autoResponse = await request(auto_options);
-          let newAutoResponse = 'Failed';
     
           if (autoResponse.includes('Failed')) {
             newAutoResponse = 'Failed';
@@ -210,14 +207,13 @@ module.exports = {
           }
         }
 
-        // console.log('HOME DATA ###: ', homeResponse)
-
         req.session.data = {
           title: 'Contact created successfully',
           auto: { response: autoResponse, url: autoUrl },
           home: { response: homeResponse, url: homeUrl },
           body: newAutoResponse ? newAutoResponse : newHomeResponse ? newHomeResponse : null,
         };
+
         return next();
       }
     } catch (error) {
