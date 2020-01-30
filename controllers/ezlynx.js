@@ -15,14 +15,37 @@ module.exports = {
     try {
       const { username } = req.body.decoded_vendor;
 
-      function returnXmlWithCoApplicant(data) {
-        const coAppObj = { Applicant: data.CoApplicant };
-        const coAppString = jsonxml(coAppObj);
-        delete data.CoApplicant;
-        const xmlString = jsonxml(data);
-        if (xmlString.includes('</Applicant>')) {
-          const newXmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
-          return newXmlString;
+      // function returnXmlWithCoApplicant(data) {
+      //   const coAppObj = { Applicant: data.CoApplicant };
+      //   const coAppString = jsonxml(coAppObj);
+      //   delete data.CoApplicant;
+      //   const xmlString = jsonxml(data);
+      //   if (xmlString.includes('</Applicant>')) {
+      //     const newXmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
+      //     return newXmlString;
+      //   }
+      //   return xmlString;
+      // }
+
+      function returnXmlWithOtherData(data) {
+        let coAppString = null;
+        let prevAddressString = null;
+        if (data.CoApplicant) {
+          const coAppObj = { Applicant: data.CoApplicant };
+          coAppString = jsonxml(coAppObj);
+          delete data.CoApplicant;
+        }
+        if (data.Applicant.PreviousAddress) {
+          const prevAddressObj = { Address: data.Applicant.PreviousAddress };
+          prevAddressString = jsonxml(prevAddressObj);
+          delete data.Applicant.PreviousAddress;
+        }
+        let xmlString = jsonxml(data);
+        if (prevAddressString && xmlString.includes('</Address>')) {
+          xmlString = xmlString.replace('</Address>', `</Address>${prevAddressString}`);
+        }
+        if (coAppString && xmlString.includes('</Applicant>')) {
+          xmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
         }
         return xmlString;
       }
@@ -35,8 +58,8 @@ module.exports = {
       if (req.params.type === 'Auto' || req.params.type === 'Home') {
         if (req.params.type === 'Auto') {
           xmlData = jsonxml(data);
-          if (data.CoApplicant) {
-            xmlData = returnXmlWithCoApplicant(data);
+          if (data.CoApplicant || data.Applicant.PreviousAddress) {
+            xmlData = returnXmlWithOtherData(data);
           }
         } 
         
@@ -47,14 +70,16 @@ module.exports = {
           xmlData.splice(0, 2);
           xmlData.splice(-1, 1);
           xmlData = xmlData.join('\n');
-          if (data.CoApplicant) {
-            xmlData = returnXmlWithCoApplicant(data);
+          if (data.CoApplicant || data.Applicant.PreviousAddress) {
+            xmlData = returnXmlWithOtherData(data);
           }
         }
 
         
         const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
         let xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
+
+        console.log(xml_body);
         
         const encodedData = base64.encode(xml_body);
   
@@ -116,21 +141,22 @@ module.exports = {
 
         if (req.body.homeData) {
           const homeData = req.body.homeData;
+          // console.log(JSON.stringify(homeData));
           let homeXmlData = js2xmlparser
             .parse('root', homeData)
             .split('\n');
           homeXmlData.splice(0, 2);
           homeXmlData.splice(-1, 1);
           homeXmlData = homeXmlData.join('\n');
-          if (homeData.CoApplicant) {
-            homeXmlData = returnXmlWithCoApplicant(homeData);
+          if (homeData.CoApplicant || homeData.Applicant.PreviousAddress) {
+            homeXmlData = returnXmlWithOtherData(homeData);
           }
 
           
           const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
           let homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
           
-          // console.log(homeXml_body);
+          console.log(homeXml_body);
           
           const home_encodedData = base64.encode(homeXml_body);
   
@@ -168,12 +194,14 @@ module.exports = {
   
           let autoXmlData = jsonxml(autoData);
   
-          if (autoData.CoApplicant) {
-            autoXmlData = returnXmlWithCoApplicant(autoData);
+          if (autoData.CoApplicant || autoData.Applicant.PreviousAddress) {
+            autoXmlData = returnXmlWithOtherData(autoData);
           }
   
           const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
           const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
+
+          console.log(autoXml_body);
   
           const auto_encodedData = base64.encode(autoXml_body);
   
