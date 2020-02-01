@@ -42,6 +42,7 @@
     "request-promise": "^4.2.4",
     "sequelize": "^5.10.1",
     "sequelize-cli": "^5.5.1",
+    "simple-oauth2": "^3.3.0",
     "string-similarity": "^3.0.0",
     "xml-formatter": "^1.1.0",
     "xml-js": "^1.6.11",
