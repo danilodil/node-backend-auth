@@ -16,6 +16,7 @@ const maxJobsPerWorker = 1;
 
 module.exports = {
   stateAutoQueue,
+  stateAuto
 };
 
 stateAutoQueue.process(maxJobsPerWorker, async (job, done) => {

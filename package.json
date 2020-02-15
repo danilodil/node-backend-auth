@@ -6,14 +6,18 @@
   "scripts": {
     "start": "node ./bin/www",
     "start:dev": "nodemon ./bin/www",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "db:schema": "babel-node ./scripts/db/schema",
+    "db:migrate": "babel-node ./scripts/db/migrate"
   },
   "dependencies": {
     "async": "2.6.3",
+    "babel-node": "0.0.1-security",
     "base-64": "^0.1.0",
     "body-parser": "1.19.0",
     "boom": "^7.3.0",
     "bull": "^3.10.0",
+    "child-process-promise": "^2.2.1",
     "client-oauth2": "4.2.5",
     "compression": "^1.7.4",
     "connect-session-sequelize": "^6.0.0",
@@ -42,7 +46,9 @@
     "request-promise": "^4.2.4",
     "sequelize": "^5.10.1",
     "sequelize-cli": "^5.5.1",
+    "simple-oauth2": "^3.3.0",
     "string-similarity": "^3.0.0",
+    "whatwg-url": "^8.0.0",
     "xml-formatter": "^1.1.0",
     "xml-js": "^1.6.11",
     "xml2js": "^0.4.19"
