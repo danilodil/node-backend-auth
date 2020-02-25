@@ -25,6 +25,7 @@ const nowCertsIntegration = require('./nowCerts');
 const appulateIntegration = require('./appulate');
 const commercialEzlynxIntegration = require('./commercial-ezlynx');
 const ams360Integration = require('./ams360');
+const scraper = require('./scraper');
 const wealthboxIntegration = require('./wealthbox');
 
 router.use('/ricochet', [passport], [vendorPassport], ricochetIntegration);
@@ -48,6 +49,7 @@ router.use('/cabrillo', [passport], cabrilloIntegration);
 router.use('/appulate', [passport], [vendorPassport], appulateIntegration);
 router.use('/commercial-ezlynx', [passport], [vendorPassport], commercialEzlynxIntegration);
 router.use('/ams360', [passport], [vendorPassport], ams360Integration);
+router.use('/scraper', scraper);
 router.use('/wealthbox', [passport], [vendorPassport], wealthboxIntegration);
 
 module.exports = router;
