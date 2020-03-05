@@ -127,7 +127,6 @@ module.exports = {
         return next(Boom.badRequest('Vendor does not exists!'));
       }
 
-      console.log(vendors)
 
       req.session.data = {
         message: 'Vendors get successfully',
