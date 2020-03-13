@@ -93,6 +93,8 @@ module.exports = {
           };
         }
 
+        console.log(parseResponse);
+
         req.session.data = {
           title: 'Contact created successfully',
           fullBody: jsonresponse,
