@@ -61,6 +61,8 @@ module.exports = {
           };
         }
 
+        console.log(parseAutoRes, parseHomeRes)
+
         req.session.data = {
           title: 'Contact created successfully',
           autoResponse: parseAutoRes,
