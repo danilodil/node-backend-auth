@@ -83,6 +83,9 @@ module.exports = {
           },
           body: bodyReq,
         };
+
+        console.log(JSON.stringify(options));
+
         const response = await request(options);
         const jsonresponse = convert.xml2json(response, { compact: true, spaces: 0 });
         const parseResponse = JSON.parse(jsonresponse);
