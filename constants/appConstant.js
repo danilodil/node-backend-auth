@@ -5,8 +5,11 @@ const ROOT_PATH = process.cwd();
 if (ENVIRONMENT.nodeEnv === 'local') {
   exports.allowedOrigin = 'http://localhost:3000';
 }
+if (ENVIRONMENT.nodeEnv === 'staging') {
+  exports.allowedOrigin = 'https://xilo-staging-api.herokuapp.com';
+}
 if (ENVIRONMENT.nodeEnv === 'development') {
-  exports.allowedOrigin = 'https://xilo-api-dev.herokuapp.com';
+  exports.allowedOrigin = 'https://xilo-dev-api.herokuapp.com';
 }
 if (ENVIRONMENT.nodeEnv === 'production') {
   exports.allowedOrigin = 'https://api.xilo.io';
