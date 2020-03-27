@@ -99,6 +99,8 @@ module.exports = {
                  },
           body: xml_string,
         };
+
+        console.log(JSON.stringify(options));
   
         const response = await request(options);
   
