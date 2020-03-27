@@ -223,6 +223,8 @@ module.exports = {
                   },
             body: auto_xml_string,
           };
+
+          console.log(auto_options);
   
           autoResponse = await request(auto_options);
     
