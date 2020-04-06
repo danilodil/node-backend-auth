@@ -1,19 +1,22 @@
 {
-  "development": {
-    "username": "postgres",
-    "password": "password",
-    "database": "local_auth",
-    "host": "127.0.0.1",
+  "local": {
+    "use_env_variable": "DATABASE_URL_LOCAL",
     "dialect": "postgres"
   },
-  "test": {
-      "username": "postgres",
-      "password": "password",
-      "database": "postgres",
-      "host": "127.0.0.1",
-      "dialect": "postgres"
+  "development": {
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "postgres"
+  },
+  "staging": {
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "postgres"
   },
   "production": {
-      "use_env_variable": "DATABASE_URL"
+      "use_env_variable": "DATABASE_URL",
+      "ssl": true,
+      "dialect": "postgres",
+      "dialectOptions": {
+        "ssl": {"require":true }
+      }
   }
 }
