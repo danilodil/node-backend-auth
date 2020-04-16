@@ -85,12 +85,15 @@ const self = module.exports = {
 
       const customerResponse = await request(addCustomerOptions);
 
+      console.log(customerResponse);
+
       req.session.data = {
         title: 'Contact created successfully',
         customerResponse: format(customerResponse),
       };
       return next();
     } catch (error) {
+      console.log(error);
       return next(Boom.badRequest('Error creating contact'));
     }
   },
@@ -105,7 +108,7 @@ const self = module.exports = {
       const detailRequestList = ['GetGLDivisionList', 'GetGLGroupList', 'GetGLDepartmentList', 'GetGLBranchList', 'GetEmployeeList'];
       const listXMLHeader = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header><WSAPIAuthToken xmlns="http://www.WSAPI.AMS360.com/v2.0"><Token>${token}</Token></WSAPIAuthToken></soap:Header>`;
 
-      const detailedList = await Promise.all(detailRequestList.map(async (detailRequest) => {
+      const modifiedList  = await Promise.all(detailRequestList.map(async (detailRequest) => {
         try {
           const listXMLBody = `<soap:Body><${detailRequest}_Request xmlns="http://www.WSAPI.AMS360.com/v2.0"></${detailRequest}_Request></soap:Body></soap:Envelope>`;
           const listXMLString = listXMLHeader.concat(listXMLBody);
@@ -133,17 +136,19 @@ const self = module.exports = {
 
             if (detailRequest !== 'GetEmployeeList') {
               obj = elements.map(empl => {
+                const name = empl.elements[1].elements[0].text;
                 const code = empl.elements[0].elements[0].text;
-                const firstName = empl.elements[2].elements[0].text;
-                const lastName = empl.elements[1].elements[0].text;
-                return {name: `${firstName} ${lastName}`, code: code};
+                return {type: detailRequest.toLowerCase(), name: name, code: code};
               });
             } else {
               obj = elements.map(empl => {
-                const code = empl.elements[0].elements[0].text;
+                let code = empl.elements[0].elements[0].text.replace('<', '&lt;');
                 const firstName = empl.elements[2].elements[0].text;
                 const lastName = empl.elements[1].elements[0].text;
-                return {name: `${firstName} ${lastName}`, EmployeeCode: code};
+                const isAccountRep = empl.elements[5].elements[0].text;
+                const isAccountExec = empl.elements[4].elements[0].text;
+                return {name: `${firstName} ${lastName}`, code: code,
+                        isAccountExec: isAccountExec === 'true', isAccountRep: isAccountRep === 'true'};
               });
             }
           } else {
@@ -155,11 +160,12 @@ const self = module.exports = {
         }
       }));
 
-      if (detailedList && detailedList.length > 3) {
+      if (modifiedList && modifiedList.length > 3) {
         req.session.data = {
           title: 'AMS360 details retrieved successfully',
-          obj: detailedList
+          obj:  modifiedList
         }
+
         return next();
       } else {
         return next(Boom.badRequest('Error retrieving detailed list'));

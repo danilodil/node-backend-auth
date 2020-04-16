@@ -20,7 +20,7 @@ module.exports = {
       const response = await request(options);
       let newResponse;
 
-      if (response.includes('Failed')) {
+      if (response.includes('Failed') || response.includes('not valid')) {
         throw new Error(response);
       } else {
         newResponse = 'Succeeded';
