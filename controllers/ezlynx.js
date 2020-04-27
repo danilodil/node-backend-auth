@@ -10,6 +10,7 @@ const js2xmlparser = require('js2xmlparser');
 const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
 const ezApp = require('../constants/appConstant').commercialEzlynx;
+const validator = require('../services/integration-validator');
 
 module.exports = {
   createContact: async (req, res, next) => {
@@ -57,6 +58,11 @@ module.exports = {
       
       // Mono-line run
       if (req.params.type === 'Auto' || req.params.type === 'Home') {
+
+        if (data && data.clientAgentId) {
+          delete data.clientAgentId;
+        }
+        
         if (req.params.type === 'Auto') {
           xmlData = jsonxml(data);
           if (data.CoApplicant || data.Applicant.PreviousAddress) {
@@ -76,11 +82,18 @@ module.exports = {
           }
         }
 
-        
         const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
         let xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
 
         console.log(xml_body)
+
+        let validations = await validator.validateXML(xml_body, 'ezlynxautoV200');
+
+        if (validations.status) {
+          validations = validations.validation;
+        } else {
+          console.log(validations.error);
+        }
 
         const encodedData = base64.encode(xml_body);
   
@@ -100,8 +113,6 @@ module.exports = {
                  },
           body: xml_string,
         };
-
-        console.log(JSON.stringify(options));
   
         const response = await request(options);
   
@@ -130,6 +141,7 @@ module.exports = {
           url,
           xml: format(xml_body),
           json: data,
+          validations: (validations && validations.length > 0) ? validations : null
         };
         return next();
       } else {
@@ -194,7 +206,11 @@ module.exports = {
         }
         if (req.body.autoData) {
           const autoData = req.body.autoData;
-  
+
+          if (autoData && autoData.clientAgentId) {
+            delete autoData.clientAgentId;
+          }
+
           let autoXmlData = jsonxml(autoData);
   
           if (autoData.CoApplicant || autoData.Applicant.PreviousAddress) {
@@ -205,6 +221,14 @@ module.exports = {
           const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
 
           console.log(autoXml_body);
+
+          let autoValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
+
+          if (autoValidations.status) {
+            autoValidations = autoValidations.validation;
+          } else {
+            console.log(autoValidations.error);
+          }
   
           const auto_encodedData = base64.encode(autoXml_body);
   
@@ -224,8 +248,6 @@ module.exports = {
                   },
             body: auto_xml_string,
           };
-
-          console.log(auto_options);
   
           autoResponse = await request(auto_options);
     
@@ -242,7 +264,7 @@ module.exports = {
 
         req.session.data = {
           title: 'Contact created successfully',
-          auto: { response: autoResponse, url: autoUrl },
+          auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.lenghth > 0) ? autoValidations : null },
           home: { response: homeResponse, url: homeUrl },
           body: newAutoResponse ? newAutoResponse : newHomeResponse ? newHomeResponse : null,
         };
