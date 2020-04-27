@@ -175,7 +175,7 @@ module.exports = {
           
           console.log(homeXml_body);
 
-          homeValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
+          homeValidations = await validator.validateXML(homeXml_body, 'ezlynxautoV200');
 
           if (homeValidations.status) {
             homeValidations = homeValidations.validation;
