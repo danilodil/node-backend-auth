@@ -264,7 +264,7 @@ module.exports = {
 
         req.session.data = {
           title: 'Contact created successfully',
-          auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.lenghth > 0) ? autoValidations : null },
+          auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.length && autoValidations.length > 0) ? autoValidations : null },
           home: { response: homeResponse, url: homeUrl },
           body: newAutoResponse ? newAutoResponse : newHomeResponse ? newHomeResponse : null,
         };
