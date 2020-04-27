@@ -153,6 +153,8 @@ module.exports = {
         let homeResponse = null;
         let homeUrl = 'Upload Failed';
         let newHomeResponse = null;
+        let autoValidations = null;
+        let homeValidations = null;
 
         if (req.body.homeData) {
           const homeData = req.body.homeData;
@@ -172,6 +174,14 @@ module.exports = {
           let homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
           
           console.log(homeXml_body);
+
+          homeValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
+
+          if (homeValidations.status) {
+            homeValidations = homeValidations.validation;
+          } else {
+            console.log(homeValidations.error);
+          }          
           
           const home_encodedData = base64.encode(homeXml_body);
   
@@ -222,7 +232,7 @@ module.exports = {
 
           console.log(autoXml_body);
 
-          let autoValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
+          autoValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
 
           if (autoValidations.status) {
             autoValidations = autoValidations.validation;
@@ -265,7 +275,7 @@ module.exports = {
         req.session.data = {
           title: 'Contact created successfully',
           auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.length && autoValidations.length > 0) ? autoValidations : null },
-          home: { response: homeResponse, url: homeUrl },
+          home: { response: homeResponse, url: homeUrl, validations: (homeValidations && homeValidations.length && homeValidations.length > 0) ? homeValidations : null },
           body: newAutoResponse ? newAutoResponse : newHomeResponse ? newHomeResponse : null,
         };
 
