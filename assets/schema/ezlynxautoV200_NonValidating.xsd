@@ -1,0 +1,3833 @@
+<grammar
+	xmlns:rng="http://relaxng.org/ns/structure/1.0"
+	xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+	xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" ns="http://www.ezlynx.com/XMLSchema/Auto/V200" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+	<define name="int10">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">10</param>
+		</data>
+	</define>
+	<define name="int50">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">50</param>
+		</data>
+	</define>
+	<define name="int100">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">100</param>
+		</data>
+	</define>
+	<define name="int255">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">255</param>
+		</data>
+	</define>
+	<define name="int999">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">999</param>
+		</data>
+	</define>
+	<define name="int100000">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">100000</param>
+		</data>
+	</define>
+	<define name="int999999">
+		<data type="nonNegativeInteger">
+			<param name="minInclusive">0</param>
+			<param name="maxInclusive">999999</param>
+		</data>
+	</define>
+	<define name="NamePrefixType">
+		<choice>
+			<value>MR</value>
+			<value>MRS</value>
+			<value>MS</value>
+			<value>DR</value>
+		</choice>
+	</define>
+	<define name="NameSuffixType">
+		<choice>
+			<value>JR</value>
+			<value>SR</value>
+			<value>I</value>
+			<value>II</value>
+			<value>III</value>
+		</choice>
+	</define>
+	<define name="NameType">
+		<optional>
+			<element name="Prefix">
+				<ref name="NamePrefixType"/>
+			</element>
+		</optional>
+		<element name="FirstName">
+			<ref name="ProperName"/>
+		</element>
+		<element name="MiddleName">
+			<ref name="MiddleInitial"/>
+		</element>
+		<element name="LastName">
+			<ref name="ProperName"/>
+		</element>
+		<optional>
+			<element name="Suffix">
+				<ref name="NameSuffixType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="SSNType">
+		<data type="string">
+			<param name="pattern">\d{9}</param>
+		</data>
+	</define>
+	<define name="Zip5Type">
+		<data type="string">
+			<param name="pattern">\d{5}</param>
+		</data>
+	</define>
+	<define name="Zip4Type">
+		<data type="string">
+			<param name="pattern">\d{4}</param>
+		</data>
+	</define>
+	<define name="DateType">
+		<data type="date"/>
+	</define>
+	<define name="YearType">
+		<choice>
+			<value>2019</value>
+			<value>2018</value>
+			<value>2017</value>
+			<value>2016</value>
+			<value>2015</value>
+			<value>2014</value>
+			<value>2013</value>
+			<value>2012</value>
+			<value>2011</value>
+			<value>2010</value>
+			<value>2009</value>
+			<value>2008</value>
+			<value>2007</value>
+			<value>2006</value>
+			<value>2005</value>
+			<value>2004</value>
+			<value>2003</value>
+			<value>2002</value>
+			<value>2001</value>
+			<value>2000</value>
+			<value>1999</value>
+			<value>1998</value>
+			<value>1997</value>
+			<value>1996</value>
+			<value>1995</value>
+			<value>1994</value>
+			<value>1993</value>
+			<value>1992</value>
+			<value>1991</value>
+			<value>1990</value>
+			<value>1989</value>
+			<value>1988</value>
+			<value>1987</value>
+			<value>1986</value>
+			<value>1985</value>
+			<value>1984</value>
+			<value>1983</value>
+			<value>1982</value>
+			<value>1981</value>
+			<value>1980</value>
+			<value>1979</value>
+			<value>1978</value>
+			<value>1977</value>
+			<value>1976</value>
+			<value>1975</value>
+			<value>1974</value>
+			<value>1973</value>
+			<value>1972</value>
+			<value>1971</value>
+			<value>1970</value>
+			<value>1969</value>
+			<value>1968</value>
+			<value>1967</value>
+			<value>1966</value>
+		</choice>
+	</define>
+	<define name="BooleanType">
+		<choice>
+			<value>Yes</value>
+			<value>No</value>
+		</choice>
+	</define>
+	<define name="MaritalStatusType">
+		<choice>
+			<value>Single</value>
+			<value>Married</value>
+			<value>Domestic Partner</value>
+			<value>Widowed</value>
+			<value>Separated</value>
+			<value>Divorced</value>
+		</choice>
+	</define>
+	<define name="OccupationType">
+		<choice>
+			<value>Self-Employed</value>
+			<value>Employed</value>
+			<value>Unemployed</value>
+			<value>Homemaker</value>
+			<value>Retired</value>
+			<value>Student</value>
+		</choice>
+	</define>
+	<define name="EducationType">
+		<choice>
+			<value>No High School Diploma</value>
+			<value>High School Diploma</value>
+			<value>Some College - No Degree</value>
+			<value>Vocational/Technical Degree</value>
+			<value>Associates Degree</value>
+			<value>Bachelors</value>
+			<value>Masters</value>
+			<value>Phd</value>
+			<value>Medical Degree</value>
+			<value>Law Degree</value>
+		</choice>
+	</define>
+	<define name="PersonalInfoType">
+		<element name="Name">
+			<ref name="NameType"/>
+		</element>
+		<optional>
+			<element name="DOB">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="SSN">
+				<ref name="SSNType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Gender">
+				<ref name="GenderType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MaritalStatus">
+				<ref name="MaritalStatusType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Industry">
+				<data type="string"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Occupation">
+				<data type="string"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="YearsWithEmployer">
+				<data type="nonNegativeInteger"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="YearsWithPreviousEmployer">
+				<data type="nonNegativeInteger"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Education">
+				<ref name="EducationType"/>
+			</element>
+		</optional>
+		<!-- <xsd:annotation> Licensed to Drive will be removed in a future release </xsd:annotation> -->
+		<optional>
+			<element name="LicensedToDrive">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Relation">
+				<ref name="RelationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MaidenName">
+				<data type="string"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NickName">
+				<data type="string"/>
+			</element>
+		</optional>
+	</define>
+	<define name="AddressCodeType">
+		<choice>
+			<value>BillingAddress</value>
+			<value>InsuredsAddress</value>
+			<value>LegalAddr</value>
+			<value>MailingAddress</value>
+			<value>PhysicalRisk</value>
+			<value>PreviousAddress</value>
+			<value>StreetAddress</value>
+		</choice>
+	</define>
+	<define name="C-10">
+		<data type="string">
+			<param name="maxLength">10</param>
+			<param name="minLength">0</param>
+		</data>
+	</define>
+	<define name="C-10_NoBlank">
+		<data type="string">
+			<param name="maxLength">10</param>
+			<param name="minLength">1</param>
+		</data>
+	</define>
+	<define name="C-50">
+		<data type="string">
+			<param name="maxLength">50</param>
+			<param name="minLength">0</param>
+		</data>
+	</define>
+	<define name="C-50_NoBlank">
+		<data type="string">
+			<param name="maxLength">50</param>
+			<param name="minLength">1</param>
+		</data>
+	</define>
+	<define name="C-255">
+		<data type="string">
+			<param name="maxLength">255</param>
+			<param name="minLength">0</param>
+		</data>
+	</define>
+	<define name="C-255_NoBlank">
+		<data type="string">
+			<param name="maxLength">255</param>
+			<param name="minLength">1</param>
+		</data>
+	</define>
+	<define name="ProperName">
+		<data type="string">
+			<param name="pattern">[A-Za-z]{1}[\-' A-Za-z]*</param>
+			<param name="maxLength">64</param>
+			<param name="minLength">1</param>
+		</data>
+	</define>
+	<define name="MiddleInitial">
+		<data type="string">
+			<param name="pattern">[A-Za-z]?</param>
+		</data>
+	</define>
+	<define name="DetailAddrType">
+		<optional>
+			<element name="StreetName">
+				<ref name="C-255"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="StreetNumber">
+				<ref name="C-50"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UnitNumber">
+				<ref name="C-50"/>
+			</element>
+		</optional>
+	</define>
+	<define name="PhoneTypeType">
+		<choice>
+			<value>Home</value>
+			<value>Work</value>
+			<value>Mobile</value>
+		</choice>
+	</define>
+	<define name="PhoneNumberTypeType">
+		<choice>
+			<value>Cell</value>
+			<value>Fax</value>
+			<value>Marine</value>
+			<value>Pager</value>
+			<value>Phone</value>
+			<value>TTY</value>
+		</choice>
+	</define>
+	<define name="PhoneNumberType">
+		<data type="string">
+			<param name="maxLength">50</param>
+			<param name="minLength">0</param>
+		</data>
+	</define>
+	<define name="VINType">
+		<!--<xsd:restriction base="xsd:string"><xsd:pattern value="[a-hj-npr-zA-HJ-NPR-Z0-9]{13}[0-9]{4}" /></xsd:restriction>-->
+		<data type="string">
+			<param name="maxLength">17</param>
+			<param name="minLength">3</param>
+		</data>
+	</define>
+	<define name="PhoneType">
+		<element name="PhoneType">
+			<ref name="PhoneTypeType"/>
+		</element>
+		<optional>
+			<element name="PhoneNumberType">
+				<ref name="PhoneNumberTypeType"/>
+			</element>
+		</optional>
+		<element name="PhoneNumber">
+			<ref name="PhoneNumberType"/>
+		</element>
+		<element name="Extension">
+			<ref name="C-10"/>
+		</element>
+		<optional>
+			<attribute name="id">
+				<data type="string"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="EmailType">
+		<data type="string">
+			<param name="maxLength">100</param>
+			<param name="minLength">0</param>
+			<param name="pattern">[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}</param>
+		</data>
+	</define>
+	<define name="PreferredContactMethodType">
+		<choice>
+			<value>Phone (Home)</value>
+			<value>Phone (Work)</value>
+			<value>Phone (Mobile)</value>
+			<value>Email</value>
+		</choice>
+	</define>
+	<define name="PreferredContactTimeType">
+		<choice>
+			<value>Morning</value>
+			<value>Afternoon</value>
+			<value>Evening</value>
+			<value>Anytime</value>
+		</choice>
+	</define>
+	<define name="AddressType">
+		<element name="AddressCode">
+			<ref name="AddressCodeType"/>
+		</element>
+		<element name="Addr1">
+			<ref name="DetailAddrType"/>
+		</element>
+		<element name="Addr2">
+			<ref name="C-255"/>
+		</element>
+		<element name="City">
+			<ref name="C-50"/>
+		</element>
+		<optional>
+			<element name="StateCode">
+				<ref name="StateCodeType"/>
+			</element>
+		</optional>
+		<element name="County">
+			<ref name="C-50"/>
+		</element>
+		<optional>
+			<element name="Zip5">
+				<ref name="Zip5Type"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Zip4">
+				<ref name="Zip4Type"/>
+			</element>
+		</optional>
+		<element name="Phone">
+			<ref name="PhoneType"/>
+		</element>
+		<optional>
+			<element name="Email">
+				<ref name="EmailType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PreferredContactMethod">
+				<ref name="PreferredContactMethodType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PreferredContactTime">
+				<ref name="PreferredContactTimeType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Validation">
+				<ref name="AddressValidationType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="AddressValidationType">
+		<choice>
+			<value>None</value>
+			<value>Valid</value>
+			<value>Invalid</value>
+			<value>NonDeliverable</value>
+			<value>MultipleMatches</value>
+			<value>Disabled</value>
+		</choice>
+	</define>
+	<define name="SimpleAddressType">
+		<element name="AddressCode">
+			<ref name="AddressCodeType"/>
+		</element>
+		<element name="Addr1">
+			<ref name="DetailAddrType"/>
+		</element>
+		<element name="Addr2">
+			<ref name="C-255"/>
+		</element>
+		<element name="City">
+			<ref name="C-50"/>
+		</element>
+		<optional>
+			<element name="StateCode">
+				<ref name="StateCodeType"/>
+			</element>
+		</optional>
+		<element name="County">
+			<ref name="C-50"/>
+		</element>
+		<optional>
+			<element name="Zip5">
+				<ref name="Zip5Type"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Zip4">
+				<ref name="Zip4Type"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Validation">
+				<ref name="AddressValidationType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="ApplicantTypeType">
+		<choice>
+			<value>Applicant</value>
+			<value>CoApplicant</value>
+		</choice>
+	</define>
+	<define name="ApplicantType">
+		<element name="ApplicantType">
+			<ref name="ApplicantTypeType"/>
+		</element>
+		<element name="PersonalInfo">
+			<ref name="PersonalInfoType"/>
+		</element>
+		<oneOrMore>
+			<element name="Address">
+				<ref name="AddressType"/>
+			</element>
+		</oneOrMore>
+	</define>
+	<define name="PriorLiabilityLimitType">
+		<choice>
+			<value>State Minimum</value>
+			<value>10/20</value>
+			<!-- 10/20 shown in FL,LA only -->
+			<value>12/25</value>
+			<!-- 12/25 No Longer shown in any of the states -->
+			<value>12.5/25</value>
+			<!-- 12.5/25 shown in OH only -->
+			<value>15/30</value>
+			<value>20/40</value>
+			<!-- 20/40 shown in CT,IL,IA,MA,MD,MI,WV only -->
+			<value>20/50</value>
+			<!-- 20/50 shown in MA,MS only-->
+			<value>25/25</value>
+			<value>25/50</value>
+			<value>25/60</value>
+			<!-- 25/60 shown in MA only-->
+			<value>25/65</value>
+			<!-- 25/65 shown in UT only -->
+			<value>30/60</value>
+			<!-- 30/60 shown in MN,NC, CA only -->
+			<value>35/80</value>
+			<!-- 35/80 shown in MA only-->
+			<value>50/50</value>
+			<value>50/100</value>
+			<value>100/100</value>
+			<value>100/200</value>
+			<!-- 100/200 shown in MA only-->
+			<value>100/300</value>
+			<value>200/400</value>
+			<!-- 200/400 shown in MA only-->
+			<value>200/600</value>
+			<!-- 200/600 shown in CT only -->
+			<value>250/500</value>
+			<value>250/1000</value>
+			<!-- 250/1000 shown in MA only-->
+			<value>300/300</value>
+			<value>300/500</value>
+			<!-- 300/500 shown in MA only-->
+			<value>500/500</value>
+			<value>500/1000</value>
+			<!-- 500/1000 Shown in CT,MA only -->
+			<value>1000/1000</value>
+			<value>55CSL</value>
+			<value>100CSL</value>
+			<value>115CSL</value>
+			<!-- 115 CSL only shown in WI. Effective Jan 1, 2010 -->
+			<value>300CSL</value>
+			<value>500CSL</value>
+			<value>1000CSL</value>
+			<!-- 1000CSL Shown in IN only -->
+			<value>None</value>
+		</choice>
+	</define>
+	<define name="PolicyTermType">
+		<choice>
+			<value>6 Month</value>
+			<value>12 Month</value>
+		</choice>
+	</define>
+	<define name="ReasonForLapseType">
+		<choice>
+			<value>Active Military Duty</value>
+			<value>Driving A Company Car</value>
+			<value>Driving A Car Owned By A Relative</value>
+			<value>Has Not Owned Or Operated A Vehicle</value>
+			<value>Owned Veh Parked/Stored Off Road/Not Driven</value>
+			<value>Other</value>
+			<value>Non-Payment</value>
+		</choice>
+	</define>
+	<define name="ReasonNoPriorType">
+		<choice>
+			<value>Active Military Duty</value>
+			<value>Driving A Company Car</value>
+			<value>Driving A Car Owned By A Relative</value>
+			<value>Has Not Owned Or Operated A Vehicle</value>
+			<value>Owned Veh Parked/Stored Off Road/Not Driven</value>
+			<value>Other</value>
+			<value>Non-Payment</value>
+		</choice>
+	</define>
+	<define name="PriorPolicyInfoType">
+		<optional>
+			<element name="PriorCarrier">
+				<ref name="PriorCarrierType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Expiration">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="YearsWithPriorCarrier">
+				<ref name="DurationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="YearsWithContinuousCoverage">
+				<ref name="DurationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PriorLiabilityLimit">
+				<ref name="PriorLiabilityLimitType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="ReasonForLapse">
+				<ref name="ReasonForLapseType"/>
+			</element>
+		</optional>
+		<!-- required when lapse in coverage -->
+		<optional>
+			<element name="ReasonNoPrior">
+				<ref name="ReasonNoPriorType"/>
+			</element>
+		</optional>
+		<!-- required when No Prior Ins -->
+		<optional>
+			<element name="PriorPolicyPremium">
+				<data type="nonNegativeInteger"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PriorPolicyTerm">
+				<ref name="PolicyTermType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="PriorCarrierType">
+		<choice>
+			<value>Other Standard</value>
+			<value>Other Non-Standard</value>
+			<value>No Prior Insurance</value>
+			<value>21st Century</value>
+			<value>A.Central</value>
+			<value>AAA</value>
+			<value>AARP</value>
+			<value>Acadia</value>
+			<value>Access General</value>
+			<value>Ace</value>
+			<value>Acuity</value>
+			<value>Adirondack Ins Exchange</value>
+			<value>Aegis</value>
+			<value>Affirmative</value>
+			<value>AIC</value>
+			<value>AIG</value>
+			<value>Alfa Alliance</value>
+			<value>Allied</value>
+			<value>Allstate</value>
+			<value>America First</value>
+			<value>American Commerce</value>
+			<value>American Family</value>
+			<value>American Freedom Insurance Company</value>
+			<value>American National</value>
+			<value>Amerisure</value>
+			<value>Amica</value>
+			<value>Anchor General</value>
+			<value>Arrowhead</value>
+			<value>ASI Lloyds</value>
+			<value>Atlantic Mutual</value>
+			<value>Austin Mutual</value>
+			<value>Autoone</value>
+			<value>Auto-Owners</value>
+			<value>AutoTex</value>
+			<value>Badger Mutual</value>
+			<value>Balboa</value>
+			<value>Bankers</value>
+			<value>Beacon National</value>
+			<value>Bear River Mutual</value>
+			<value>Brethern Mutual</value>
+			<value>Bristol West</value>
+			<value>Buckeye</value>
+			<value>California Casualty</value>
+			<value>Cameron Mutual</value>
+			<value>Capital Insurance Group</value>
+			<value>Celina</value>
+			<value>Centennial</value>
+			<value>Central Mutual of OH</value>
+			<value>Charter</value>
+			<value>Chubb</value>
+			<value>Cincinnati</value>
+			<value>Citizens</value>
+			<value>CNA</value>
+			<value>Colonial Penn</value>
+			<value>Colorado Casualty</value>
+			<value>Columbia</value>
+			<value>Commerce West</value>
+			<value>Constitutional Casualty</value>
+			<value>Consumers</value>
+			<value>Cornerstone</value>
+			<value>Countrywide</value>
+			<value>Country Insurance</value>
+			<value>CSE</value>
+			<value>Cumberland</value>
+			<value>Dairyland</value>
+			<value>Deerbrook</value>
+			<value>Delta Lloyds Insurance Company</value>
+			<value>Depositors</value>
+			<value>Direct</value>
+			<value>Direct General</value>
+			<value>Discovery</value>
+			<value>Donegal</value>
+			<value>Drive</value>
+			<value>Electric</value>
+			<value>EMC</value>
+			<value>Encompass</value>
+			<value>Erie</value>
+			<value>Esurance</value>
+			<value>Eveready</value>
+			<value>Explorer</value>
+			<value>Farm Bureau</value>
+			<value>Farmers</value>
+			<value>Federated</value>
+			<value>Fidelity</value>
+			<value>Financial Indemnity</value>
+			<value>Firemans Fund</value>
+			<value>First Acceptance</value>
+			<value>First American</value>
+			<value>First Auto</value>
+			<value>First Chicago</value>
+			<value>First Connect</value>
+			<value>Flagship Insurance</value>
+			<value>Foremost</value>
+			<value>Founders</value>
+			<value>Frankenmuth</value>
+			<value>Fred Loya</value>
+			<value>Gateway</value>
+			<value>Geico</value>
+			<value>General Casualty</value>
+			<value>Germantown Mutual</value>
+			<value>GMAC</value>
+			<!-- The enumeration GMAC should no longer be used as part of EZLynx 4.1.5 portal update since it has been renamed as National General. -->
+			<value>Grange</value>
+			<value>Great American</value>
+			<value>GRE/Go America</value>
+			<value>Grinnell</value>
+			<value>Guide One</value>
+			<value>Hallmark Insurance Company</value>
+			<value>Hanover</value>
+			<value>Harbor</value>
+			<value>Harleysville</value>
+			<value>Hartford OMNI</value>
+			<value>Hartford</value>
+			<value>Hastings Mutual</value>
+			<value>Hawkeye Security</value>
+			<value>HDI</value>
+			<value>Horace Mann</value>
+			<value>Houston General</value>
+			<value>IFA</value>
+			<value>Imperial Casualty</value>
+			<value>IMT Ins</value>
+			<value>Indiana Farmers</value>
+			<value>Indiana</value>
+			<value>Infinity</value>
+			<value>Insuremax</value>
+			<value>Insurequest</value>
+			<value>Integon</value>
+			<value>Integrity</value>
+			<value>Kemper</value>
+			<value>Kingsway</value>
+			<value>Liberty Mutual</value>
+			<value>Liberty Northwest</value>
+			<value>MAIF</value>
+			<value>Main Street America</value>
+			<value>Mapfre</value>
+			<value>Markel</value>
+			<value>Maryland Auto Insurance</value>
+			<value>Mendakota</value>
+			<value>Mendota</value>
+			<value>Merchants Group</value>
+			<value>Mercury</value>
+			<value>MetLife</value>
+			<value>Metropolitan</value>
+			<value>Mid-Continent</value>
+			<value>Midwestern Indemnity</value>
+			<value>Montgomery</value>
+			<value>Motorists Mutual</value>
+			<value>MSA</value>
+			<value>Mt. Washington</value>
+			<value>Mutual Benefit</value>
+			<value>Mutual of Enumclaw</value>
+			<value>National Lloyds Insurance Company</value>
+			<value>Nationwide</value>
+			<value>National General</value>
+			<!-- This enumeration is a replacement for GMAC. -->
+			<value>New York Central Mutual</value>
+			<value>NJ Manufacturers</value>
+			<value>NJ Skylands</value>
+			<value>Nodak Mutual</value>
+			<value>Northstar</value>
+			<value>NYAIP</value>
+			<value>Occidental</value>
+			<value>Ocean Harbor</value>
+			<value>Ohio Casualty</value>
+			<value>Omaha P/C</value>
+			<value>Omni Insurance Co</value>
+			<value>One Beacon</value>
+			<value>Oregon Mutual</value>
+			<value>Palisades</value>
+			<value>Patriot</value>
+			<value>Patrons Oxford</value>
+			<value>Peerless/Montgomery</value>
+			<value>Pekin</value>
+			<value>Pemco</value>
+			<value>Penn National</value>
+			<value>Phoenix Indemnity</value>
+			<value>Plymouth Rock</value>
+			<value>Preferred Mutual</value>
+			<value>Proformance</value>
+			<value>Progressive</value>
+			<value>Prudential</value>
+			<value>Republic</value>
+			<value>Response</value>
+			<value>Rockford Mutual</value>
+			<value>Royal and Sun Alliance</value>
+			<value>Safeco</value>
+			<value>Safe Auto</value>
+			<value>Safeway</value>
+			<value>Sagamore</value>
+			<value>SECURA</value>
+			<value>Selective</value>
+			<value>Sentry Ins</value>
+			<value>Shelter Insurance</value>
+			<value>Southern County</value>
+			<value>Southern Mutual</value>
+			<value>Southern Trust</value>
+			<value>St. Paul/Travelers</value>
+			<value>Standard Mutual</value>
+			<value>Star Casualty</value>
+			<value>State Auto</value>
+			<value>State Farm</value>
+			<value>StillWater</value>
+			<value>Stonegate</value>
+			<value>Titan</value>
+			<value>Topa</value>
+			<value>Tower</value>
+			<value>Travelers</value>
+			<value>TWFG</value>
+			<value>Unigard</value>
+			<value>United Automobile</value>
+			<value>United Fire and Casualty</value>
+			<value>Unitrin</value>
+			<value>Universal</value>
+			<value>USAA</value>
+			<value>Utica National</value>
+			<value>Victoria</value>
+			<value>West Bend</value>
+			<value>Western National</value>
+			<value>Western Reserve Group</value>
+			<value>Westfield</value>
+			<value>White Mountains</value>
+			<value>Wilshire</value>
+			<value>Wilson Mutual</value>
+			<value>Wisconsin Mutual</value>
+			<value>Windsor</value>
+			<value>Wind Haven</value>
+			<value>Zurich</value>
+		</choice>
+	</define>
+	<define name="PolicyInfoType">
+		<!-- Current quote information -->
+		<optional>
+			<element name="PolicyTerm">
+				<ref name="PolicyTermType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Package">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Effective">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="CreditCheckAuth">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="HomeOwnershipType">
+		<choice>
+			<value>Home (owned)</value>
+			<value>Condo (owned)</value>
+			<value>Apartment</value>
+			<value>Rental Home/Condo</value>
+			<value>Mobile Home</value>
+			<value>Live With Parents</value>
+			<value>Other</value>
+		</choice>
+	</define>
+	<define name="AutoOwnershipType">
+		<choice>
+			<value>Owned</value>
+			<value>Leased</value>
+			<value>Lien</value>
+		</choice>
+	</define>
+	<define name="DurationYearsType">
+		<choice>
+			<value>0</value>
+			<value>1</value>
+			<value>2</value>
+			<value>3</value>
+			<value>4</value>
+			<value>5</value>
+			<value>6</value>
+			<value>7</value>
+			<value>8</value>
+			<value>9</value>
+			<value>10</value>
+			<value>11</value>
+			<value>12</value>
+			<value>13</value>
+			<value>14</value>
+			<value>15</value>
+			<value>More than 15</value>
+		</choice>
+	</define>
+	<define name="DurationMonthsType">
+		<choice>
+			<value>0</value>
+			<value>1</value>
+			<value>2</value>
+			<value>3</value>
+			<value>4</value>
+			<value>5</value>
+			<value>6</value>
+			<value>7</value>
+			<value>8</value>
+			<value>9</value>
+			<value>10</value>
+			<value>11</value>
+		</choice>
+	</define>
+	<define name="DurationType">
+		<optional>
+			<element name="Years">
+				<ref name="DurationYearsType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Months">
+				<ref name="DurationMonthsType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="CurrentAddressType">
+		<optional>
+			<element name="YearsAtCurrent">
+				<ref name="DurationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Ownership">
+				<ref name="HomeOwnershipType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="PreviousAddressType">
+		<optional>
+			<element name="YearsAtPrevious">
+				<ref name="DurationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Address">
+				<ref name="SimpleAddressType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="GarageAddressType">
+		<optional>
+			<element name="Address">
+				<ref name="SimpleAddressType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="ResidenceInfoType">
+		<element name="CurrentAddress">
+			<ref name="CurrentAddressType"/>
+		</element>
+		<optional>
+			<element name="PreviousAddress">
+				<ref name="PreviousAddressType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="GarageLocation">
+				<ref name="GarageAddressType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="GenderType">
+		<choice>
+			<value>Male</value>
+			<value>Female</value>
+			<value>X - Not Specified</value>
+		</choice>
+	</define>
+	<define name="RelationType">
+		<choice>
+			<value>Child</value>
+			<value>Domestic Partner</value>
+			<value>Employee</value>
+			<value>Insured</value>
+			<value>Other</value>
+			<value>Parent</value>
+			<value>Relative</value>
+			<value>Spouse</value>
+		</choice>
+	</define>
+	<define name="StateCodeType">
+		<choice>
+			<value>AK</value>
+			<value>AL</value>
+			<value>AR</value>
+			<value>AZ</value>
+			<value>CA</value>
+			<value>CO</value>
+			<value>CT</value>
+			<value>DC</value>
+			<value>DE</value>
+			<value>FL</value>
+			<value>GA</value>
+			<value>HI</value>
+			<value>IA</value>
+			<value>ID</value>
+			<value>IL</value>
+			<value>IN</value>
+			<value>KS</value>
+			<value>KY</value>
+			<value>LA</value>
+			<value>MA</value>
+			<value>MD</value>
+			<value>ME</value>
+			<value>MI</value>
+			<value>MN</value>
+			<value>MO</value>
+			<value>MS</value>
+			<value>MT</value>
+			<value>NC</value>
+			<value>ND</value>
+			<value>NE</value>
+			<value>NH</value>
+			<value>NJ</value>
+			<value>NM</value>
+			<value>NV</value>
+			<value>NY</value>
+			<value>OH</value>
+			<value>OK</value>
+			<value>OR</value>
+			<value>PA</value>
+			<value>RI</value>
+			<value>SC</value>
+			<value>SD</value>
+			<value>TN</value>
+			<value>TX</value>
+			<value>UT</value>
+			<value>VA</value>
+			<value>VT</value>
+			<value>WA</value>
+			<value>WI</value>
+			<value>WV</value>
+			<value>WY</value>
+		</choice>
+	</define>
+	<define name="DLStateCodeType">
+		<choice>
+			<value>AK</value>
+			<value>AL</value>
+			<value>AR</value>
+			<value>AZ</value>
+			<value>CA</value>
+			<value>CO</value>
+			<value>CT</value>
+			<value>DC</value>
+			<value>DE</value>
+			<value>FL</value>
+			<value>GA</value>
+			<value>HI</value>
+			<value>IA</value>
+			<value>ID</value>
+			<value>IL</value>
+			<value>IN</value>
+			<value>KS</value>
+			<value>KY</value>
+			<value>LA</value>
+			<value>MA</value>
+			<value>MD</value>
+			<value>ME</value>
+			<value>MI</value>
+			<value>MN</value>
+			<value>MO</value>
+			<value>MS</value>
+			<value>MT</value>
+			<value>NC</value>
+			<value>ND</value>
+			<value>NE</value>
+			<value>NH</value>
+			<value>NJ</value>
+			<value>NM</value>
+			<value>NV</value>
+			<value>NY</value>
+			<value>OH</value>
+			<value>OK</value>
+			<value>OR</value>
+			<value>PA</value>
+			<value>RI</value>
+			<value>SC</value>
+			<value>SD</value>
+			<value>TN</value>
+			<value>TX</value>
+			<value>UT</value>
+			<value>VA</value>
+			<value>VT</value>
+			<value>WA</value>
+			<value>WI</value>
+			<value>WV</value>
+			<value>WY</value>
+			<value>Canada</value>
+			<value>Mexico</value>
+			<value>International</value>
+		</choice>
+	</define>
+	<define name="ChildCustodyType">
+		<choice>
+			<value>Male</value>
+			<value>Female</value>
+		</choice>
+	</define>
+	<define name="RatedDriverType">
+		<choice>
+			<value>Rated</value>
+			<value>Excluded</value>
+			<value>Non Rated</value>
+			<!-- Show Non Rated for KY only -->
+			<value>Never Licensed</value>
+			<!-- Show Never Licensed for KY only -->
+		</choice>
+	</define>
+	<define name="DLStatusType">
+		<choice>
+			<value>Valid</value>
+			<!-- default value -->
+			<value>Permit</value>
+			<value>Expired</value>
+			<value>Suspended</value>
+			<value>Cancelled</value>
+			<value>Not Licensed</value>
+			<value>Permanently Revoked</value>
+		</choice>
+	</define>
+	<define name="DriverTypeType">
+		<element name="Name">
+			<ref name="NameType"/>
+		</element>
+		<optional>
+			<element name="Gender">
+				<ref name="GenderType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DOB">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="SSN">
+				<ref name="SSNType"/>
+			</element>
+		</optional>
+		<element name="DLNumber">
+			<ref name="C-50"/>
+		</element>
+		<optional>
+			<element name="SDIPPoint">
+				<data type="nonNegativeInteger"/>
+			</element>
+		</optional>
+		<!-- Shown in MA only -->
+		<optional>
+			<element name="DLState">
+				<ref name="DLStateCodeType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DateLicensed">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DLStatus">
+				<ref name="DLStatusType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AgeLicensed">
+				<ref name="int100"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AccPrev">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MaritalStatus">
+				<ref name="MaritalStatusType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Relation">
+				<ref name="RelationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Industry">
+				<data type="string"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Occupation">
+				<data type="string"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="GoodStudent">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Student100">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DriverTraining">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="GoodDriver">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MATDriver">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PrincipalVehicle">
+				<ref name="int10"/>
+			</element>
+		</optional>
+		<zeroOrMore>
+			<element name="Accident">
+				<ref name="AccidentType"/>
+			</element>
+		</zeroOrMore>
+		<zeroOrMore>
+			<element name="Violation">
+				<ref name="ViolationType"/>
+			</element>
+		</zeroOrMore>
+		<zeroOrMore>
+			<element name="CompLoss">
+				<ref name="CompLossType"/>
+			</element>
+		</zeroOrMore>
+		<optional>
+			<element name="Rated">
+				<ref name="RatedDriverType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="SR22">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FR44">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<!-- Shown only in FL & VA -->
+		<optional>
+			<element name="LicenseRevokedSuspended">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="DriversType">
+		<element name="Driver">
+			<ref name="DriverTypeType"/>
+		</element>
+	</define>
+	<define name="AntiTheftType">
+		<choice>
+			<value>None</value>
+			<value>Active</value>
+			<value>Alarm Only</value>
+			<value>Passive</value>
+			<value>Vehicle Recovery System</value>
+			<value>Both Active and Passive</value>
+			<value>VIN# Etching</value>
+		</choice>
+	</define>
+	<define name="PassiveRestraintsType">
+		<choice>
+			<value>None</value>
+			<value>Automatic Seatbelts</value>
+			<value>Airbag (Drvr Side)</value>
+			<value>Auto Stbelts/Drvr Airbag</value>
+			<value>Airbag Both Sides</value>
+			<value>Auto Stbelts/Airbag Both</value>
+		</choice>
+	</define>
+	<define name="VehicleTypeType">
+		<element name="UseVinLookup">
+			<ref name="BooleanType"/>
+		</element>
+		<a:documentation>
+            default value is : No</a:documentation>
+		<optional>
+			<element name="UseVehicleLookupService">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Year">
+				<ref name="YearType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Vin">
+				<ref name="VINType"/>
+			</element>
+		</optional>
+		<element name="Make">
+			<ref name="C-50_NoBlank"/>
+		</element>
+		<optional>
+			<element name="Model">
+				<ref name="C-50"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Sub-Model">
+				<ref name="C-255"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Anti-Theft">
+				<ref name="AntiTheftType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PassiveRestraints">
+				<ref name="PassiveRestraintsType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AntiLockBrake">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DaytimeRunningLights">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="VehicleInspection">
+				<ref name="VehicleInspectionType"/>
+			</element>
+		</optional>
+		<!-- Shown in NY only, and required -->
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="VehiclesType">
+		<element name="Vehicle">
+			<ref name="VehicleTypeType"/>
+		</element>
+	</define>
+	<define name="VehicleInspectionType">
+		<choice>
+			<value>Inspection Completed: No Damage</value>
+			<value>Inspection Completed: Damaged</value>
+			<value>No Inspection Needed</value>
+			<value>No Acknowledgement Form Attached</value>
+			<value>Acknowledgement Form Attached</value>
+			<value>Bill of Sale For New Vehicle</value>
+		</choice>
+	</define>
+	<define name="UseageType">
+		<choice>
+			<value>Business</value>
+			<value>Farming</value>
+			<value>Pleasure</value>
+			<value>To/From Work</value>
+			<value>To/From School</value>
+		</choice>
+	</define>
+	<define name="PerformanceType">
+		<choice>
+			<value>Standard</value>
+			<value>Sports</value>
+			<value>Intermediate</value>
+			<value>High Performance</value>
+		</choice>
+	</define>
+	<define name="DaysPerWeekType">
+		<choice>
+			<value>7</value>
+			<value>6</value>
+			<value>5</value>
+			<value>4</value>
+			<value>3</value>
+			<value>2</value>
+			<value>1</value>
+		</choice>
+	</define>
+	<define name="WeeksPerMonthType">
+		<choice>
+			<value>4</value>
+			<value>3</value>
+			<value>2</value>
+			<value>1</value>
+		</choice>
+	</define>
+	<define name="VehicleUseType">
+		<optional>
+			<element name="Useage">
+				<ref name="UseageType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="OneWayMiles">
+				<ref name="int999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DaysPerWeek">
+				<ref name="DaysPerWeekType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="WeeksPerMonth">
+				<ref name="WeeksPerMonthType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AnnualMiles">
+				<ref name="int100000"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Ownership">
+				<ref name="AutoOwnershipType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Carpool">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Odometer">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Performance">
+				<ref name="PerformanceType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NewVehicle">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<element name="AdditionalModificationValue">
+			<ref name="int100000"/>
+		</element>
+		<optional>
+			<element name="AlternateGarage">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PrincipalOperator">
+				<ref name="int10"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="CostNew">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UsedForDelivery">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PriorDamagePresent">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="SnowPlow">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="VehiclesUseType">
+		<element name="VehicleUse">
+			<ref name="VehicleUseType"/>
+		</element>
+	</define>
+	<define name="AccidentDescType">
+		<choice>
+			<value>At Fault With Injury</value>
+			<value>At Fault With No Injury</value>
+			<value>Not At Fault</value>
+		</choice>
+	</define>
+	<define name="AccidentType">
+		<optional>
+			<element name="Date">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Description">
+				<ref name="AccidentDescType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PD">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="BI">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Collision">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MP">
+				<ref name="int999999"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="VehicleInvolved">
+				<!-- should be 0 if vehicle no longer owned, empty node if not specified -->
+				<choice>
+					<data type="string">
+						<param name="length">0</param>
+					</data>
+					<data type="nonNegativeInteger"/>
+				</choice>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="ViolationDescType">
+		<choice>
+			<value>Careless Driving</value>
+			<value>Cell Phone</value>
+			<value>Child Safety Restraint</value>
+			<value>Defective Equipment</value>
+			<value>Divided Highways</value>
+			<value>Double Lines</value>
+			<value>Driving Left of Center</value>
+			<value>Driving on Sus. License</value>
+			<value>Driving too slow</value>
+			<value>Driving without lights</value>
+			<value>DUI</value>
+			<value>Eluding Police</value>
+			<value>Failure to Obey Signal</value>
+			<value>Failure to Stop</value>
+			<value>Failure to Yield</value>
+			<value>Failure To Observe A Safety Zone</value>
+			<value>Failure to show documents</value>
+			<value>False Reporting</value>
+			<value>Felony</value>
+			<value>Following too Closely</value>
+			<value>Homicide</value>
+			<value>Illegal Turn</value>
+			<value>Improper Parking</value>
+			<value>Improper Passing</value>
+			<value>Improper Loads</value>
+			<value>Leaving scene of an Accident/Hit and Run</value>
+			<value>Motorcycle Violation</value>
+			<value>Other Major</value>
+			<value>Other Minor</value>
+			<value>Open Container</value>
+			<value>Operating Vehicle without Permission</value>
+			<value>Out of State</value>
+			<value>Passing School Bus</value>
+			<value>Racing/Drag Racing</value>
+			<value>Recreational Vehicle</value>
+			<value>Refusal to submit to chemical test</value>
+			<value>Speeding 1-5</value>
+			<value>Speeding 6-10</value>
+			<value>Speeding 11-15</value>
+			<value>Speeding 16-20</value>
+			<value>Speeding 21+</value>
+			<value>Speed over 100mph</value>
+			<value>Speeding Violation-Major</value>
+			<value>Speeding Violation-Minor</value>
+			<value>Seat Belt</value>
+			<value>Suspension</value>
+			<value>Ticket Violation Not Listed</value>
+			<value>Towing</value>
+			<value>Transportation of Hazardous Materials</value>
+			<value>Unsafe Operation of a Motor Vehicle</value>
+			<value>Vehicle Theft</value>
+			<value>Wrong Way/Wrong Lane</value>
+		</choice>
+	</define>
+	<define name="ViolationType">
+		<optional>
+			<element name="Date">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Description">
+				<ref name="ViolationDescType"/>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="CompLossDescType">
+		<choice>
+			<value>FIRE</value>
+			<value>HIT ANIMAL</value>
+			<value>THEFT</value>
+			<value>TOWING</value>
+			<value>VANDALISM</value>
+			<value>GLASS</value>
+			<value>TORNADO/HURRICANE</value>
+			<value>FLOOD</value>
+			<value>WIND/HAIL</value>
+			<value>ALL OTHER</value>
+		</choice>
+	</define>
+	<define name="CompLossType">
+		<optional>
+			<element name="Date">
+				<ref name="DateType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Description">
+				<ref name="CompLossDescType"/>
+			</element>
+		</optional>
+		<element name="Value">
+			<ref name="int999999"/>
+		</element>
+		<optional>
+			<element name="VehicleInvolved">
+				<!-- should be 0 if vehicle no longer owned, empty node if not specified -->
+				<choice>
+					<data type="string">
+						<param name="length">0</param>
+					</data>
+					<data type="nonNegativeInteger"/>
+				</choice>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="BIType">
+		<choice>
+			<value>State Minimum</value>
+			<value>10/20</value>
+			<!-- 10/20 shown in FL only -->
+			<value>12/25</value>
+			<!-- 12/25 No Longer shown in any of the states -->
+			<value>12.5/25</value>
+			<!-- 12.5/25 No longer shown in any of the states -->
+			<value>15/30</value>
+			<!-- 15/30 No Longer shown in OH state -->
+			<value>20/40</value>
+			<!-- 20/40 shown in CT,IA,MD,MI,MA only -->
+			<value>20/50</value>
+			<!-- 20/50 shown in MS only-->
+			<value>25/25</value>
+			<!-- 25/25 No Longer shown in OH,IL & WV state -->
+			<value>25/50</value>
+			<value>25/65</value>
+			<!-- 25/65 shown in UT only -->
+			<value>30/60</value>
+			<!-- 30/60 shown in MN,NC only -->
+			<value>50/50</value>
+			<value>50/100</value>
+			<value>100/100</value>
+			<value>100/300</value>
+			<value>200/600</value>
+			<!-- 200/600 shown in CT only -->
+			<value>250/500</value>
+			<value>300/300</value>
+			<value>500/500</value>
+			<value>500/1000</value>
+			<!-- 500/1000 Shown in CT only -->
+			<value>1000/1000</value>
+			<value>35 CSL</value>
+			<!-- 35 CSL Shown in NJ only -->
+			<value>50 CSL</value>
+			<!-- 50 CSL Shown in NJ only -->
+			<value>55 CSL</value>
+			<!-- 55 CSL No longer shown in NJ -->
+			<value>100 CSL</value>
+			<value>115 CSL</value>
+			<!-- 115 CSL only shown in WI. Effective Jan 1, 2010 -->
+			<value>300 CSL</value>
+			<value>500 CSL</value>
+			<value>1000 CSL</value>
+			<!-- 1000 CSL Shown in IN only -->
+		</choice>
+	</define>
+	<define name="PDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>State Minimum</value>
+			<value>5000</value>
+			<!-- 5000 shown in CA, MA, NJ & PA only -->
+			<value>7500</value>
+			<!-- 7500 No Longer shown in any of the states -->
+			<value>10000</value>
+			<!-- 10000 shown in all states except for OH, VA, WV, WY, LA, MT, IN & KS -->
+			<value>15000</value>
+			<!-- 15000 shown in all states except for OH, VA, IL, WV, WY, LA, MT, IN & KS -->
+			<value>20000</value>
+			<!-- 20000 shown in VA & WY & OR & IL & MT only -->
+			<value>25000</value>
+			<value>35000</value>
+			<!-- 35000 shown in MA only -->
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<!-- 300000 shown in MA only -->
+			<value>500000</value>
+		</choice>
+	</define>
+	<define name="UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>State Minimum</value>
+			<value>10000</value>
+			<!-- Hide 10000 for OR only -->
+			<value>15000</value>
+			<!-- Hide 15000 for OR only -->
+			<value>20000</value>
+			<!-- Show 20000 for OR only -->
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="MPType">
+		<choice>
+			<value>None</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>2000</value>
+			<value>2500</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>15000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="UMType">
+		<choice>
+			<value>Reject</value>
+			<value>State Minimum</value>
+			<value>10/20</value>
+			<!-- 10/20 shown in FL,LA only -->
+			<value>12/25</value>
+			<!-- 12/25 No Longer shown in any of the states -->
+			<value>12.5/25</value>
+			<!-- 12.5/25 No Longer shown in any of the states -->
+			<value>15/30</value>
+			<!-- 15/30 No Longer shown in OH state -->
+			<value>20/40</value>
+			<!-- 20/40 shown in CT,IA,MD,MI,WV,MA only -->
+			<value>20/50</value>
+			<!-- 20/50 shown in MS,MA only-->
+			<value>25/25</value>
+			<!-- 25/25 No Longer shown in OH,IL & WV state -->
+			<value>25/50</value>
+			<value>25/60</value>
+			<!-- 25/60 shown in MA only -->
+			<value>25/65</value>
+			<!-- 25/65 shown in UT only -->
+			<value>30/60</value>
+			<!-- 30/60 shown in MN,NC only -->
+			<value>35/80</value>
+			<!-- 35/80 shown in MA only -->
+			<value>50/50</value>
+			<value>50/100</value>
+			<value>100/100</value>
+			<value>100/200</value>
+			<!-- 100/200 shown in MA only -->
+			<value>100/300</value>
+			<value>200/400</value>
+			<!-- 200/400 shown in MA only -->
+			<value>200/600</value>
+			<!-- 200/600 shown in CT only -->
+			<value>250/500</value>
+			<value>250/1000</value>
+			<!-- 250/1000 shown in MA only -->
+			<value>300/300</value>
+			<value>300/500</value>
+			<!-- 300/500 shown in MA only -->
+			<value>500/500</value>
+			<value>500/1000</value>
+			<!-- 500/1000 Shown in CT,MA only -->
+			<value>1000/1000</value>
+			<value>35 CSL</value>
+			<!-- 35 CSL Shown in NJ only -->
+			<value>50 CSL</value>
+			<!-- 50 CSL Shown in NJ only -->
+			<value>55 CSL</value>
+			<!-- 55 CSL No longer shown in NJ -->
+			<value>100 CSL</value>
+			<value>300 CSL</value>
+			<value>500 CSL</value>
+			<value>600 CSL</value>
+			<!-- 600CSL Shown in CT only -->
+			<value>1000 CSL</value>
+			<!-- 1000 CSL Shown in CT, IN only -->
+		</choice>
+	</define>
+	<define name="UIMType">
+		<choice>
+			<value>Reject</value>
+			<value>State Minimum</value>
+			<value>10/20</value>
+			<!-- 10/20 shown in FL,LA only -->
+			<value>12/25</value>
+			<!-- 12/25 No Longer shown in any of the states -->
+			<value>12.5/25</value>
+			<!-- 12.5/25 No Longer shown in any of the states -->
+			<value>15/30</value>
+			<!-- 15/30 No Longer shown in OH state -->
+			<value>20/40</value>
+			<!-- 20/40 shown in CT,IA,MD,MI,MA only -->
+			<value>20/50</value>
+			<!-- 20/50 shown in MS,MA only-->
+			<value>25/25</value>
+			<!-- 25/25 No Longer shown in OH, IL & WV state -->
+			<value>25/50</value>
+			<value>25/60</value>
+			<!-- 25/60 shown in MA only -->
+			<value>25/65</value>
+			<!-- 25/65 shown in UT only -->
+			<value>30/60</value>
+			<!-- 30/60 shown in MN,NC,CA only -->
+			<value>35/80</value>
+			<!-- 35/80 shown in MA only -->
+			<value>50/50</value>
+			<value>50/100</value>
+			<value>100/100</value>
+			<value>100/200</value>
+			<!-- 100/200 shown in MA only -->
+			<value>100/300</value>
+			<value>200/400</value>
+			<!-- 200/400 shown in MA only -->
+			<value>200/600</value>
+			<!-- 200/600 shown in CT only -->
+			<value>250/500</value>
+			<value>250/1000</value>
+			<!-- 250/1000 shown in MA only -->
+			<value>300/300</value>
+			<value>300/500</value>
+			<!-- 300/500 shown in MA only -->
+			<value>500/500</value>
+			<value>500/1000</value>
+			<!-- 500/1000 Shown in CT,MA only -->
+			<value>1000/1000</value>
+			<value>35 CSL</value>
+			<!-- 35 CSL Shown in NJ only -->
+			<value>50 CSL</value>
+			<!-- 50 CSL Shown in NJ only -->
+			<value>55 CSL</value>
+			<!-- 55 CSL No longer shown in NJ -->
+			<value>100 CSL</value>
+			<value>300 CSL</value>
+			<value>500 CSL</value>
+			<value>600 CSL</value>
+			<!-- 600CSL Shown in CT only -->
+			<value>1000 CSL</value>
+			<!-- 1000CSL Shown in CT, IN only -->
+		</choice>
+	</define>
+	<define name="PIPType">
+		<choice>
+			<value>Accept</value>
+			<value>Reject</value>
+		</choice>
+	</define>
+	<define name="GeneralCoverageType">
+		<optional>
+			<element name="BI">
+				<ref name="BIType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PD">
+				<ref name="PDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MP">
+				<ref name="MPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UM">
+				<ref name="UMType"/>
+			</element>
+		</optional>
+		<!-- <xsd:element name="UMPD" type="UMPDType" minOccurs="0" maxOccurs="1" /> Currently in CO,GA,IN,NM,OR,TX,WA now depricated and included in State Specific Sections -->
+		<optional>
+			<element name="UIM">
+				<ref name="UIMType"/>
+			</element>
+		</optional>
+		<!-- <xsd:element name="PIP" type="PIPType" minOccurs="0" maxOccurs="1" />  Currently in CO,FL,KY,NY,OR,TX,WA now depricated and included in State Specific Sections -->
+		<optional>
+			<element name="Multipolicy">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="RetirementCommunity">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AAADiscount">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="Multicar">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="OtherCollisionDeductibleType">
+		<choice>
+			<value>No Coverage</value>
+			<value>0</value>
+			<value>50</value>
+			<value>100</value>
+			<value>200</value>
+			<value>250</value>
+			<value>300</value>
+			<!-- 300 is only shown in IL & MA -->
+			<value>500</value>
+			<value>750</value>
+			<!-- 750 is only shown in NJ & CO -->
+			<value>1000</value>
+			<!-- 1500 is only shown in MN & WI -->
+			<value>1500</value>
+			<value>2000</value>
+			<value>2500</value>
+		</choice>
+	</define>
+	<define name="CollisionDeductibleType">
+		<choice>
+			<value>No Coverage</value>
+			<value>0</value>
+			<value>50</value>
+			<value>100</value>
+			<value>200</value>
+			<value>250</value>
+			<value>300</value>
+			<!-- 300 is only shown in IL & MA -->
+			<value>500</value>
+			<value>750</value>
+			<!-- 750 is only shown in NJ & CO -->
+			<value>1000</value>
+			<!-- 1500 is only shown in MN & WI -->
+			<value>1500</value>
+			<value>2000</value>
+			<value>2500</value>
+		</choice>
+	</define>
+	<define name="TowingDeductibleType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25</value>
+			<value>40</value>
+			<!-- 40 shown only in TX -->
+			<value>50</value>
+			<value>75</value>
+			<value>80</value>
+			<!-- 80 shown only in TX -->
+			<value>100</value>
+			<value>120</value>
+			<!-- 120 shown only in TX -->
+			<value>200</value>
+			<value>Unlimited</value>
+		</choice>
+	</define>
+	<define name="RentalDeductibleType">
+		<choice>
+			<value>No Coverage</value>
+			<value>15/450</value>
+			<!-- 15/450 Shown only in CT,GA,NC,MA -->
+			<value>20/600</value>
+			<value>25/750</value>
+			<!-- 25/750 Shown only in IL,NJ,TX -->
+			<value>30/900</value>
+			<value>35/1050</value>
+			<!-- 35/1050 Shown only in TX -->
+			<value>40/1200</value>
+			<value>45/1350</value>
+			<!-- 45/1350 Shown only in MA -->
+			<value>50/1500</value>
+			<value>75/2250</value>
+			<!-- 25/2250 Shown only in OH -->
+			<value>100/3000</value>
+			<!-- Shown only in CA,GA,NJ,MA -->
+		</choice>
+	</define>
+	<define name="PIPAppliesType">
+		<choice>
+			<value>Named Insured</value>
+			<value>Named Insured + Relatives</value>
+		</choice>
+	</define>
+	<define name="WorkLossType">
+		<choice>
+			<value>Included</value>
+			<value>Excluded</value>
+		</choice>
+	</define>
+	<!-- FL Coverages -->
+	<!--Few FLcoverages elements are deprecated and will be ignored beginning with version 2.0.2-->
+	<define name="FL-StateSpecific">
+		<optional>
+			<element name="FL-PIPDeductible">
+				<ref name="FL-PIPDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FL-PIPApplies">
+				<ref name="PIPAppliesType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FL-WageLoss">
+				<ref name="FL-WageLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FL-PIPOptions">
+				<ref name="FL-PIPOptionsType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FL-StackedUM">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="FL-PIPDeductibleType">
+		<choice>
+			<value>0</value>
+			<value>250</value>
+			<value>500</value>
+			<value>1000</value>
+		</choice>
+	</define>
+	<define name="FL-WageLossType">
+		<choice>
+			<value>Included</value>
+			<value>Excluded</value>
+		</choice>
+	</define>
+	<define name="FL-PIPOptionsType">
+		<choice>
+			<value>Basic</value>
+			<value>Extended</value>
+		</choice>
+	</define>
+	<!-- End FL Coverages -->
+	<!-- CT Coverages-->
+	<define name="CT-StateSpecific">
+		<optional>
+			<element name="CT-BRB">
+				<ref name="CT-BRBType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="CT-WageLoss">
+				<ref name="CT-WageLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="CT-UMUIMConversion">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="CT-BRBType">
+		<choice>
+			<value>None</value>
+			<value>Basic</value>
+			<value>Basic + 5000</value>
+			<value>Basic + 10000</value>
+			<value>Basic + 15000</value>
+			<value>Basic + 25000</value>
+			<value>Basic + 50000</value>
+			<value>Basic + 100000</value>
+		</choice>
+	</define>
+	<define name="CT-WageLossType">
+		<choice>
+			<value>200</value>
+			<value>300</value>
+			<value>400</value>
+			<value>500</value>
+		</choice>
+	</define>
+	<!-- End CT Coverages-->
+	<!-- KY Coverages -->
+	<define name="KY-StateSpecific">
+		<optional>
+			<element name="KY-PIP">
+				<ref name="KY-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="KY-APIP">
+				<ref name="KY-APIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="KY-PIPDeductible">
+				<ref name="KY-PIPDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="KY-TortLimitation">
+				<ref name="KY-TortLimitationType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="KY-PIPType">
+		<choice>
+			<value>Reject</value>
+			<value>Basic-10000</value>
+			<value>20000</value>
+			<value>30000</value>
+			<value>40000</value>
+			<value>50000</value>
+			<value>75000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="KY-PIPDeductibleType">
+		<choice>
+			<value>None</value>
+			<value>250</value>
+			<value>500</value>
+			<value>1000</value>
+		</choice>
+	</define>
+	<define name="KY-APIPType">
+		<choice>
+			<value>1000</value>
+			<value>2000</value>
+			<value>3000</value>
+			<value>4000</value>
+		</choice>
+	</define>
+	<define name="KY-TortLimitationType">
+		<choice>
+			<value>Tort Limitation Not Rejected</value>
+			<value>Rejected By All Family Members</value>
+			<value>Rejected By Some Family Members</value>
+		</choice>
+	</define>
+	<!-- End KY Coverages -->
+	<!-- TX Coverages -->
+	<define name="TX-StateSpecific">
+		<optional>
+			<element name="TX-PIP">
+				<ref name="TX-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="TX-AutoDeathIndemnity">
+				<ref name="TX-AutoDeathIndemnityType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="TX-UMPD">
+				<ref name="UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="TX-PIPType">
+		<choice>
+			<value>No Coverage</value>
+			<value>2500</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="TX-AutoDeathIndemnityType">
+		<choice>
+			<value>No Coverage</value>
+			<value>5000</value>
+			<value>10000</value>
+		</choice>
+	</define>
+	<!-- End TX Coverages -->
+	<!-- WA Coverages -->
+	<define name="WA-StateSpecific">
+		<optional>
+			<element name="WA-PIP">
+				<ref name="WA-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="WA-UMPD">
+				<ref name="UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="WA-APIP">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="WA-PIPType">
+		<choice>
+			<value>No Coverage</value>
+			<value>10000</value>
+			<value>35000</value>
+		</choice>
+	</define>
+	<!-- End WA Coverages -->
+	<!-- CA Coverages -->
+	<define name="CA-StateSpecific">
+		<optional>
+			<element name="CA-UMPD">
+				<ref name="CA-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="CA-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>3500</value>
+		</choice>
+	</define>
+	<!-- End CA Coverages -->
+	<!-- CO Coverages -->
+	<define name="CO-StateSpecific">
+		<optional>
+			<element name="CO-UMPD">
+				<ref name="CO-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="CO-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>100</value>
+			<value>200</value>
+			<value>250</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>2500</value>
+		</choice>
+	</define>
+	<!-- End CO Coverages -->
+	<!-- GA Coverages -->
+	<define name="GA-StateSpecific">
+		<optional>
+			<element name="GA-UMPD">
+				<ref name="GA-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="GA-UM-OPTION">
+				<ref name="GA-UM-OPTIONType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="GA-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>25/250 Ded</value>
+			<value>50/250 Ded</value>
+			<value>75/250 Ded</value>
+			<value>100/250 Ded</value>
+			<value>25/500 Ded</value>
+			<value>50/500 Ded</value>
+			<value>75/500 Ded</value>
+			<value>100/500 Ded</value>
+			<value>25/1000 Ded</value>
+			<value>50/1000 Ded</value>
+			<value>75/1000 Ded</value>
+			<value>100/1000 Ded</value>
+		</choice>
+	</define>
+	<define name="GA-UM-OPTIONType">
+		<choice>
+			<value>Add-On</value>
+			<value>Reduced</value>
+		</choice>
+	</define>
+	<!-- End GA Coverages -->
+	<!-- IL Coverages -->
+	<define name="IL-StateSpecific">
+		<optional>
+			<element name="IL-UMPD">
+				<ref name="IL-UMPDType"/>
+			</element>
+		</optional>
+		<!-- cannot be selected with CSL -->
+	</define>
+	<define name="IL-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>15000</value>
+			<value>20000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<!-- End IL Coverages -->
+	<!-- OH Coverages -->
+	<define name="OH-StateSpecific">
+		<optional>
+			<element name="OH-UMPD">
+				<ref name="OH-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="OH-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>7500</value>
+			<value>10000</value>
+			<value>25000</value>
+		</choice>
+	</define>
+	<!-- End OH Coverages -->
+	<!-- OR Coverages -->
+	<define name="OR-StateSpecific">
+		<optional>
+			<element name="OR-PIP">
+				<ref name="OR-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="OR-PIPDeductible">
+				<ref name="OR-PIPDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="OR-PIPAppliesTo">
+				<ref name="PIPAppliesType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="OR-UMPD">
+				<ref name="UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="OR-PIPType">
+		<choice>
+			<value>15000 BASIC</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="OR-PIPDeductibleType">
+		<choice>
+			<value>0</value>
+			<value>100</value>
+			<value>250</value>
+		</choice>
+	</define>
+	<!-- End OR Coverages -->
+	<!-- UT Coverages -->
+	<define name="UT-StateSpecific">
+		<optional>
+			<element name="UT-PIP">
+				<ref name="UT-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UT-WorkLoss">
+				<ref name="UT-WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UT-UMPD">
+				<ref name="UT-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="UT-APIP">
+				<ref name="UT-APIPType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="UT-PIPType">
+		<choice>
+			<value>3000</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+		</choice>
+	</define>
+	<define name="UT-WorkLossType">
+		<choice>
+			<value>Accept</value>
+			<value>Reject</value>
+		</choice>
+	</define>
+	<define name="UT-UMPDType">
+		<choice>
+			<value>None</value>
+			<value>3500</value>
+		</choice>
+	</define>
+	<define name="UT-APIPType">
+		<choice>
+			<value>No Coverage</value>
+			<value>5000</value>
+			<value>10000</value>
+		</choice>
+	</define>
+	<!-- End UT Coverages -->
+	<!-- PA Coverages -->
+	<define name="PA-StateSpecific">
+		<optional>
+			<element name="PA-AccidentalDeath">
+				<ref name="PA-ADBType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-StackedUM">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-StackedUIM">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-FuneralExpense">
+				<ref name="PA-FuneralExpType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-WorkLoss">
+				<ref name="PA-WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-TortLimitation">
+				<ref name="PA-TortLimitationType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-CombinationFirstParty">
+				<ref name="PA-CFPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-FirstParty">
+				<ref name="PA-FirstPartyType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="PA-ExtraMedicalExp">
+				<ref name="PA-ExtraMedicalExpType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="PA-ADBType">
+		<choice>
+			<value>None</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>15000</value>
+			<value>25000</value>
+		</choice>
+	</define>
+	<define name="PA-FuneralExpType">
+		<choice>
+			<value>None</value>
+			<value>1500</value>
+			<value>2500</value>
+		</choice>
+	</define>
+	<define name="PA-WorkLossType">
+		<choice>
+			<value>None</value>
+			<value>1000/5000</value>
+			<value>1000/15000</value>
+			<value>1500/25000</value>
+			<value>2500/50000</value>
+		</choice>
+	</define>
+	<define name="PA-TortLimitationType">
+		<choice>
+			<value>Full</value>
+			<value>Limited</value>
+		</choice>
+	</define>
+	<define name="PA-CFPType">
+		<choice>
+			<value>None</value>
+			<value>Addl First Party Benefits</value>
+			<value>Combo First Party Benefits - 50000</value>
+			<value>Combo First Party Benefits - 100000</value>
+			<value>Combo First Party Benefits - 177500</value>
+		</choice>
+	</define>
+	<define name="PA-FirstPartyType">
+		<choice>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="PA-ExtraMedicalExpType">
+		<choice>
+			<value>100000</value>
+			<value>300000</value>
+			<value>500000</value>
+			<value>1000000</value>
+		</choice>
+	</define>
+	<!-- End PA Coverages -->
+	<!-- NM Coverages -->
+	<define name="NM-StateSpecific">
+		<optional>
+			<element name="NM-UMPD">
+				<ref name="UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<!-- End NM Coverages -->
+	<!-- IN Coverages -->
+	<define name="IN-StateSpecific">
+		<optional>
+			<element name="IN-UMPD">
+				<ref name="UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<!-- End IN Coverages -->
+	<!-- AR Coverages -->
+	<define name="AR-StateSpecific">
+		<optional>
+			<element name="AR-PIP">
+				<ref name="AR-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AR-WorkLoss">
+				<ref name="WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AR-UMPD">
+				<ref name="AR-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="AR-AccidentalDeath">
+				<ref name="AR-AccidentalDeathType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="AR-PIPType">
+		<choice>
+			<value>Reject</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>2000</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+		</choice>
+	</define>
+	<define name="AR-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>300000</value>
+		</choice>
+	</define>
+	<define name="AR-AccidentalDeathType">
+		<choice>
+			<value>Reject</value>
+			<value>5000</value>
+			<value>10000</value>
+			<value>15000</value>
+			<value>20000</value>
+		</choice>
+	</define>
+	<!-- End AR Coverages -->
+	<!-- KS Coverages -->
+	<define name="KS-StateSpecific">
+		<optional>
+			<element name="KS-PIP">
+				<ref name="KS-PIPType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="KS-PIPType">
+		<choice>
+			<value>Basic - 4500</value>
+			<value>12500</value>
+			<value>27500</value>
+		</choice>
+	</define>
+	<!-- End KS Coverages -->
+	<!-- MN Coverages -->
+	<define name="MN-StateSpecific">
+		<optional>
+			<element name="MN-PIPOptions">
+				<ref name="MN-PIPOptionsType"/>
+			</element>
+		</optional>
+		<!-- This field covers PIP with the Basic and Extended options; and APIP too  -->
+		<optional>
+			<element name="MN-PIPStacking">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MN-WorkLoss">
+				<ref name="WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MN-PIPDeductible">
+				<ref name="MN-PIPDeductibleType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MN-PIPOptionsType">
+		<choice>
+			<value>BASIC</value>
+			<value>BASIC+10K MED EXP</value>
+			<value>BASIC+20K MED EXP</value>
+			<value>BASIC+30K MED EXP</value>
+			<value>BASIC+30K MED EXP/15K WL</value>
+			<value>BASIC+55K MED EXP/15K WL</value>
+			<value>BASIC+80K MED EXP/40K WL</value>
+		</choice>
+	</define>
+	<define name="MN-PIPDeductibleType">
+		<choice>
+			<value>0</value>
+			<value>100 MED/200WL</value>
+			<value>100 MED</value>
+		</choice>
+	</define>
+	<!-- End MN Coverages -->
+	<!-- MS Coverages -->
+	<define name="MS-StateSpecific">
+		<optional>
+			<element name="MS-UMPD">
+				<ref name="MS-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MS-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<!-- End MS Coverages -->
+	<!-- NC Coverages -->
+	<define name="NC-StateSpecific">
+		<optional>
+			<element name="NC-UMPD">
+				<ref name="NC-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="NC-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<!-- End NC Coverages -->
+	<!-- NY Coverages -->
+	<define name="NY-StateSpecific">
+		<optional>
+			<element name="NY-OBEL">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-PIPDeductible">
+				<ref name="NY-PIPDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-PIPOptions">
+				<ref name="NY-PIPOptionsType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-Supplemental">
+				<ref name="NY-SupplementalType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-APIP">
+				<ref name="NY-APIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-WorkLoss">
+				<ref name="WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-AdditionalDeath">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-MedicalExpenseExclusion">
+				<ref name="NY-MedicalExpenseExclusionType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NY-SupplementalSpousalLiability">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="NY-PIPDeductibleType">
+		<choice>
+			<value>0</value>
+			<value>100</value>
+			<value>200</value>
+			<value>250</value>
+		</choice>
+	</define>
+	<define name="NY-PIPOptionsType">
+		<choice>
+			<value>Basic</value>
+			<value>Basic+25000</value>
+			<value>Basic+50000</value>
+			<value>Basic+100000</value>
+		</choice>
+	</define>
+	<define name="NY-SupplementalType">
+		<choice>
+			<value>Basic</value>
+			<value>25/50</value>
+			<value>50/100</value>
+			<value>100/300</value>
+			<value>250/500</value>
+			<value>100/100</value>
+			<value>300/300</value>
+			<value>500/500</value>
+		</choice>
+	</define>
+	<define name="NY-APIPType">
+		<choice>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="NY-MedicalExpenseExclusionType">
+		<choice>
+			<value>None</value>
+			<value>Named Insured Only</value>
+			<value>Named Insured + Relatives</value>
+		</choice>
+	</define>
+	<!-- End NY Coverages -->
+	<!-- MD Coverages -->
+	<define name="MD-StateSpecific">
+		<optional>
+			<element name="MD-UMPD">
+				<ref name="MD-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MD-PIP">
+				<ref name="MD-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MD-EUIM">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MD-UMPDType">
+		<choice>
+			<value>15000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<define name="MD-PIPType">
+		<choice>
+			<value>Waived</value>
+			<value>2500 Full Coverage</value>
+			<value>2500 Excluding Family</value>
+			<value>5000 Full Coverage</value>
+			<value>5000 Excluding Family</value>
+			<value>10000 Full Coverage</value>
+			<value>10000 Excluding Family</value>
+		</choice>
+	</define>
+	<!-- End MD Coverages -->
+	<!-- TN Coverages -->
+	<define name="TN-StateSpecific">
+		<optional>
+			<element name="TN-UMPD">
+				<ref name="TN-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="TN-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>10000</value>
+			<value>15000</value>
+			<!-- State minimum was changed from 10000 to 15000. -->
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>200000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<!-- End TN Coverages -->
+	<!-- VA Coverages -->
+	<define name="VA-StateSpecific">
+		<optional>
+			<element name="VA-UMPD">
+				<ref name="VA-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="VA-INCOMELOSS">
+				<ref name="VA-INCOMELOSSType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="VA-UMPDType">
+		<choice>
+			<value>20000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<define name="VA-INCOMELOSSType">
+		<choice>
+			<value>ACCEPT</value>
+			<value>REJECT</value>
+		</choice>
+	</define>
+	<!-- End VA Coverages -->
+	<!-- NJ Coverages -->
+	<define name="NJ-StateSpecific">
+		<optional>
+			<element name="NJ-HEALTHCARE">
+				<ref name="NJ-HEALTHCAREType"/>
+			</element>
+		</optional>
+		<!-- With this Discount Coverage claims can be made to your Medical Insurance provider instead of Auto Insurance provider in case of an accident -->
+		<optional>
+			<element name="NJ-PIP">
+				<ref name="NJ-PIPType"/>
+			</element>
+		</optional>
+		<!-- Also known as Medical Expense in some Carriers -->
+		<optional>
+			<element name="NJ-PIPDEDUCTIBLE">
+				<ref name="NJ-PIPDEDUCTIBLEType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NJ-APIP">
+				<ref name="NJ-APIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NJ-THRESHOLD">
+				<ref name="NJ-THRESHOLD"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NJ-UMPD">
+				<ref name="NJ-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="NJ-EXTENDEDMEDICAL">
+				<ref name="NJ-EXTENDEDMEDICALType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="NJ-HEALTHCAREType">
+		<choice>
+			<value>Primary</value>
+			<value>Secondary</value>
+		</choice>
+	</define>
+	<define name="NJ-PIPType">
+		<choice>
+			<value>15000</value>
+			<value>50000</value>
+			<value>75000</value>
+			<value>150000</value>
+			<value>250000</value>
+		</choice>
+	</define>
+	<define name="NJ-PIPDEDUCTIBLEType">
+		<choice>
+			<value>250</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>2000</value>
+			<value>2500</value>
+		</choice>
+	</define>
+	<define name="NJ-APIPType">
+		<choice>
+			<value>100 - 10400/ LIMITED</value>
+			<value>125 - 13000/ LIMITED</value>
+			<value>175 - 18200/ LIMITED</value>
+			<value>250 - 26000/ LIMITED</value>
+			<value>400 - 41600/ LIMITED</value>
+			<value>500 - 52000/ LIMITED</value>
+			<value>600 - 62400/ LIMITED</value>
+			<value>700 - 72800/ LIMITED</value>
+			<value>100/ UNLIMITED</value>
+			<value>125/ UNLIMITED</value>
+			<value>175/ UNLIMITED</value>
+			<value>250/ UNLIMITED</value>
+			<value>400/ UNLIMITED</value>
+			<value>500/ UNLIMITED</value>
+			<value>600/ UNLIMITED</value>
+			<value>700/ UNLIMITED</value>
+		</choice>
+	</define>
+	<define name="NJ-THRESHOLD">
+		<choice>
+			<value>Verbal Threshold</value>
+			<value>Zero Threshold</value>
+		</choice>
+	</define>
+	<define name="NJ-UMPDType">
+		<choice>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>35000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>200000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<define name="NJ-EXTENDEDMEDICALType">
+		<choice>
+			<value>1000</value>
+			<value>10000</value>
+		</choice>
+	</define>
+	<!-- End NJ Coverages -->
+	<!-- WV Coverages -->
+	<define name="WV-StateSpecific">
+		<optional>
+			<element name="WV-UMPD">
+				<ref name="WV-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="WV-UIMPD">
+				<ref name="WV-UIMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="WV-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="WV-UIMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<!-- End WV Coverages -->
+	<!-- MI Coverages -->
+	<define name="MI-StateSpecific">
+		<optional>
+			<element name="MI-PropertyProtectionInsurance">
+				<ref name="MI-PropertyProtectionInsuranceType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MI-PIP">
+				<ref name="MI-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MI-PIPDeductible">
+				<ref name="MI-PIPDeductible"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MI-PIPWorkLossWaiver">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MI-UMPD">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MI-PropertyProtectionInsuranceType">
+		<choice>
+			<value>No Coverage</value>
+			<value>1000000</value>
+		</choice>
+	</define>
+	<define name="MI-PIPType">
+		<choice>
+			<value>Full Medical/Full Wage</value>
+			<value>Medical Excess</value>
+			<value>Wage Excess</value>
+			<value>Excess Medical/Excess Wage</value>
+		</choice>
+	</define>
+	<define name="MI-PIPDeductible">
+		<choice>
+			<value>No Ded</value>
+			<value>100</value>
+			<value>200</value>
+			<value>300</value>
+			<value>500</value>
+		</choice>
+	</define>
+	<!-- End MI Coverages -->
+	<!-- DC Coverages -->
+	<define name="DC-StateSpecific">
+		<optional>
+			<element name="DC-UMPD">
+				<ref name="DC-UMPDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DC-MedicalExpense">
+				<ref name="DC-MedicalExpenseType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DC-WorkLoss">
+				<ref name="DC-WorkLossType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DC-FuneralExpense">
+				<ref name="DC-FuneralExpenseType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="DC-UMPDType">
+		<choice>
+			<value>5000</value>
+			<value>10000</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>75000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="DC-MedicalExpenseType">
+		<choice>
+			<value>No Coverage</value>
+			<value>50000</value>
+			<value>100000</value>
+		</choice>
+	</define>
+	<define name="DC-WorkLossType">
+		<choice>
+			<value>None</value>
+			<value>12000</value>
+			<value>24000</value>
+		</choice>
+	</define>
+	<define name="DC-FuneralExpenseType">
+		<choice>
+			<value>None</value>
+			<value>4000</value>
+		</choice>
+	</define>
+	<!-- End DC Coverages -->
+	<!-- DE Coverages -->
+	<define name="DE-StateSpecific">
+		<optional>
+			<element name="DE-PIP">
+				<ref name="DE-PIPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DE-PIPDeductible">
+				<ref name="DE-PIPDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DE-PIPAppliesTo">
+				<ref name="DE-PIPAppliesToType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="DE-APIP">
+				<ref name="DE-APIPType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="DE-PIPType">
+		<choice>
+			<value>15/30</value>
+		</choice>
+	</define>
+	<define name="DE-PIPDeductibleType">
+		<choice>
+			<value>0</value>
+			<value>250</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>10000</value>
+		</choice>
+	</define>
+	<define name="DE-PIPAppliesToType">
+		<choice>
+			<value>Named Insured</value>
+			<value>Named Insured and Relative(S)</value>
+		</choice>
+	</define>
+	<define name="DE-APIPType">
+		<choice>
+			<value>No Coverage</value>
+			<value>20 Per Person</value>
+			<value>35 Per Person</value>
+			<value>50 Per Person</value>
+			<value>100 Per Person</value>
+			<value>300 Per Person</value>
+			<value>10 Per Person/20 Per Acc</value>
+			<value>20 Per Person/40 Per Acc</value>
+			<value>25 Per Person/50 Per Acc</value>
+			<value>50 Per Person/100 Per Acc</value>
+			<value>100 Per Person/300 Per Acc</value>
+		</choice>
+	</define>
+	<!-- End DE Coverages -->
+	<!-- SC Coverages -->
+	<define name="SC-StateSpecific">
+		<optional>
+			<element name="SC-UMPD">
+				<ref name="SC-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="SC-UMPDType">
+		<choice>
+			<value>Reject</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>200000</value>
+		</choice>
+	</define>
+	<!-- End SC Coverages -->
+	<!-- RI Coverages -->
+	<define name="RI-StateSpecific">
+		<optional>
+			<element name="RI-UMPD">
+				<ref name="RI-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="RI-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25000</value>
+			<value>50000</value>
+			<value>100000</value>
+			<value>250000</value>
+			<value>300000</value>
+			<value>500000</value>
+		</choice>
+	</define>
+	<!-- End RI Coverages -->
+	<!-- MA Coverages -->
+	<define name="MA-StateSpecific">
+		<element name="MA-VehicleCoverages">
+			<ref name="MA-VehicleCoveragesType"/>
+		</element>
+		<optional>
+			<element name="MA-ApplySameCoverageLimits">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MA-VehicleCoveragesType">
+		<optional>
+			<element name="MA-BI">
+				<ref name="BIType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-PD">
+				<ref name="PDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-UM">
+				<ref name="UMType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-UIM">
+				<ref name="UIMType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-MP">
+				<ref name="MPType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-OPTBI">
+				<ref name="MA-OPTBIType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-PIPDED">
+				<ref name="MA-PIPDEDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-LIMCOLLDED">
+				<ref name="MA-LIMCOLLDEDType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="MA-WAIVECOLLDED">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="MA-OPTBIType">
+		<choice>
+			<value>No Coverage</value>
+			<value>20/40</value>
+			<value>20/50</value>
+			<value>25/50</value>
+			<value>25/60</value>
+			<value>35/80</value>
+			<value>50/100</value>
+			<value>100/100</value>
+			<value>100/200</value>
+			<value>100/300</value>
+			<value>200/400</value>
+			<value>250/500</value>
+			<value>250/1000</value>
+			<value>300/500</value>
+			<value>500/500</value>
+			<value>500/1000</value>
+		</choice>
+	</define>
+	<define name="MA-PIPDEDType">
+		<choice>
+			<value>FC/0 Ded</value>
+			<value>100 Insured</value>
+			<value>250 Insured</value>
+			<value>500 Insured</value>
+			<value>1000 Insured</value>
+			<value>2000 Insured</value>
+			<value>4000 Insured</value>
+			<value>8000 Insured</value>
+			<value>100 Insured And Household Members</value>
+			<value>250 Insured And Household Members</value>
+			<value>500 Insured And Household Members</value>
+			<value>1000 Insured And Household Members</value>
+			<value>2000 Insured And Household Members</value>
+			<value>4000 Insured And Household Members</value>
+			<value>8000 Insured And Household Members</value>
+		</choice>
+	</define>
+	<define name="MA-LIMCOLLDEDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>FC/0 Ded</value>
+			<value>300</value>
+			<value>500</value>
+			<value>1000</value>
+			<value>2000</value>
+		</choice>
+	</define>
+	<!-- End MA Coverages -->
+	<!-- ND Coverages -->
+	<define name="ND-StateSpecific">
+		<optional>
+			<element name="ND-PIP">
+				<ref name="ND-PIPType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="ND-PIPType">
+		<choice>
+			<value>30000</value>
+			<value>40000</value>
+			<value>50000</value>
+			<value>80000</value>
+			<value>100000</value>
+			<value>110000</value>
+		</choice>
+	</define>
+	<!-- End ND Coverages -->
+	<!-- MT Coverages -->
+	<define name="MT-StateSpecific">
+		<optional>
+			<element name="MT-UMPD">
+				<ref name="MT-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="MT-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25000</value>
+			<value>50000</value>
+		</choice>
+	</define>
+	<!-- End MT Coverages -->
+	<!-- ID Coverages -->
+	<define name="ID-StateSpecific">
+		<optional>
+			<element name="ID-UMPD">
+				<ref name="ID-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="ID-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25000</value>
+			<value>50000</value>
+		</choice>
+	</define>
+	<!-- End ID Coverages -->
+	<!-- LA Coverages -->
+	<define name="LA-StateSpecific">
+		<optional>
+			<element name="LA-UMPD">
+				<ref name="LA-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="LA-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>25000</value>
+		</choice>
+	</define>
+	<!-- End LA Coverages -->
+	<!-- VT Coverages -->
+	<define name="VT-StateSpecific">
+		<optional>
+			<element name="VT-UMPD">
+				<ref name="VT-UMPDType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="VT-UMPDType">
+		<choice>
+			<value>No Coverage</value>
+			<value>10000</value>
+		</choice>
+	</define>
+	<!-- End VT Coverages -->
+	<define name="StateSpecificCoverageType">
+		<choice>
+			<element name="AR-Coverages">
+				<ref name="AR-StateSpecific"/>
+			</element>
+			<element name="CA-Coverages">
+				<ref name="CA-StateSpecific"/>
+			</element>
+			<element name="CO-Coverages">
+				<ref name="CO-StateSpecific"/>
+			</element>
+			<element name="CT-Coverages">
+				<ref name="CT-StateSpecific"/>
+			</element>
+			<element name="DC-Coverages">
+				<ref name="DC-StateSpecific"/>
+			</element>
+			<element name="DE-Coverages">
+				<ref name="DE-StateSpecific"/>
+			</element>
+			<element name="GA-Coverages">
+				<ref name="GA-StateSpecific"/>
+			</element>
+			<element name="FL-Coverages">
+				<ref name="FL-StateSpecific"/>
+			</element>
+			<element name="IL-Coverages">
+				<ref name="IL-StateSpecific"/>
+			</element>
+			<element name="IN-Coverages">
+				<ref name="IN-StateSpecific"/>
+			</element>
+			<element name="KY-Coverages">
+				<ref name="KY-StateSpecific"/>
+			</element>
+			<element name="KS-Coverages">
+				<ref name="KS-StateSpecific"/>
+			</element>
+			<element name="MA-Coverages">
+				<ref name="MA-StateSpecific"/>
+			</element>
+			<element name="MD-Coverages">
+				<ref name="MD-StateSpecific"/>
+			</element>
+			<element name="MI-Coverages">
+				<ref name="MI-StateSpecific"/>
+			</element>
+			<element name="MN-Coverages">
+				<ref name="MN-StateSpecific"/>
+			</element>
+			<element name="MS-Coverages">
+				<ref name="MS-StateSpecific"/>
+			</element>
+			<element name="MT-Coverages">
+				<ref name="MT-StateSpecific"/>
+			</element>
+			<element name="NC-Coverages">
+				<ref name="NC-StateSpecific"/>
+			</element>
+			<element name="ND-Coverages">
+				<ref name="ND-StateSpecific"/>
+			</element>
+			<element name="NJ-Coverages">
+				<ref name="NJ-StateSpecific"/>
+			</element>
+			<element name="NM-Coverages">
+				<ref name="NM-StateSpecific"/>
+			</element>
+			<element name="NY-Coverages">
+				<ref name="NY-StateSpecific"/>
+			</element>
+			<element name="OH-Coverages">
+				<ref name="OH-StateSpecific"/>
+			</element>
+			<element name="OR-Coverages">
+				<ref name="OR-StateSpecific"/>
+			</element>
+			<element name="PA-Coverages">
+				<ref name="PA-StateSpecific"/>
+			</element>
+			<element name="RI-Coverages">
+				<ref name="RI-StateSpecific"/>
+			</element>
+			<element name="SC-Coverages">
+				<ref name="SC-StateSpecific"/>
+			</element>
+			<element name="TN-Coverages">
+				<ref name="TN-StateSpecific"/>
+			</element>
+			<element name="TX-Coverages">
+				<ref name="TX-StateSpecific"/>
+			</element>
+			<element name="UT-Coverages">
+				<ref name="UT-StateSpecific"/>
+			</element>
+			<element name="VA-Coverages">
+				<ref name="VA-StateSpecific"/>
+			</element>
+			<element name="WA-Coverages">
+				<ref name="WA-StateSpecific"/>
+			</element>
+			<element name="WV-Coverages">
+				<ref name="WV-StateSpecific"/>
+			</element>
+			<element name="VT-Coverages">
+				<ref name="VT-StateSpecific"/>
+			</element>
+			<element name="ID-Coverages">
+				<ref name="ID-StateSpecific"/>
+			</element>
+			<element name="LA-Coverages">
+				<ref name="LA-StateSpecific"/>
+			</element>
+		</choice>
+	</define>
+	<define name="VehicleCoverageType">
+		<optional>
+			<element name="OtherCollisionDeductible">
+				<ref name="OtherCollisionDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="CollisionDeductible">
+				<ref name="CollisionDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="FullGlass">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="TowingDeductible">
+				<ref name="TowingDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="RentalDeductible">
+				<ref name="RentalDeductibleType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="LiabilityNotRequired">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="LoanLeaseCoverage">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="StatedAmount">
+				<ref name="int100000"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="ReplacementCost">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<optional>
+			<element name="WaiverCollisionDamage">
+				<ref name="BooleanType"/>
+			</element>
+		</optional>
+		<!-- Shown only in CA -->
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="CoveragesType">
+		<element name="GeneralCoverage">
+			<ref name="GeneralCoverageType"/>
+		</element>
+		<element name="VehicleCoverage">
+			<ref name="VehicleCoverageType"/>
+		</element>
+		<optional>
+			<element name="StateSpecificCoverage">
+				<ref name="StateSpecificCoverageType"/>
+			</element>
+		</optional>
+	</define>
+	<define name="DriverAssignmentType">
+		<attribute name="id">
+			<data type="positiveInteger"/>
+		</attribute>
+	</define>
+	<define name="VehicleAssignmentType">
+		<element name="DriverAssignment">
+			<ref name="DriverAssignmentType"/>
+		</element>
+		<optional>
+			<attribute name="id">
+				<data type="positiveInteger"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="VehicleAssignmentsType">
+		<element name="VehicleAssignment">
+			<ref name="VehicleAssignmentType"/>
+		</element>
+	</define>
+	<define name="GeneralInfoType">
+		<element name="RatingStateCode">
+			<ref name="StateCodeType"/>
+		</element>
+		<optional>
+			<element name="Comments">
+				<data type="string"/>
+			</element>
+		</optional>
+	</define>
+	<define name="NVPair">
+		<element name="value">
+			<data type="string"/>
+		</element>
+		<optional>
+			<attribute name="name">
+				<data type="string"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="ExtendedInfoType">
+		<zeroOrMore>
+			<element name="valuepair">
+				<ref name="NVPair"/>
+			</element>
+		</zeroOrMore>
+		<optional>
+			<attribute name="name">
+				<data type="string"/>
+			</attribute>
+		</optional>
+		<optional>
+			<attribute name="typename">
+				<data type="string"/>
+			</attribute>
+		</optional>
+	</define>
+	<define name="EZAUTOType">
+		<element name="Applicant">
+			<ref name="ApplicantType"/>
+		</element>
+		<element name="PriorPolicyInfo">
+			<ref name="PriorPolicyInfoType"/>
+		</element>
+		<element name="PolicyInfo">
+			<ref name="PolicyInfoType"/>
+		</element>
+		<element name="ResidenceInfo">
+			<ref name="ResidenceInfoType"/>
+		</element>
+		<element name="Drivers">
+			<ref name="DriversType"/>
+		</element>
+		<element name="Vehicles">
+			<ref name="VehiclesType"/>
+		</element>
+		<element name="VehiclesUse">
+			<ref name="VehiclesUseType"/>
+		</element>
+		<element name="Coverages">
+			<ref name="CoveragesType"/>
+		</element>
+		<element name="VehicleAssignments">
+			<ref name="VehicleAssignmentsType"/>
+		</element>
+		<optional>
+			<element name="GeneralInfo">
+				<ref name="GeneralInfoType"/>
+			</element>
+		</optional>
+		<zeroOrMore>
+			<element name="ExtendedInfo">
+				<ref name="ExtendedInfoType"/>
+			</element>
+		</zeroOrMore>
+	</define>
+	<start combine="choice">
+		<ref name="EZAUTO"/>
+	</start>
+	<define name="EZAUTO">
+		<element name="EZAUTO">
+			<ref name="EZAUTOType"/>
+		</element>
+	</define>
+</grammar>
