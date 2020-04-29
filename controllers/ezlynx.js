@@ -96,9 +96,11 @@ module.exports = {
         }
 
         const encodedData = base64.encode(xml_body);
+
+        const uploadFlag = req.query.action === 'update' ? '2' : '4';
   
         const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
-        const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="4"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
+        const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
         const xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
         const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
   
@@ -132,6 +134,7 @@ module.exports = {
 
         if (url && url.toLowerCase().includes('failed')) {
           newResponse = 'Failed';
+          url = null;
         }
   
         req.session.data = {
@@ -184,9 +187,11 @@ module.exports = {
           }          
           
           const home_encodedData = base64.encode(homeXml_body);
+
+          const uploadFlag = req.query.action === 'update' ? '2' : '4';
   
           const home_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
-          const home_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="4"><v100:FileData Name="EZHome" MimeType="text/xml">`;
+          const home_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZHome" MimeType="text/xml">`;
           const home_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
           const home_xml_string = home_xml_authentication_header.concat(home_xml_soap_body_opens, home_encodedData, home_xml_soap_body_close);
   
@@ -212,6 +217,10 @@ module.exports = {
     
           if (homeResponse && homeResponse.includes('Succeeded') && homeResponse.match(/<URL>(.*)<\/URL>/)) {
             homeUrl = homeResponse.match(/<URL>(.*)<\/URL>/)[1];
+          }
+
+          if (homeUrl && homeUrl.toLowerCase().includes('failed')) {
+            homeUrl = null;
           }
         }
         if (req.body.autoData) {
@@ -241,9 +250,11 @@ module.exports = {
           }
   
           const auto_encodedData = base64.encode(autoXml_body);
+
+          const uploadFlag = req.query.action === 'update' ? '2' : '4';
   
           const auto_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
-          const auto_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="4"><v100:FileData Name="EZAuto" MimeType="text/xml">`;
+          const auto_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZAuto" MimeType="text/xml">`;
           const auto_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
           const auto_xml_string = auto_xml_authentication_header.concat(auto_xml_soap_body_opens, auto_encodedData, auto_xml_soap_body_close);
   
@@ -269,6 +280,10 @@ module.exports = {
     
           if (autoResponse && autoResponse.includes('Succeeded') && autoResponse.match(/<URL>(.*)<\/URL>/)) {
             autoUrl = autoResponse.match(/<URL>(.*)<\/URL>/)[1];
+          }
+
+          if (autoUrl && autoUrl.toLowerCase().includes('failed')) {
+            autoUrl = null;
           }
         }
 
