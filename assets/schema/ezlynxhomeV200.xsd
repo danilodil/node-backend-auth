@@ -2118,3 +2118,106 @@
     </xsd:complexType>
   </xsd:element>
 </xsd:schema>
+
+
+<EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">
+  <Applicant>
+    <ApplicantType>Applicant</ApplicantType>
+    <PersonalInfo>
+      <Name>
+        <FirstName>Testerson</FirstName>
+        <LastName>User</LastName>
+      </Name>
+      <DOB>1990-12-16</DOB>
+      <Gender>Male</Gender>
+      <MaritalStatus>Single</MaritalStatus>
+      <Occupation>Other</Occupation>
+      <Relation>Insured</Relation>
+    </PersonalInfo>
+    <Address>
+      <AddressCode>StreetAddress</AddressCode>
+      <Addr1>
+        <StreetName>Jefferson Street</StreetName>
+        <StreetNumber>1105</StreetNumber>
+      </Addr1>
+      <City>Merrill</City>
+      <StateCode>WI</StateCode>
+      <Zip5>54452</Zip5>
+      <Phone>
+        <PhoneType>Mobile</PhoneType>
+        <PhoneNumber>3026075611</PhoneNumber>
+      </Phone>
+      <Email>test@xilo.io</Email>
+      <YearsAtAddress>6 months or less</YearsAtAddress>
+    </Address>
+    <Address>
+      <AddressCode>PreviousAddress</AddressCode>
+      <Addr1>
+        <StreetName>Haines Street</StreetName>
+        <StreetNumber>225</StreetNumber>
+      </Addr1>
+      <City>Newark</City>
+      <StateCode>DE</StateCode>
+      <Zip5>19711</Zip5>
+      <YearsAtAddress>3</YearsAtAddress>
+    </Address>
+  </Applicant>
+  <AltDwelling>
+    <Address>
+      <AddressCode>PhysicalRisk</AddressCode>
+      <Addr1>
+        <StreetName>Jefferson Street</StreetName>
+        <StreetNumber>1105</StreetNumber>
+      </Addr1>
+      <City>Merrill</City>
+      <County>Lincoln County</County>
+      <StateCode>WI</StateCode>
+      <Zip5>54452</Zip5>
+    </Address>
+  </AltDwelling>
+  <PriorPolicyInfo>
+    <PriorCarrier>No Prior Insurance</PriorCarrier>
+    <Expiration>2020-04-27</Expiration>
+    <YearsWithPriorCarrier/>
+    <YearsWithContinuousCoverage/>
+    <ReasonNoPrior>First Time Homeowner</ReasonNoPrior>
+  </PriorPolicyInfo>
+  <PolicyInfo>
+    <PolicyTerm>12 Month</PolicyTerm>
+    <PolicyType>HO3</PolicyType>
+    <Package>No</Package>
+    <Effective>2020-04-27</Effective>
+    <CreditCheckAuth>Yes</CreditCheckAuth>
+  </PolicyInfo>
+  <RatingInfo>
+    <PropertyInsCancelledLapsed>No</PropertyInsCancelledLapsed>
+    <YearBuilt>2018</YearBuilt>
+    <Dwelling>One Family</Dwelling>
+    <DwellingUse>Primary</DwellingUse>
+    <ProtectionClass>1</ProtectionClass>
+    <NumberOfStories>2</NumberOfStories>
+    <Construction>Adobe</Construction>
+    <Roof>ARCHITECTURAL SHINGLES</Roof>
+    <SwimmingPool>No</SwimmingPool>
+    <WoodBurningStove>No</WoodBurningStove>
+    <UnderConstruction>No</UnderConstruction>
+    <SquareFootage>1200</SquareFootage>
+    <BusinessOnPremises>No</BusinessOnPremises>
+    <ReplacementCostExtended>
+      <Baths>
+        <FullBaths>
+          <Basic>1</Basic>
+        </FullBaths>
+      </Baths>
+    </ReplacementCostExtended>
+  </RatingInfo>
+  <ReplacementCost>
+    <RatingCredits/>
+  </ReplacementCost>
+  <Endorsements>
+    <StateSpecificEndorsements/>
+  </Endorsements>
+  <GeneralInfo>
+    <RatingStateCode>DE</RatingStateCode>
+  </GeneralInfo>
+</EZHOME>
