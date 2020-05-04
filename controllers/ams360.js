@@ -142,8 +142,8 @@ const self = module.exports = {
               });
             } else {
               obj = elements.map(empl => {
-                let code = empl.elements[0].elements[0].text.replace('<', '&lt;');
-                code = code.replace('&', '&amp;');
+                let code = empl.elements[0].elements[0].text.replace('&', '&amp;');
+                code = code.replace('<', '&lt;');
                 const firstName = empl.elements[2].elements[0].text;
                 const lastName = empl.elements[1].elements[0].text;
                 const isAccountRep = empl.elements[5].elements[0].text;
@@ -157,6 +157,7 @@ const self = module.exports = {
           
           return obj;
         } catch(error) {
+          console.log(error);
           return null;
         }
       }));
