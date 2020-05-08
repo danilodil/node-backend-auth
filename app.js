@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 require('dotenv').config();
+require('newrelic');
 const compression = require('compression');
 const express = require('express');
 const path = require('path');
