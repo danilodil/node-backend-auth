@@ -1155,8 +1155,8 @@
             <xsd:element name="Description" type="AccidentDescType" />
             <xsd:element name="PD" type="int999999" />
             <xsd:element name="BI" type="int999999" />
-      			<xsd:element name="Collision" type="int999999" minOccurs="0" maxOccurs="1" />
-			      <xsd:element name="MP" type="int999999" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Collision" type="int999999" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="MP" type="int999999" minOccurs="0" maxOccurs="1" />
             <xsd:element name="VehicleInvolved" minOccurs="0" maxOccurs="1">
               <xsd:simpleType>
                 <xsd:union>
