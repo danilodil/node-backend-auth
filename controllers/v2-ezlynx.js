@@ -14,8 +14,10 @@
        const { username } = req.body.decoded_vendor;
  
        const data = req.body.data;
+
+       console.log(data);
        
-       let validations = await validator.validateXML(data, 'ezlynxautoV200');
+       let validations = await validator.validateXML(data, `ezlynx${req.params.type.toLowerCase()}V200`);
 
        if (validations.status) {
          validations = validations.validation;
