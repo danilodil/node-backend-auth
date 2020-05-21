@@ -14,13 +14,7 @@
        const { username } = req.body.decoded_vendor;
  
        const data = req.body.data;
-        
-       if (data && data.clientAgentId) {
-         delete data.clientAgentId;
-       }
-
-       console.log(data)
-
+       
        let validations = await validator.validateXML(data, 'ezlynxautoV200');
 
        if (validations.status) {
