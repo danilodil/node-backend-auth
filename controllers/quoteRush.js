@@ -6,7 +6,7 @@ const appConstant = require('../constants/appConstant').quoteRush;
 module.exports = {
   createContact: async (req, res, next) => {
     try {
-      const data = req.body.data;
+      const { data } = req.body;
       const options = {
         method: 'POST',
         url: `${appConstant.UPLOAD_PATH}/${req.body.decoded_vendor.username}`,

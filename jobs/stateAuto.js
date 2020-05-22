@@ -1,6 +1,4 @@
-/* eslint-disable no-multi-assign */
-/* eslint-disable default-case */
-/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
+/* eslint-disable prefer-destructuring, no-constant-condition, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef,default-case, no-multi-assign */
 
 const Boom = require('boom');
 const Queue = require('bull');
@@ -10,13 +8,15 @@ const { stateAutoRater } = require('../constants/appConstant');
 const { saveRatingFromJob } = require('../controllers/rater');
 const utils = require('../lib/utils');
 const ENVIRONMENT = require('../constants/configConstants').CONFIG;
+
 const { formatDate, ageCount } = require('../lib/utils');
+
 const stateAutoQueue = new Queue('stateAuto', ENVIRONMENT.redisUrl);
 const maxJobsPerWorker = 1;
 
 module.exports = {
   stateAutoQueue,
-  stateAuto
+  stateAuto,
 };
 
 stateAutoQueue.process(maxJobsPerWorker, async (job, done) => {
@@ -24,7 +24,6 @@ stateAutoQueue.process(maxJobsPerWorker, async (job, done) => {
     await stateAuto(job.data, done);
     done();
   } catch (e) {
-    console.log('error on process queue', e);
     done(new Error(e));
   }
 });
@@ -69,7 +68,6 @@ async function stateAuto(req, next) {
     await summaryStep();
 
     async function loginStep() {
-      console.log('State Auto Login Step');
       try {
         await page.goto(stateAutoRater.LOGIN_URL, { waitUntil: 'networkidle2', timeout: 0 });
         await page.waitFor(500);
@@ -84,7 +82,6 @@ async function stateAuto(req, next) {
     }
 
     async function customerStep() {
-      console.log('State Auto Customer Step');
       try {
         const url = (`${stateAutoRater.NEW_QUOTE_URL}?postalCode=${bodyData.zipCode}&state=${bodyData.state}&lob=AUTOP&effectiveDate=2019-12-01`);
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 0 });
@@ -98,8 +95,8 @@ async function stateAuto(req, next) {
         const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
         nextBtn.click();
         await page.waitFor(1000);
-        let dialogBtn = await page.$('[data-test-id="address-continue-button-id"]');
-        // TODO** This only works if the address is incorrect. We need to add logic to make sure we account for if the address is correct. Also, if it is close theres a different model that popups up, we need to account for this as well. 
+        const dialogBtn = await page.$('[data-test-id="address-continue-button-id"]');
+        // TODO** This only works if the address is incorrect. We need to add logic to make sure we account for if the address is correct. Also, if it is close theres a different model that popups up, we need to account for this as well.
         if (dialogBtn) {
           dialogBtn.click();
           await page.waitFor(500);
@@ -123,7 +120,6 @@ async function stateAuto(req, next) {
 
     async function driverStep() {
       try {
-        console.log('State Auto Driver Step');
         await page.waitFor(500);
         await page.waitForSelector('[data-test-id="driver1-license-number"]');
         await addMultiple('drivers');
@@ -140,22 +136,21 @@ async function stateAuto(req, next) {
 
     async function vehicleStep() {
       try {
-        console.log('State Auto Vehicle Step');
         await page.waitFor(500);
         await page.waitForSelector('[data-test-id="vehicle1-addVehiclesBy-VIN"]');
         await addMultiple('vehicles');
         await fillPage();
         await page.waitFor(2000);
         await page.evaluate(() => {
-            const areThereAnyEmployeeButton = document.querySelector('[data-test-id="vehicle1-employeePresent-no"] > label > input');
-            if (areThereAnyEmployeeButton) {
-              areThereAnyEmployeeBtn.click();
-            }
-            const isUsedForDelivery = document.querySelector('[data-test-id="vehicle1-usedForDelivery-no"] > label > input');
-            if (isUsedForDelivery) {
-              isUsedForDelivery.click();
-            }
-          });
+          const areThereAnyEmployeeButton = document.querySelector('[data-test-id="vehicle1-employeePresent-no"] > label > input');
+          if (areThereAnyEmployeeButton) {
+            areThereAnyEmployeeBtn.click();
+          }
+          const isUsedForDelivery = document.querySelector('[data-test-id="vehicle1-usedForDelivery-no"] > label > input');
+          if (isUsedForDelivery) {
+            isUsedForDelivery.click();
+          }
+        });
         const nextBtn = await page.$('[data-test-id="personal-footer-next"]');
         await page.waitFor(1000);
         const modal = await page.$('[data-test-id="current-carrier-modal-company"]');
@@ -171,7 +166,6 @@ async function stateAuto(req, next) {
 
     async function coverageStep() {
       try {
-        console.log('State Auto Coverage Step');
         await page.waitFor(2000);
         await page.waitForSelector('[data-test-id="current-carrier-modal-company"]');
         // await selectElement('[data-test-id="current-carrier-modal-company"]', '00000');
@@ -194,7 +188,6 @@ async function stateAuto(req, next) {
 
     async function summaryStep() {
       try {
-        console.log('State Auto Summary Step');
         await page.waitFor(3000);
         await page.waitForSelector('#current-page-content-wrapper-id > div > personal-auto-quote > form > div > div:nth-child(4) > div > personal-premium > div > div:nth-child(1) > span.premium-amount.ng-star-inserted');
         const premiumDetails = await page.evaluate(() => {
@@ -225,7 +218,6 @@ async function stateAuto(req, next) {
         //   stepResult,
         // }
         // return next();
-        console.log('response', response);
       } catch (error) {
         await exitFail(error, 'Summary');
       }
@@ -241,9 +233,9 @@ async function stateAuto(req, next) {
             if (row.type === 'input') {
               await typeInInputElements(element, row.value);
             } else if (row.type === 'select') {
-              if (row.beforeDelay) {console.log('Before Delay');await page.waitFor(row.beforeDelay)};
+              if (row.beforeDelay) { await page.waitFor(row.beforeDelay); }
               await selectElement(element, row.value);
-              if (row.afterDelay) {console.log('After Delay');await page.waitFor(row.afterDelay)};
+              if (row.afterDelay) { await page.waitFor(row.afterDelay); }
             } else if (row.type === 'radio') {
               const radio = await page.$(element);
               if (radio && row.value === true) {
@@ -268,8 +260,9 @@ async function stateAuto(req, next) {
             const btns = await page.$$('.rbtn2_1');
             btnEl = btns[2];
           }
-          for (let i=0;i<bodyData[type].length;i++) {
-            if (i>0) {
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < bodyData[type].length; i++) {
+            if (i > 0) {
               btnEl.click();
               await page.waitFor(2000);
             }
@@ -305,6 +298,7 @@ async function stateAuto(req, next) {
           if (first.length < 2 || second.length < 2) return 0; // if either is a 1-letter string
 
           const firstBigrams = new Map();
+          // eslint-disable-next-line no-plusplus
           for (let i = 0; i < first.length - 1; i++) {
             const bigram = first.substring(i, i + 2);
             const count = firstBigrams.has(bigram)
@@ -314,6 +308,7 @@ async function stateAuto(req, next) {
           }
 
           let intersectionSize = 0;
+          // eslint-disable-next-line no-plusplus
           for (let i = 0; i < second.length - 1; i++) {
             const bigram = second.substring(i, i + 2);
             const count = firstBigrams.has(bigram)
@@ -322,6 +317,7 @@ async function stateAuto(req, next) {
 
             if (count > 0) {
               firstBigrams.set(bigram, count - 1);
+              // eslint-disable-next-line no-plusplus
               intersectionSize++;
             }
           }
@@ -334,6 +330,7 @@ async function stateAuto(req, next) {
           const ratings = [];
           let bestMatchIndex = 0;
 
+          // eslint-disable-next-line no-plusplus
           for (let i = 0; i < targetStrings.length; i++) {
             const currentTargetString = targetStrings[i];
             const currentRating = compareTwoStrings(mainString, currentTargetString);
@@ -376,14 +373,15 @@ async function stateAuto(req, next) {
               } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                 i = nBestMatch.bestMatchIndex;
               }
-              const bestValue = optionsArray[i].value;
-              return bestValue;
+              const bestMatch = optionsArray[i].value;
+              return bestMatch;
             } else if (value) {
               return value || '';
             } else {
               return '';
             }
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.log(`Error: ${error}`);
           }
         }
@@ -401,7 +399,6 @@ async function stateAuto(req, next) {
     }
 
     async function exitFail(error, step) {
-      console.log(`Error during State Auto ${step} step:`, error);
       if (req && req.session && req.session.data) {
         req.session.data = {
           title: 'Failed to retrieve State Auto rate',
@@ -502,10 +499,10 @@ async function stateAuto(req, next) {
       dataObj.push({ type: 'input', element: 'current-carrier-modal-coverage-effective-date', value: tomorrow });
       dataObj.push({ type: 'input', element: 'current-carrier-modal-coverage-expiration-date', value: sixMonthsFromNow });
       dataObj.push({ type: 'select', element: 'current-carrier-modal-prior-liability-limits', value: bodyData.priorBodilyInjuryLimits || staticDataObj.priorBodilyInjuryLimits });
-      
-      
+
 
       if (bodyData.drivers && bodyData.drivers.length > 0) {
+        // eslint-disable-next-line no-plusplus
         for (let i = 0; i < bodyData.drivers.length; i++) {
           const driver = bodyData.drivers[i];
           const staticDriver = staticDataObj.drivers[0];
@@ -541,16 +538,22 @@ async function stateAuto(req, next) {
       }
 
       if (bodyData.vehicles && bodyData.vehicles.length > 0) {
+        // eslint-disable-next-line no-plusplus
         for (let i = 0; i < bodyData.vehicles.length; i++) {
           const vehicle = bodyData.vehicles[i];
           const staticVehicle = staticDataObj.vehicles[0];
           const index = (i + 1);
-          const isVIN = vehicle.vehicleVin ? true : false;
+          const isVIN = !!vehicle.vehicleVin;
           const isYearMM = !isVIN;
           dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-VIN`, value: isVIN });
           dataObj.push({ type: 'radio', element: `vehicle${index}-addVehiclesBy-yearMakeModel`, value: isYearMM });
           // TODO** Fails on Type Business. Its not adding the two radios below.(working)
-          dataObj.push({ type: 'select', element: `vehicle${index}-primary-use`, value: vehicle.primaryUse || staticVehicle.primaryUse, beforeDelay: 1000 });
+          dataObj.push({
+            type: 'select',
+            element: `vehicle${index}-primary-use`,
+            value: vehicle.primaryUse || staticVehicle.primaryUse,
+            beforeDelay: 1000,
+          });
           dataObj.push({ type: 'radio', element: `vehicle${index}-usedForDelivery-no`, value: true });
           dataObj.push({ type: 'input', element: `vehicle${index}-vin-input`, value: vehicle.vehicleVin || staticVehicle.vehicleVin });
           if (!isVIN) {
@@ -569,7 +572,6 @@ async function stateAuto(req, next) {
       return dataObj;
     }
   } catch (error) {
-    console.log('Error at State Auto:', error);
     return next(Boom.badRequest('Failed to retrieved State Auto rate.'));
   }
 }

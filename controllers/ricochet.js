@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,consistent-return,camelcase,no-plusplus,
  no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition,camelcase */
 const request = require('request-promise');
@@ -27,10 +26,10 @@ module.exports = {
         }
       */
 
-      const response = await request(options);
+      await request(options);
 
       req.session.data = {
-        title: 'Contact created successfully'
+        title: 'Contact created successfully',
       };
       return next();
     } catch (error) {

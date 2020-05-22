@@ -1,7 +1,7 @@
 const express = require('express');
 
 const progressiveRaterController = require('../controllers/progressiveRater');
-const progressiveRaterJob = require('../jobs/progressive');
+// const progressiveRaterJob = require('../jobs/progressive');
 const raterController = require('../controllers/rater');
 
 const router = express.Router();
