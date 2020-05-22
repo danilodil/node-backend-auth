@@ -7,13 +7,20 @@
     "start": "node ./bin/www",
     "start:dev": "nodemon ./bin/www",
     "lint": "eslint . --fix",
+    "pretest": "./node_modules/.bin/eslint --ignore-path .gitignore . --fix",
     "db:schema": "babel-node ./scripts/db/schema",
     "db:migrate": "babel-node ./scripts/db/migrate"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint"
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.js": [
+      "./node_modules/.bin/eslint — fix",
+      "git add"
+    ]
   },
   "dependencies": {
     "async": "2.6.3",
@@ -65,6 +72,7 @@
     "eslint": "6.0.1",
     "eslint-config-airbnb-base": "13.2.0",
     "eslint-plugin-import": "2.18.0",
-    "husky": "^4.2.5"
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.6"
   }
 }
