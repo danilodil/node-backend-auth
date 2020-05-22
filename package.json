@@ -10,6 +10,11 @@
     "db:schema": "babel-node ./scripts/db/schema",
     "db:migrate": "babel-node ./scripts/db/migrate"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
   "dependencies": {
     "async": "2.6.3",
     "babel-node": "0.0.1-security",
@@ -59,6 +64,7 @@
   "devDependencies": {
     "eslint": "6.0.1",
     "eslint-config-airbnb-base": "13.2.0",
-    "eslint-plugin-import": "2.18.0"
+    "eslint-plugin-import": "2.18.0",
+    "husky": "^4.2.5"
   }
 }
