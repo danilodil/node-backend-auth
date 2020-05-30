@@ -1,6 +1,8 @@
+/* eslint-disable no-console */
 import path from 'path';
 import { spawn } from 'child-process-promise';
 import { parseURL } from 'whatwg-url';
+
 const spawnOptions = { cwd: path.join(__dirname, '../..'), stdio: 'inherit' };
 (async () => {
   const parts = parseURL('postgres://root@localhost:5432/local_auth');

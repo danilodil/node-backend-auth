@@ -22,17 +22,17 @@ module.exports = {
       const path = '/v1/Contacts';
       const user = await oAuth2.owner.getToken(username, password);
 
-      const data = req.body.data;
-  
+      const { data } = req.body;
+
       const options = {
         method: 'put', url: appConstant.RESOURCE_URL + path, json: data,
       };
-  
+
       await user.refresh();
-  
+
       const response = await request(user.sign(options))
-        .catch(() => next(Boom.badRequest('Error creating contact!')));      
-  
+        .catch(() => next(Boom.badRequest('Error creating contact!')));
+
       req.session.data = {
         title: 'Contact created successfully',
         obj: response,

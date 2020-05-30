@@ -1,4 +1,5 @@
-/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
+/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len,
+ no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, no-plusplus */
 
 const puppeteer = require('puppeteer');
 const Queue = require('bull');
@@ -482,15 +483,15 @@ async function traveler(req) {
       }
     }
 
-    async function typeInInputElements(inputSelector, text) {
-      await page.evaluate((selector, inputText) => {
-        const inputElement = document.querySelector(selector);
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        nativeInputValueSetter.call(inputElement, inputText);
-        const ev2 = new Event('input', { bubbles: true });
-        inputElement.dispatchEvent(ev2);
-      }, inputSelector, text);
-    }
+    // async function typeInInputElements(inputSelector, text) {
+    //   await page.evaluate((selector, inputText) => {
+    //     const inputElement = document.querySelector(selector);
+    //     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    //     nativeInputValueSetter.call(inputElement, inputText);
+    //     const ev2 = new Event('input', { bubbles: true });
+    //     inputElement.dispatchEvent(ev2);
+    //   }, inputSelector, text);
+    // }
 
     async function selectElement(selector, option) {
       await page.evaluate(async (sel, opt) => {
@@ -586,8 +587,8 @@ async function traveler(req) {
               } else if (vBestMatch.bestMatch.rating === nBestMatch.bestMatch.rating && nBestMatch.bestMatch.rating >= 0.75) {
                 i = nBestMatch.bestMatchIndex;
               }
-              const bestValue = optionsArray[i].value;
-              return bestValue;
+              const bestValueMatch = optionsArray[i].value;
+              return bestValueMatch;
             } else if (value) {
               return value || '';
             } else {
