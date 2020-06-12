@@ -345,7 +345,7 @@ module.exports = {
         return next();
     } catch (error) {
         console.error('EZlynx personal applicant error ##', error.message);
-        return next(Boom.badRequest('Error creating contact'));
+        return next(Boom.badRequest(error.message));
     }
 }
 };

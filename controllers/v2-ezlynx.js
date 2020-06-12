@@ -13,10 +13,10 @@
      try {
        const { username } = req.body.decoded_vendor;
  
-       const data = req.body.data;
+       let data = req.body.data;
 
-       console.log(data);
-       
+      //  console.log(data);
+
        let validations = await validator.validateXML(data, `ezlynx${req.params.type.toLowerCase()}V200`);
 
        if (validations.status) {
@@ -33,7 +33,6 @@
        const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
        const xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
        const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
- 
        const options = {
          method: 'POST',
          url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
