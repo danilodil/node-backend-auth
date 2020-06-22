@@ -2,11 +2,10 @@
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,consistent-return,camelcase,no-plusplus,
  no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition,camelcase */
  const request = require('request-promise');
- const Boom = require('boom');
  const base64 = require('base-64');
  const configConstant = require('../constants/configConstants').CONFIG;
  const appConstant = require('../constants/appConstant').ezLynx;
- const validator = require('../services/integration-validator');
+ const parser = require('xml2json');
  
  module.exports = {
    createApplicant: async (req, res, next) => {
@@ -14,16 +13,6 @@
        const { username } = req.body.decoded_vendor;
  
        let data = req.body.data;
-
-      //  console.log(data);
-
-       let validations = await validator.validateXML(data, `ezlynx${req.params.type.toLowerCase()}V200`);
-
-       if (validations.status) {
-         validations = validations.validation;
-       } else {
-         console.log(validations.error);
-       }
 
        const encodedData = base64.encode(data);
 
@@ -47,34 +36,57 @@
  
        const response = await request(options);
 
-       let newResponse = null;
-       let url = null;
+       const respJson = JSON.parse(parser.toJson(response));
 
-       if (response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
-           url = response.match(/<URL>(.*)<\/URL>/)[1];
-           newResponse = 'Succeeded';
-       } else {
-           url = 'Upload Failed';
-           newResponse = 'Failed';
+       const eZLynxUploadResponse = (respJson['soap:Envelope'] && respJson['soap:Envelope']['soap:Body'] && respJson['soap:Envelope']['soap:Body']['UploadFileResponse'] && 
+              respJson['soap:Envelope']['soap:Body']['UploadFileResponse']['EZLynxUploadResponse'] && respJson['soap:Envelope']['soap:Body']['UploadFileResponse']['EZLynxUploadResponse']['UploadResponse']);
+
+       if (eZLynxUploadResponse && eZLynxUploadResponse['Name']) {
+          eZLynxUploadResponse['Name'] = eZLynxUploadResponse['Name'].includes('EZ') ? eZLynxUploadResponse['Name'].replace('EZ', '') : null;
        }
 
-       if (newResponse === 'Failed') {
-           console.log(response);
-           return next(Boom.badRequest('Error creating EZ applicant. EZLynx rejected push'));
+       const respObj = {
+         status: eZLynxUploadResponse && eZLynxUploadResponse.StatusEnum || 'Failed',
+         url: eZLynxUploadResponse && eZLynxUploadResponse.URL !== {} && eZLynxUploadResponse.URL || null,
+         error: eZLynxUploadResponse && eZLynxUploadResponse.StatusText || 'Failed to parse ez response',
+         ezResponse: respJson ? JSON.stringify(respJson) : null,
+         lob: eZLynxUploadResponse && eZLynxUploadResponse['Name'] || null
        }
 
-       const bodyData = { body: newResponse, url: url, validations: (validations && validations.length > 0) ? validations : null };
- 
+       if (respObj['error'] === 'Failed to parse ez response') {
+         respObj.status = 'Failed';
+         respObj.errorType = 'unknown';
+       }
+
        req.session.data = {
          title: 'Contact created successfully',
-         body: bodyData
+         body: respObj
        };
 
        return next();
 
      } catch (error) {
-       console.log(error);
-       return next(Boom.badRequest('Error creating contact'));
+       console.log(error.error);
+       const respJson = JSON.parse(parser.toJson(error.error));
+
+       const eZLynxUploadResponse = (respJson['soap:Envelope'] && respJson['soap:Envelope']['soap:Body'] && respJson['soap:Envelope']['soap:Body']['soap:Fault'] && 
+              respJson['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason'] && respJson['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']
+              && respJson['soap:Envelope']['soap:Body']['soap:Fault']['soap:Reason']['soap:Text']['$t']);
+
+       const respObj = {
+         status: 'Failed',
+         url: null,
+         error: eZLynxUploadResponse || 'Failed to parse ez response',
+         ezResponse: respJson ? JSON.stringify(respJson) : null,
+         errorType: eZLynxUploadResponse.includes('User Authorization') ? 'credentials' : 'unknown'
+       }
+
+       req.session.data = {
+         title: 'Error creating EZ contact',
+         body: respObj
+       }
+
+       return next();
      }
    },
  };
