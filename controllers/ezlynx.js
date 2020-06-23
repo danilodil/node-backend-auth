@@ -337,7 +337,16 @@ module.exports = {
             },
             body: { ...req.body.data, AssignedTo: username }
         }
+
+        console.log(JSON.stringify(contact_option));
+
         const response = await request(contact_option);
+
+        if (response) {
+          console.log(response);
+        } else {
+          console.log('No resp from sales center');
+        }
         
         req.session.data = {
             ezlynxId: response
