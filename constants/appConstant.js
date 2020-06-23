@@ -26,7 +26,7 @@ exports.qqCatalyst = {
 
 exports.ezLynx = {
   USERNAME: 'wxi_uploadPROD',
-  PASSWORD: 'xiloteam20!',
+  PASSWORD: 'Cojoanin93',
   UPLOAD_PATH: 'https://services.ezlynx.com/EzLynxWebService/EzLynxFileUpload.asmx',
   USERNAME_DEV: 'xi_uploadUAT',
   PASSWORD_DEV: 'Cojoanin93',
