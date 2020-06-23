@@ -304,6 +304,7 @@ module.exports = {
   createPersonalApplicant: async (req, res, next) => {
     try {
         const { username } = req.body.decoded_vendor;
+        console.log('EZ SC HIT');
         const url = configConstant.nodeEnv === 'production' ? ezApp.PROD_URL : ezApp.DEV_URL;
         const ez_user = configConstant.nodeEnv === 'production' ? ezApp.PROD_USERNAME : ezApp.DEV_USERNAME;
         const ez_password = configConstant.nodeEnv === 'production' ? ezApp.PROD_PASSWORD : ezApp.DEV_PASSWORD;
@@ -323,8 +324,6 @@ module.exports = {
         };
         const authenticate = await request(auth_options);
 
-        console.log('RESPONSE FROM EZ SC: ', JSON.stringify(auth_options));
-
         const action = req.query.ezlynxId ? 'PUT' : 'POST';
         
         const contact_option = {
@@ -340,9 +339,11 @@ module.exports = {
             body: { ...req.body.data, AssignedTo: username }
         }
 
-        console.log('RESPONSE FROM EZ SC: ', JSON.stringify(contact_option));
-
+        console.log('REQUEST EZ SC: ', JSON.stringify(contact_option));
+        
         const response = await request(contact_option);
+        
+        console.log('RESPONSE FROM EZ SC: ', response);
 
         if (response) {
           console.log(response);
@@ -355,8 +356,8 @@ module.exports = {
         };
         return next();
     } catch (error) {
-        console.error('EZlynx personal applicant error ##', error.message);
-        return next(Boom.badRequest(error.message));
+        console.error('EZlynx personal applicant error ##', error.error.Message);
+        return next(Boom.badRequest(error.error.Message));
     }
 }
 };
