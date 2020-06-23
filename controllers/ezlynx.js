@@ -323,6 +323,8 @@ module.exports = {
         };
         const authenticate = await request(auth_options);
 
+        console.log('RESPONSE FROM EZ SC: ', JSON.stringify(auth_options));
+
         const action = req.query.ezlynxId ? 'PUT' : 'POST';
         
         const contact_option = {
@@ -338,7 +340,7 @@ module.exports = {
             body: { ...req.body.data, AssignedTo: username }
         }
 
-        console.log(JSON.stringify(contact_option));
+        console.log('RESPONSE FROM EZ SC: ', JSON.stringify(contact_option));
 
         const response = await request(contact_option);
 
