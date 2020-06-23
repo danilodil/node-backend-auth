@@ -11,6 +11,7 @@ const configConstant = require('../constants/configConstants').CONFIG;
 const appConstant = require('../constants/appConstant').ezLynx;
 const ezApp = require('../constants/appConstant').commercialEzlynx;
 const validator = require('../services/integration-validator');
+const logger = require('heroku-logger')
 
 module.exports = {
   createContact: async (req, res, next) => {
@@ -304,7 +305,7 @@ module.exports = {
   createPersonalApplicant: async (req, res, next) => {
     try {
         const { username } = req.body.decoded_vendor;
-        console.log('EZ SC HIT');
+        logger.info('EZ SC HIT')
         const url = configConstant.nodeEnv === 'production' ? ezApp.PROD_URL : ezApp.DEV_URL;
         const ez_user = configConstant.nodeEnv === 'production' ? ezApp.PROD_USERNAME : ezApp.DEV_USERNAME;
         const ez_password = configConstant.nodeEnv === 'production' ? ezApp.PROD_PASSWORD : ezApp.DEV_PASSWORD;
@@ -339,16 +340,16 @@ module.exports = {
             body: { ...req.body.data, AssignedTo: username }
         }
 
-        console.log('REQUEST EZ SC: ', JSON.stringify(contact_option));
+        logger.info('REQUEST EZ SC: ', contact_option);
         
         const response = await request(contact_option);
         
-        console.log('RESPONSE FROM EZ SC: ', response);
+        logger.info('RESPONSE FROM EZ SC: ', response);
 
         if (response) {
-          console.log(response);
+          logger.info(response);
         } else {
-          console.log('No resp from sales center');
+          logger.info('No resp from sales center');
         }
         
         req.session.data = {
@@ -356,7 +357,7 @@ module.exports = {
         };
         return next();
     } catch (error) {
-        console.error('EZlynx personal applicant error ##', error.error.Message);
+        logger.error('EZlynx personal applicant error ##', error.error.Message);
         return next(Boom.badRequest(error.error.Message));
     }
 }
