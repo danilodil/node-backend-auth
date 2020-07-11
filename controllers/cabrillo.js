@@ -1,8 +1,9 @@
+/* eslint-disable no-underscore-dangle, no-multi-assign */
 const request = require('request-promise');
 const Boom = require('boom');
 const base64 = require('base-64');
-const configConstant = require('../constants/configConstants').CONFIG;
 const convert = require('xml-js');
+const configConstant = require('../constants/configConstants').CONFIG;
 const { saveRatingFromJob } = require('./rater');
 
 const self = module.exports = {
@@ -31,9 +32,9 @@ const self = module.exports = {
   },
 
   createContact: async (req, res, next) => {
-    const resObj = {};
     try {
-      const token = await self.getToken(req.body.decoded_vendor.username, req.body.decoded_vendor.password);
+      const token = await self.getToken(req.body.decoded_vendor.username,
+        req.body.decoded_vendor.password);
       const xmlHead = '<?xml version="1.0" encoding="utf-8"?>';
       const xmlOptions = { compact: true, ignoreComment: true, spaces: 4 };
       const quoteData = convert.json2xml(req.body.data, xmlOptions);
@@ -64,12 +65,15 @@ const self = module.exports = {
       req.body.vendorName = req.body.decoded_vendor.vendorName;
       const respObj = {
         status: jsonresponse.Response.Status._text,
+        // eslint-disable-next-line max-len
         totalPremium: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.QuotedPremiumAmt._cdata,
+        // eslint-disable-next-line max-len
         downPayment: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.PaymentPlan.DownPaymentAmt._cdata,
+        // eslint-disable-next-line max-len
         quoteId: jsonresponse.Response.Results.ACORD.InsuranceSvcRs.DwellFirePolicyQuoteInqRs.QuotedScenario.SavedQuoteID._cdata,
         stepResult: JSON.stringify(jsonresponse),
       };
-      saveRatingFromJob(req, respObj).catch(() => console.error('error'));
+      saveRatingFromJob(req, respObj).catch(error => error);
       req.session.data = {
         title: 'Contact created successfully',
         response: respObj,
@@ -81,7 +85,7 @@ const self = module.exports = {
         error: error.message,
         stepResult: error,
       };
-      saveRatingFromJob(req, errObj).catch(() => console.error('error'));
+      saveRatingFromJob(req, errObj).catch(err => err);
       return next(Boom.badRequest('Error creating contact'));
     }
   },

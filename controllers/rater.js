@@ -1,4 +1,4 @@
-/* eslint-disable radix, no-param-reassign, no-console */
+/* eslint-disable radix, no-param-reassign */
 
 const Boom = require('boom');
 const Rater = require('../models/rater');
@@ -10,7 +10,6 @@ module.exports = {
       if (!req.session.data && !req.session.payment) {
         return next();
       }
-      console.log(`${req.body.vendorName}: Saving Rate`);
       let companyId = null;
       let clientId = null;
       const currentUser = req.body.decoded_user;
@@ -54,7 +53,6 @@ module.exports = {
           url: req.session.data.url || null,
         };
         await Rater.create(newRater);
-        console.log(`${req.body.vendorName} Rater Created`);
       }
 
       const data = !req.session.payment ? req.session.data : req.session.payment;
@@ -74,13 +72,11 @@ module.exports = {
         updateObj.url = data.url || null;
         updateObj.error = null;
         if (updateObj.productType !== 'AUTO') {
-          updateObj.productType = 'AUTO'
+          updateObj.productType = 'AUTO';
         }
         await raterData.update(updateObj);
-        console.log(`${req.body.vendorName} Rater Updated`);
       } else if (raterData) {
         await raterData.update(updateObj);
-        console.log(`${req.body.vendorName} Rater Updated`);
       }
 
       if (isPayment) {
@@ -88,12 +84,10 @@ module.exports = {
       }
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName} Error Saving Rate: `, error));
     }
   },
   getBestRating: async (req, res, next) => {
-    console.log(`${req.body.vendorName}: Inside Get Best Rate`);
     try {
       const currentUser = req.body.decoded_user;
       if (!req.body.productType) {
@@ -101,7 +95,7 @@ module.exports = {
       }
 
       let companyId = null;
-      let clientId = req.query.clientId ? req.query.clientId : null;;
+      let clientId = req.query.clientId ? req.query.clientId : null;
       if (currentUser.user) {
         companyId = currentUser.user.companyUserId;
       }
@@ -145,12 +139,10 @@ module.exports = {
       req.session.data = bestRate;
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
     }
   },
   getRates: async (req, res, next) => {
-    console.log(`${req.body.vendorName}: Inside Get Best Rate`);
     try {
       const currentUser = req.body.decoded_user;
       if (!req.body.productType) {
@@ -158,7 +150,7 @@ module.exports = {
       }
 
       let companyId = null;
-      let clientId = req.query.clientId ? req.query.clientId : null;;
+      let clientId = req.query.clientId ? req.query.clientId : null;
       if (currentUser.user) {
         companyId = currentUser.user.companyUserId;
       }
@@ -190,13 +182,11 @@ module.exports = {
       req.session.data = raterData;
       return next();
     } catch (error) {
-      console.log(error);
       return next(Boom.badRequest(`${req.body.vendorName}: Failed to retrieved best rate`));
     }
   },
 
   getOneByName: async (req, res, next) => {
-    console.log(`${req.body.vendorName}: Inside Get Rater By Name`);
     try {
       const params = req.body;
       const currentUser = req.body.decoded_user;
@@ -240,7 +230,6 @@ module.exports = {
   },
 
   getOneByNameData: async (req, res, next) => {
-    console.log('Inside getOneByNameData');
     const { raterStore } = req.session;
     if (!raterStore) {
       return next(Boom.badRequest('Error retrieving rate'));
@@ -251,9 +240,6 @@ module.exports = {
   saveRatingFromJob: async (req, res) => {
     try {
       if (!res) return;
-
-      console.log(`${req.body.vendorName}: Saving Rate`);
-      console.log(res);
       let companyId = null;
       let clientId = null;
       const currentUser = req.body.decoded_user;
@@ -298,7 +284,6 @@ module.exports = {
           productType: req.body.productType || null,
         };
         await Rater.create(newRater);
-        console.log(`${req.body.vendorName} Rater Created`);
       }
 
       /* update rater result */
@@ -314,12 +299,11 @@ module.exports = {
         updateObj.succeeded = true;
         updateObj.error = null;
         await raterData.update(updateObj);
-        console.log(`${req.body.vendorName} Rater Updated`);
       } else if (raterData) {
         await raterData.update(updateObj);
-        console.log(`${req.body.vendorName} Rater Updated`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(`${req.body.vendorName} Error Saving Rate: `, error);
     }
   },

@@ -14,7 +14,7 @@
  
        let data = req.body.data;
 
-       const encodedData = base64.encode(data);
+      const encodedData = base64.encode(data);
 
        const uploadFlag = req.query.action === 'update' ? '2' : '4';
  
@@ -31,10 +31,9 @@
                   SOAPAction: 'http://tempuri.org/UploadFile',
                   'Content-Type': 'text/xml',
                 },
-         body: xml_string,
-       };
- 
-       const response = await request(options);
+        body: xml_string,
+      };
+      const response = await request(options);
 
        const respJson = JSON.parse(parser.toJson(response));
 

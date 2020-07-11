@@ -1,4 +1,4 @@
-/* eslint-disable prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
+/* eslint-disable prefer-destructuring, no-constant-condition, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, */
 
 const Boom = require('boom');
 const puppeteer = require('puppeteer');
@@ -56,7 +56,6 @@ module.exports = {
       await summaryStep();
 
       async function loginStep() {
-        console.log('Traveler Login Step');
         try {
           await page.goto(travelerRater.LOGIN_URL, { waitUntil: 'networkidle2', timeout: 0 });
           await page.waitFor(500);
@@ -72,7 +71,6 @@ module.exports = {
       }
 
       async function searchStep() {
-        console.log('Traveler Search Step');
         try {
           await page.type('#PiSearchNewFields > div:nth-child(1) > div > div > input', populatedData.lastName.value);
           await page.waitFor(1000);
@@ -98,7 +96,6 @@ module.exports = {
       }
 
       async function addCustomerStep() {
-        console.log('Traveler Add Customer Step');
         try {
           await page.waitFor(6000);
           await page.evaluate(async (populatedDataObj) => {
@@ -134,7 +131,6 @@ module.exports = {
       }
 
       async function policyStep() {
-        console.log('Traveler Policy Step');
         try {
           await page.waitFor(4000);
           const elementHandle = await page.$('#NavMain > frame:nth-child(2)');
@@ -152,7 +148,6 @@ module.exports = {
       }
 
       async function customerInfoStep() {
-        console.log('Traveler Customer Info Step');
         try {
           await navigationPromise;
           await page.waitFor(3000);
@@ -167,16 +162,13 @@ module.exports = {
           await page.waitFor(3000);
           const overlay = await page.$('#overlayContainer');
           if (overlay) {
-            console.log('Overlay Hit');
             const btn = await page.$('#overlayContainer #overlayFooter [id="overlayButton-addressDifference-Use Suggested"]');
             if (btn) {
-              console.log('Button Hit');
               btn.click();
               await page.waitFor(1000);
             }
           }
           if (await page.$('select[data-label=County]')) {
-            console.log('#inside country');
             const countryName = await page.evaluate(element => document.querySelector(element).innerText, 'select[data-label=County] > option:nth-child(2)');
             await page.select('select[data-label=County]', countryName);
           }
@@ -204,13 +196,11 @@ module.exports = {
           });
           stepResult.customerInfo = true;
         } catch (error) {
-          console.log('error', error);
           await exitFail(error, 'Customer Info');
         }
       }
 
       async function vehicleStep() {
-        console.log('Traveler vehicle Step');
         try {
           await page.evaluate(() => {
             const freezeScreen = document.getElementById('loaderContainer');
@@ -252,7 +242,6 @@ module.exports = {
       }
 
       async function driverStep() {
-        console.log('Traveler Driver Step');
         try {
           await page.waitForSelector('input[value="M"]');
           await page.evaluate(() => {
@@ -286,7 +275,6 @@ module.exports = {
       }
 
       async function underwritingStep() {
-        console.log('Traveler underwriting Step');
         try {
           await page.waitFor(5000);
           await page.waitForSelector('#dynamicContinueButton');
@@ -339,7 +327,6 @@ module.exports = {
       }
 
       async function coverageStep() {
-        console.log('Traveler Coverage Step');
         try {
           await closeModel();
           if (await page.$('#dynamicContinueButton')) {
@@ -389,12 +376,10 @@ module.exports = {
       }
 
       async function summaryStep() {
-        console.log('Traveler Rater Summary Step');
         try {
           await page.waitFor(15000);
           const totalPremium = await page.evaluate(() => document.querySelector('#quoteStatusPremiumContainer_coverage_Pkg1').firstChild.innerText.split(' ')[0].replace(/\n/g, ''));
           const months = await page.evaluate(() => document.querySelector('#quoteStatusMessageContainer_coverage_Pkg1 > table > tbody > tr:nth-child(3)').innerText.slice(12, 13));
-          console.log('Premium###', totalPremium);
           stepResult.summary = true;
           req.session.data = {
             title: 'Successfully retrieved traveler rate.',
@@ -403,7 +388,6 @@ module.exports = {
             months: months || null,
             stepResult,
           };
-          console.log('##req.session.data', req.session.data);
           browser.close();
           return next();
         } catch (error) {
@@ -411,18 +395,17 @@ module.exports = {
         }
       }
 
-      async function typeInInputElements(inputSelector, text) {
-        await page.evaluate((selector, inputText) => {
-          const inputElement = document.querySelector(selector);
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-          nativeInputValueSetter.call(inputElement, inputText);
-          const ev2 = new Event('input', { bubbles: true });
-          inputElement.dispatchEvent(ev2);
-        }, inputSelector, text);
-      }
+      // async function typeInInputElements(inputSelector, text) {
+      //   await page.evaluate((selector, inputText) => {
+      //     const inputElement = document.querySelector(selector);
+      //     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      //     nativeInputValueSetter.call(inputElement, inputText);
+      //     const ev2 = new Event('input', { bubbles: true });
+      //     inputElement.dispatchEvent(ev2);
+      //   }, inputSelector, text);
+      // }
 
       async function exitFail(error, step) {
-        console.log(`Error during Traveler ${step} step:`, error);
         if (req && req.session && req.session.data) {
           req.session.data = {
             title: 'Failed to retrieve Traveler rate',
@@ -435,7 +418,6 @@ module.exports = {
       }
 
       async function closeModel() {
-        console.log('close model>>');
         if (await page.$('span[data-label="Moved within the last 6 months?"]')) {
           await page.waitFor(1000);
           await page.evaluate(async () => {
@@ -513,7 +495,7 @@ module.exports = {
         dataObj.mailingAddress = { element: 'txtStreet', value: bodyData.mailingAddress || staticDataObj.mailingAddress };
         dataObj.city = { element: 'txtCity', value: bodyData.city || staticDataObj.city };
         if (bodyData.phone || staticDataObj.phone) {
-          const phoneSplit = (bodyData.phone || staticDataObj.phone).replace(/\\D/g, "");
+          const phoneSplit = (bodyData.phone || staticDataObj.phone).replace(/\\D/g, '');
           const phone1 = phoneSplit.substring(0, 3);
           const phone2 = phoneSplit.substring(3, 6);
           const phone3 = phoneSplit.substring(6);
@@ -560,7 +542,6 @@ module.exports = {
         return dataObj;
       }
     } catch (error) {
-      console.log('Error at Traveler :', error);
       return next(Boom.badRequest('Failed to retrieved Traveler rate.'));
     }
   },

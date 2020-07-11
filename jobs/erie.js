@@ -1,4 +1,4 @@
-/* eslint-disable no-loop-func, guard-for-in, prefer-destructuring, no-constant-condition, no-console, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, no-prototype-builtins */
+/* eslint-disable no-loop-func, guard-for-in, prefer-destructuring, no-constant-condition, dot-notation, no-await-in-loop, max-len, no-use-before-define, no-inner-declarations, no-param-reassign, no-restricted-syntax, consistent-return, no-undef, no-prototype-builtins */
 
 const puppeteer = require('puppeteer');
 const Queue = require('bull');
@@ -21,7 +21,6 @@ erieQueue.process(maxJobsPerWorker, async (job, done) => {
     await erie(job.data);
     done();
   } catch (e) {
-    console.log('error on process queue', e);
     done(new Error(e));
   }
 });
@@ -29,7 +28,6 @@ erieQueue.process(maxJobsPerWorker, async (job, done) => {
 
 async function erie(req) {
   try {
-    console.log('Added to erie Queue');
     const { username, password } = req.body.decoded_vendor;
     const tomorrow = formatDate(new Date(new Date().setDate(new Date().getDate() + 1)));
     const bodyData = await utils.cleanObj(req.body.data);
@@ -73,7 +71,6 @@ async function erie(req) {
     await vehicleStep();
 
     async function loginStep() {
-      console.log('Erie Login Step');
       try {
         await page.goto(erieRater.LOGIN_URL, { waitUntil: 'networkidle2', timeout: 0 });
         await page.waitFor(500);
@@ -93,7 +90,6 @@ async function erie(req) {
 
     async function searchStep() {
       if (response) return;
-      console.log('Erie Search Step');
       try {
         await page.waitFor(2000);
         const frames = await page.frames();
@@ -123,7 +119,6 @@ async function erie(req) {
 
     async function newQuoteStep() {
       if (response) return;
-      console.log('Erie New Quote Step');
       try {
         await page.waitFor(2000);
         await page.waitForSelector(populatedData.mailingAddress.element);
@@ -167,7 +162,6 @@ async function erie(req) {
 
     async function customerStep() {
       if (response) return;
-      console.log('Erie Customer Step');
       try {
         await page.waitFor(4000);
         if (await page.$('#standardizedAddressContinue')) {
@@ -212,7 +206,6 @@ async function erie(req) {
 
     async function namedInsuredStep() {
       if (response) return;
-      console.log('Erie Named Insured Step');
       try {
         await page.waitFor(3000);
         if (await page.$('#btnPrefillContinue')) {
@@ -252,7 +245,6 @@ async function erie(req) {
 
     async function driversStep() {
       if (response) return;
-      console.log('Erie Driver Step');
       try {
         await page.waitFor(8000);
         if (page.$('#DriverGridTableItems > tbody > tr > td.Col3')) {
@@ -317,7 +309,6 @@ async function erie(req) {
 
     async function vehicleStep() {
       if (response) return;
-      console.log('Erie Vehicle Step');
       try {
         await page.waitFor(10000);
         for (const j in bodyData.vehicles) {
@@ -355,7 +346,6 @@ async function erie(req) {
     }
 
     async function exitFail(error, step) {
-      console.log(`Error during Erie ${step} step:`, error);
       response = {
         title: 'Failed to retrieve Erie rate',
         status: false,
@@ -465,6 +455,7 @@ async function erie(req) {
       return dataObj;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Error at Traveler :', error);
   }
 }

@@ -135,6 +135,7 @@ module.exports = {
               }
             }
           });
+          // eslint-disable-next-line no-shadow
           async function getBestValue(value, data) {
             try {
               const optionsArray = [...data];
@@ -347,7 +348,7 @@ module.exports = {
         const dataObj = {};
         if (bodyData.hasOwnProperty('vehicles') && bodyData.vehicles.length > 0) {
           for (const j in bodyData.vehicles) {
-            const element = bodyData.vehicles[j];
+            // const element = bodyData.vehicles[j];
             dataObj[`vehicleInfo[${j}].garagingAddrSameAsCurrentAddr`] = { type: 'select-one', value: 'Yes', name: `vehicleInfo[${j}].garagingAddrSameAsCurrentAddr` };
             dataObj[`vehicleInfo[${j}].territorySelected`] = { type: 'select-one', value: '5014: BRACKENRIDGE  : City Limits: Inside County: 002, Area Rate 770', name: `vehicleInfo[${j}].territorySelected` };
             dataObj[`vehicleInfo[${j}].modelYear`] = { type: 'text', value: '1991', name: `vehicleInfo[${j}].modelYear` };
@@ -360,7 +361,7 @@ module.exports = {
         }
         if (bodyData.hasOwnProperty('drivers') && bodyData.drivers.length > 0) {
           for (const j in bodyData.drivers) {
-            const element = bodyData.drivers[j];
+            // const element = bodyData.drivers[j];
             dataObj[`driverInfo[${j}].gender`] = { type: 'select-one', value: staticDataObj.drivers[0].gender, name: `driverInfo[${j}].gender` };
             dataObj[`driverInfo[${j}].maritalStatus`] = { type: 'select-one', value: staticDataObj.drivers[0].maritalStatus, name: `driverInfo[${j}].maritalStatus` };
             dataObj[`driverInfo[${j}].ageFirstLicensed`] = { type: 'select-one', value: staticDataObj.drivers[0].ageWhen1stLicensed, name: `driverInfo[${j}].ageFirstLicensed` };
