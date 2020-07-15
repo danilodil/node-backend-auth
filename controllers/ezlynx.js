@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 /* eslint-disable no-console, no-await-in-loop, no-loop-func, guard-for-in, max-len, no-use-before-define, no-undef, no-inner-declarations,radix,consistent-return,camelcase,no-plusplus,
  no-param-reassign, guard-for-in ,no-prototype-builtins, no-return-assign, prefer-destructuring, no-restricted-syntax, no-constant-condition,camelcase */
 const request = require('request-promise');
@@ -17,18 +16,6 @@ module.exports = {
   createContact: async (req, res, next) => {
     try {
       const { username } = req.body.decoded_vendor;
-
-      // function returnXmlWithCoApplicant(data) {
-      //   const coAppObj = { Applicant: data.CoApplicant };
-      //   const coAppString = jsonxml(coAppObj);
-      //   delete data.CoApplicant;
-      //   const xmlString = jsonxml(data);
-      //   if (xmlString.includes('</Applicant>')) {
-      //     const newXmlString = xmlString.replace('</Applicant>', `</Applicant>${coAppString}`);
-      //     return newXmlString;
-      //   }
-      //   return xmlString;
-      // }
 
       function returnXmlWithOtherData(data) {
         let coAppString = null;
@@ -56,21 +43,18 @@ module.exports = {
       const data = req.body.data;
 
       let xmlData;
-      
-      // Mono-line run
       if (req.params.type === 'Auto' || req.params.type === 'Home') {
-
         if (data && data.clientAgentId) {
           delete data.clientAgentId;
         }
-        
+
         if (req.params.type === 'Auto') {
           xmlData = jsonxml(data);
           if (data.CoApplicant || data.Applicant.PreviousAddress) {
             xmlData = returnXmlWithOtherData(data);
           }
-        } 
-        
+        }
+
         if (req.params.type === 'Home') {
           xmlData = js2xmlparser
             .parse('root', data)
@@ -84,9 +68,7 @@ module.exports = {
         }
 
         const xml_head = `<?xml version="1.0" encoding="utf-8"?> <EZ${req.params.type.toUpperCase()} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/${req.params.type}/V200">`;
-        let xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
-
-        console.log(xml_body)
+        const xml_body = xml_head.concat(xmlData, `</EZ${req.params.type.toUpperCase()}>`);
 
         let validations = await validator.validateXML(xml_body, 'ezlynxautoV200');
 
@@ -99,12 +81,12 @@ module.exports = {
         const encodedData = base64.encode(xml_body);
 
         const uploadFlag = req.query.action === 'update' ? '2' : '4';
-  
+
         const xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
         const xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZ${req.params.type}" MimeType="text/xml">`;
         const xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
         const xml_string = xml_authentication_header.concat(xml_soap_body_opens, encodedData, xml_soap_body_close);
-  
+
         const options = {
           method: 'POST',
           url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
@@ -116,19 +98,19 @@ module.exports = {
                  },
           body: xml_string,
         };
-  
+
         const response = await request(options);
-  
+
         let newResponse;
-  
+
         if (response.includes('Failed')) {
           newResponse = 'Failed';
         } else {
           newResponse = 'Succeeded';
         }
-  
+
         let url = 'Upload Failed';
-        
+
         if (response && response.includes('Succeeded') && response.match(/<URL>(.*)<\/URL>/)) {
           url = response.match(/<URL>(.*)<\/URL>/)[1];
         }
@@ -137,7 +119,7 @@ module.exports = {
           newResponse = 'Failed';
           url = null;
         }
-  
+
         req.session.data = {
           title: 'Contact created successfully',
           body: newResponse,
@@ -145,9 +127,10 @@ module.exports = {
           url,
           xml: format(xml_body),
           json: data,
-          validations: (validations && validations.length > 0) ? validations : null
+          validations: (validations && validations.length > 0) ? validations : null,
         };
         return next();
+      // eslint-disable-next-line no-else-return
       } else {
         // Bundle run
         let autoResponse = null;
@@ -162,7 +145,6 @@ module.exports = {
 
         if (req.body.homeData) {
           const homeData = req.body.homeData;
-          // console.log(JSON.stringify(homeData));
           let homeXmlData = js2xmlparser
             .parse('root', homeData)
             .split('\n');
@@ -173,11 +155,10 @@ module.exports = {
             homeXmlData = returnXmlWithOtherData(homeData);
           }
 
-          
+
           const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
-          let homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
-          
-          console.log(homeXml_body);
+          const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
+
 
           homeValidations = await validator.validateXML(homeXml_body, 'ezlynxautoV200');
 
@@ -185,17 +166,17 @@ module.exports = {
             homeValidations = homeValidations.validation;
           } else {
             console.log(homeValidations.error);
-          }          
-          
+          }
+
           const home_encodedData = base64.encode(homeXml_body);
 
           const uploadFlag = req.query.action === 'update' ? '2' : '4';
-  
+
           const home_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
           const home_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZHome" MimeType="text/xml">`;
           const home_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
           const home_xml_string = home_xml_authentication_header.concat(home_xml_soap_body_opens, home_encodedData, home_xml_soap_body_close);
-  
+
           const home_options = {
             method: 'POST',
             url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
@@ -207,15 +188,15 @@ module.exports = {
                   },
             body: home_xml_string,
           };
-  
+
           homeResponse = await request(home_options);
-    
+
           if (homeResponse.includes('Failed')) {
             newHomeResponse = 'Failed';
           } else {
             newHomeResponse = 'Succeeded';
           }
-    
+
           if (homeResponse && homeResponse.includes('Succeeded') && homeResponse.match(/<URL>(.*)<\/URL>/)) {
             homeUrl = homeResponse.match(/<URL>(.*)<\/URL>/)[1];
           }
@@ -232,11 +213,11 @@ module.exports = {
           }
 
           let autoXmlData = jsonxml(autoData);
-  
+
           if (autoData.CoApplicant || autoData.Applicant.PreviousAddress) {
             autoXmlData = returnXmlWithOtherData(autoData);
           }
-  
+
           const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
           const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
 
@@ -249,16 +230,16 @@ module.exports = {
           } else {
             console.log(autoValidations.error);
           }
-  
+
           const auto_encodedData = base64.encode(autoXml_body);
 
           const uploadFlag = req.query.action === 'update' ? '2' : '4';
-  
+
           const auto_xml_authentication_header = `<?xml version="1.0" encoding="utf-8"?><soap:Envelope  xmlns:soap="http://www.w3.org/2003/05/soap-envelope"  xmlns:tem="http://tempuri.org/"  xmlns:v100="http://www.ezlynx.com/XMLSchema/EZLynxUpload/V100">  <soap:Header>   <tem:AuthenticationHeaderAcct> <tem:Username>${configConstant.nodeEnv === 'production' ? appConstant.USERNAME : appConstant.USERNAME_DEV}</tem:Username>  <tem:Password>${configConstant.nodeEnv === 'production' ? appConstant.PASSWORD : appConstant.PASSWORD_DEV}</tem:Password>  <tem:AccountUsername>${username}</tem:AccountUsername>  </tem:AuthenticationHeaderAcct> </soap:Header>`;
           const auto_xml_soap_body_opens = `<soap:Body> <tem:UploadFile> <v100:EZLynxUploadRequest>  <v100:UploadRequest RefID="XILO" XrefKey="${req.params.clientId}" DataUploadFlags="${uploadFlag}"><v100:FileData Name="EZAuto" MimeType="text/xml">`;
           const auto_xml_soap_body_close = '</v100:FileData> </v100:UploadRequest> </v100:EZLynxUploadRequest> </tem:UploadFile> </soap:Body></soap:Envelope>';
           const auto_xml_string = auto_xml_authentication_header.concat(auto_xml_soap_body_opens, auto_encodedData, auto_xml_soap_body_close);
-  
+
           const auto_options = {
             method: 'POST',
             url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
@@ -270,15 +251,15 @@ module.exports = {
                   },
             body: auto_xml_string,
           };
-  
+
           autoResponse = await request(auto_options);
-    
+
           if (autoResponse.includes('Failed')) {
             newAutoResponse = 'Failed';
           } else {
             newAutoResponse = 'Succeeded';
           }
-    
+
           if (autoResponse && autoResponse.includes('Succeeded') && autoResponse.match(/<URL>(.*)<\/URL>/)) {
             autoUrl = autoResponse.match(/<URL>(.*)<\/URL>/)[1];
           }
@@ -292,7 +273,8 @@ module.exports = {
           title: 'Contact created successfully',
           auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.length && autoValidations.length > 0) ? autoValidations : null },
           home: { response: homeResponse, url: homeUrl, validations: (homeValidations && homeValidations.length && homeValidations.length > 0) ? homeValidations : null },
-          body: newAutoResponse ? newAutoResponse : newHomeResponse ? newHomeResponse : null,
+          // eslint-disable-next-line no-unneeded-ternary
+          body: newAutoResponse ? newAutoResponse : newHomeResponse || null,
         };
 
         return next();
@@ -360,5 +342,5 @@ module.exports = {
         logger.error('EZlynx personal applicant error ##', error.error.Message);
         return next(Boom.badRequest(error.error.Message));
     }
-}
+  },
 };

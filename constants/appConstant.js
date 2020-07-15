@@ -128,7 +128,7 @@ exports.commercialEzlynx = {
   PROD_USERNAME: 'wxi_userPROD',
   PROD_PASSWORD: 'xiloteam20!',
   PROD_APP_SECRET: 'a70a8478-c2ce-4dd2-ae27-77175031906a',
-}
+};
 
 exports.ams360 = {
   Version: 'v19119063201',

@@ -7,8 +7,19 @@
     "start": "node ./bin/www",
     "start:dev": "nodemon ./bin/www",
     "lint": "eslint . --fix",
+    "pretest": "./node_modules/.bin/eslint --ignore-path .gitignore . --fix",
     "db:schema": "babel-node ./scripts/db/schema",
     "db:migrate": "babel-node ./scripts/db/migrate"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "./node_modules/.bin/eslint — fix"
+    ]
   },
   "dependencies": {
     "async": "2.6.3",
@@ -39,7 +50,7 @@
     "lodash.template": "^4.5.0",
     "moment": "^2.24.0",
     "morgan": "^1.9.1",
-    "newrelic": "^6.7.0",
+    "newrelic": "^6.8.0",
     "nodemailer": "^6.4.1",
     "objects-to-csv": "^1.3.6",
     "parse-address": "^1.1.2",
@@ -61,6 +72,8 @@
   "devDependencies": {
     "eslint": "6.0.1",
     "eslint-config-airbnb-base": "13.2.0",
-    "eslint-plugin-import": "2.18.0"
+    "eslint-plugin-import": "2.18.0",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.6"
   }
 }

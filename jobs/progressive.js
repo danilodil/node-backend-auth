@@ -16,7 +16,7 @@ const maxJobsPerWorker = 1;
 
 module.exports = {
     progressiveQueue,
-    rate
+    rate,
 };
 
 progressiveQueue.process(maxJobsPerWorker, async (job, done) => {
@@ -589,19 +589,18 @@ async function rate(req) {
 
         async function exitFail(error, step) {
             console.log(`Error during Progressive ${step} step:`, error);
-            const date = new Date();
             const randomNumber = Math.round((Math.random() * 100));
             if (pageQuote) {
-                await pageQuote.screenshot({path: `progressive-error-${randomNumber}.png`});
+                await pageQuote.screenshot({ path: `progressive-error-${randomNumber}.png` });
             } else {
-                await page.screenshot({path:  `progressive-error-${randomNumber}.png`});
+                await page.screenshot({ path: `progressive-error-${randomNumber}.png` });
             }
             response = {
                 title: 'Failed to retrieve Progressive rate',
                 status: false,
                 error: `There was an error at ${step} step`,
                 stepResult,
-                url: 'https://www.foragentsonly.com/newbusiness/quotesearch/'
+                url: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
             };
             browser.close();
             saveRatingFromJob(req, response);
@@ -614,7 +613,7 @@ async function rate(req) {
                     status: true,
                     quoteIds: quoteObj,
                     stepResult,
-                    url: 'https://www.foragentsonly.com/newbusiness/quotesearch/'
+                    url: 'https://www.foragentsonly.com/newbusiness/quotesearch/',
                 };
                 browser.close();
                 await saveRatingFromJob(req, response);
@@ -656,7 +655,7 @@ async function rate(req) {
                     downPayment: (payDetails && payDetails.downPayment) ? payDetails.downPayment : null,
                     stepResult,
                     quoteIds: quoteObj,
-                    url: payDetails.url || null
+                    url: payDetails.url || null,
                 };
                 await saveRatingFromJob(req, response);
                 await saveStep(true);
