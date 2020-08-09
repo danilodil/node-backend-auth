@@ -14,9 +14,11 @@ module.exports = {
 
       findObject.where.companyId = params.companyId;
       findObject.where.vendorName = params.vendorName;
-      findObject.where.state = params.state;
-      findObject.where.carrier = params.carrier;
-      findObject.where.agency = params.agency;
+      for (let cond of ['state', 'carrier', 'agency', 'agentId']) {
+        if (params[cond]) {
+          findObject.where = params[cond];
+        }
+      }
 
       const vendor = await vendorModel.findOne(findObject);
 
@@ -29,6 +31,7 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
+        agentId: params.agentId,
         accessToken: params.accessToken || '',
         state: params.state,
         carrier: params.carrier,
