@@ -17,6 +17,7 @@ const oAuth2 = new ClientOAuth2({
 
 module.exports = {
   createContact: async (req, res, next) => {
+    let status = 'auth';
     try {
       const { username, password } = req.body.decoded_vendor;
       const path = '/v1/Contacts';
@@ -29,6 +30,8 @@ module.exports = {
       };
 
       await user.refresh();
+  
+      status = 'data';
 
       const response = await request(user.sign(options))
         .catch(() => next(Boom.badRequest('Error creating contact!')));
@@ -40,7 +43,7 @@ module.exports = {
       return next();
     } catch (error) {
       console.log(error);
-      return next(Boom.badRequest('Error creating QQ contact. Method failed'));
+      return next(Boom.badRequest(`Error creating QQ contact. ${status} failed`));
     }
   },
   createPolicy: async (req, res, next) => {
