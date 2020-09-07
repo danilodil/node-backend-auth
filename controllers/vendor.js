@@ -31,7 +31,6 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
-        agentId: params.agentId,
         accessToken: params.accessToken || '',
         state: params.state,
         carrier: params.carrier,
@@ -138,6 +137,25 @@ module.exports = {
       return next();
     } catch (error) {
       return next(Boom.badRequest('Error get vendor!'));
+    }
+  },
+  getVendorByCompanyId: async (req, res, next) => {
+    try {
+      const params = req.body;
+      if (!params.companyId || !req.params.vendorName) {
+        return next(Boom.badRequest('Invalid data!'));
+      }
+
+      const findObject = { where: {}, exclude: 'password' };
+
+      findObject.where.companyId = params.companyId;
+      findObject.where.vendorName = req.params.vendorName;
+
+      const vendor = await vendorModel.findOne(findObject);
+      req.session.data = vendor;
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest('Something went wrong'))
     }
   },
 };
