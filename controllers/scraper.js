@@ -22,7 +22,7 @@ module.exports = {
       await loginStep();
       async function loginStep() {
         try {
-          const credentials = { username: 'leor@xilo.io', password: 'Password!123@' };
+          const credentials = { username: 'jon.corrin@gmail.com', password: 'Cojoanin93' };
           const loginUrl = 'https://barlist.com/account/login';
           await page.goto(loginUrl, { waitUntil: 'load' }); // wait until page load
           await page.waitForSelector('#Email');
@@ -54,7 +54,7 @@ module.exports = {
 
 
             // const stateId = (k + 1);
-            const stateId = 14;
+            const stateId = 45;
             const url = `https://barlist.com/independent-agents/search?stateid=${stateId}&countryid=1`
             console.log(url);
             // const url = `https://barlist.com/more/search?companyTypeId=2&stateid=${stateId}&countryid=1`;
