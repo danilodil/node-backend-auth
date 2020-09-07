@@ -31,6 +31,7 @@ module.exports = {
         username: params.username,
         password: params.password,
         companyId: params.companyId,
+        agentId: params.agentId,
         accessToken: params.accessToken || '',
         state: params.state,
         carrier: params.carrier,
