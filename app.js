@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 require('dotenv').config();
-if (process.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   const tracer = require('dd-trace').init()
 }
 const compression = require('compression');
