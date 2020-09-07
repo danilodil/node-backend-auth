@@ -146,10 +146,11 @@ module.exports = {
         return next(Boom.badRequest('Invalid data!'));
       }
 
-      const findObject = { where: {}, exclude: 'password' };
-
-      findObject.where.companyId = params.companyId;
-      findObject.where.vendorName = req.params.vendorName;
+      const findObject = { 
+      where: {
+        companyId: params.companyId,
+        vendorName: req.params.vendorName,
+      }, exclude: 'password' };
 
       const vendor = await vendorModel.findOne(findObject);
       req.session.data = vendor;
