@@ -140,4 +140,24 @@ module.exports = {
       return next(Boom.badRequest('Error get vendor!'));
     }
   },
+  getVendorByCompanyId: async (req, res, next) => {
+    try {
+      const params = req.body;
+      if (!params.companyId || !req.params.vendorName) {
+        return next(Boom.badRequest('Invalid data!'));
+      }
+
+      const findObject = { 
+      where: {
+        companyId: params.companyId,
+        vendorName: req.params.vendorName,
+      }, exclude: 'password' };
+
+      const vendor = await vendorModel.findOne(findObject);
+      req.session.data = vendor;
+      return next();
+    } catch (error) {
+      return next(Boom.badRequest('Something went wrong'))
+    }
+  },
 };

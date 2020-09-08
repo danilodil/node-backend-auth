@@ -17,4 +17,8 @@ router.put('/getAll', asyncHandler(async (req, res, next) => {
   await vendorController.getAll(req, res, next);
 }));
 
+router.get('/findOne/:vendorName', asyncHandler(async (req, res, next) => {
+  await vendorController.getVendorByCompanyId(req, res, next);
+}));
+
 module.exports = router;
