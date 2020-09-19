@@ -58,12 +58,9 @@ module.exports = {
         where: {
           vendorName: params.vendorName,
           companyId: params.companyId,
+          agentId: params.agentId ? params.agentId : null
         },
       };
-
-      if (params.agentId) {
-        findObject.where.agentId = params.agentId;
-      }
 
       const vendor = await vendorModel.findOne(findObject);
 
@@ -148,9 +145,10 @@ module.exports = {
       }
 
       const findObject = { 
-      where: {
-        companyId: params.companyId,
-        vendorName: req.params.vendorName,
+        where: {
+          companyId: params.companyId,
+          vendorName: req.params.vendorName,
+          agentId: params.agentId ? params.agentId : null,
       }, exclude: 'password' };
 
       const vendor = await vendorModel.findOne(findObject);
