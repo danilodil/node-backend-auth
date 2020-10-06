@@ -43,6 +43,12 @@ const self = module.exports = {
       }
       return next(Boom.badRequest('Error authenticating AMS360 user. Invalid token'));
     } catch (error) {
+      if(error.error.includes('<faultstring>')) {
+          const errorString ='<faultstring>'.length
+          sIndex=error.error.search('<faultstring>')
+          eIndex=error.error.search('</faultstring>')
+          return next(Boom.badRequest(error.error.slice(sIndex+errorString, eIndex)))
+      }
       return next(Boom.badRequest('Error authenticating AMS360 user. Method failed'));
     }
   },
