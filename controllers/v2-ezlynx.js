@@ -14,6 +14,8 @@
  
        let data = req.body.data;
 
+       console.log(data);
+
       const encodedData = base64.encode(data);
 
        const uploadFlag = req.query.action === 'update' ? '2' : '4';
