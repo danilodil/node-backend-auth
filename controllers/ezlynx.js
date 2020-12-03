@@ -126,6 +126,7 @@ module.exports = {
           fullBody: response,
           url,
           xml: format(xml_body),
+          type: req.params.type,
           json: data,
           validations: (validations && validations.length > 0) ? validations : null,
         };
@@ -142,6 +143,8 @@ module.exports = {
         let newHomeResponse = null;
         let autoValidations = null;
         let homeValidations = null;
+        let autoXml = null;
+        let homeXml = null;
 
         if (req.body.homeData) {
           const homeData = req.body.homeData;
@@ -159,6 +162,7 @@ module.exports = {
           const homeXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZHOME xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Home/V200">';
           const homeXml_body = homeXml_head.concat(homeXmlData, '</EZHOME>');
 
+          homeXml = homeXml_body;
 
           homeValidations = await validator.validateXML(homeXml_body, 'ezlynxautoV200');
 
@@ -220,8 +224,8 @@ module.exports = {
 
           const autoXml_head = '<?xml version="1.0" encoding="utf-8"?> <EZAUTO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ezlynx.com/XMLSchema/Auto/V200">';
           const autoXml_body = autoXml_head.concat(autoXmlData, '</EZAUTO>');
-
-          console.log(autoXml_body);
+          
+          autoXml = autoXml_body;
 
           autoValidations = await validator.validateXML(autoXml_body, 'ezlynxautoV200');
 
@@ -271,6 +275,8 @@ module.exports = {
 
         req.session.data = {
           title: 'Contact created successfully',
+          homeXml: homeXml,
+          autoXml: autoXml,
           auto: { response: autoResponse, url: autoUrl, validations: (autoValidations && autoValidations.length && autoValidations.length > 0) ? autoValidations : null },
           home: { response: homeResponse, url: homeUrl, validations: (homeValidations && homeValidations.length && homeValidations.length > 0) ? homeValidations : null },
           // eslint-disable-next-line no-unneeded-ternary
