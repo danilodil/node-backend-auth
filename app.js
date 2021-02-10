@@ -14,6 +14,7 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const appConfig = require('./lib/appConfig');
 const appConstant = require('./constants/appConstant');
+const { CONFIG } = require('./constants/configConstants');
 const { sequelize } = require('./lib/db');
 
 const sessionStore = new SequelizeStore({
@@ -48,7 +49,7 @@ app.use((req, res, next) => {
 // Handle request
 app.use(session({
   store: sessionStore,
-  secret: 'secret',
+  secret: CONFIG.authSecret,
   saveUninitialized: false, // don't create session until something stored,
   resave: false, // don't save session if unmodified
 }));
