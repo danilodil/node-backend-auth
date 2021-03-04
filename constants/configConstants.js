@@ -7,5 +7,6 @@ exports.CONFIG = {
     ? process.env.DATABASE_URL_LOCAL
     : process.env.DATABASE_URL,
   redisUrl: process.env.REDIS_URL,
-  authSecret: process.env.XILO_AUTH_SECRET
+  authSecret: process.env.XILO_AUTH_SECRET,
+  authSessionSecret: process.env.XILO_AUTH_SESSION_SECRET
 };
