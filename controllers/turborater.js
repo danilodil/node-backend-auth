@@ -67,9 +67,7 @@ module.exports = {
           homeResponse: parseHomeRes,
         };
       } else {
-        console.log(JSON.stringify(req.body.data));
         const xmlData = jsonxml(req.body.data);
-        console.log(xmlData);
         const xmlHead = '<?xml version="1.0" encoding="utf-8"?><InsuranceRequest>';
         const xmlBody = xmlHead.concat(xmlData, '</InsuranceRequest>');
         // eslint-disable-next-line max-len
