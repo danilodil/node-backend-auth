@@ -110,4 +110,48 @@ module.exports = {
       return next(Boom.badRequest(errorMessage));
     }
   },
+  creatContactWithXML: async (req, res, next) => {
+    try {
+      const { username } = req.body.decoded_vendor;
+        const xmlData = req.body.data;
+        // console.log(xmlData);
+        const xmlBody = `<?xml version="1.0" encoding="utf-8"?>${xmlData}`;
+        const bodyReq = `accountnumber=${username}&leadid=${req.body.leadId}&data=${xmlBody}`;
+        console.log(bodyReq);
+        const options = {
+          method: 'POST',
+          url: configConstant.nodeEnv === 'production' ? appConstant.UPLOAD_PATH : appConstant.UPLOAD_PATH_DEV,
+          headers:
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: bodyReq,
+        };
+
+        const response = await request(options);
+        const jsonresponse = convert.xml2json(response, { compact: true, spaces: 0 });
+        const parseResponse = JSON.parse(jsonresponse);
+        if (parseResponse.LeadResponseResult.Result._text !== 'OK' || parseResponse.LeadResponseResult.ErrorCode._text !== '0') {
+          // eslint-disable-next-line no-throw-literal
+          throw {
+            errorCode: parseResponse.LeadResponseResult.ErrorCode._text,
+            description: parseResponse.LeadResponseResult.ErrorDescription._text,
+          };
+        }
+
+        req.session.data = {
+          title: 'Contact created successfully',
+          fullBody: jsonresponse,
+          xml: format(xmlBody),
+          json: req.body.data,
+        };
+      return next();
+    } catch (error) {
+      let errorMessage = 'Error creating contact';
+      if (error.errorCode === '64') {
+        errorMessage = error.description;
+      }
+      return next(Boom.badRequest(errorMessage));
+    }
+  },
 };
