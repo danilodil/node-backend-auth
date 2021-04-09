@@ -16,6 +16,8 @@
 | `DBUSERNAME`    | Database username |
 | `DBPASSWORD`    | Database password |
 
+Create a .env file on root of project and add following
+
 ```
 NODE_ENV=local 
 database_url=postgres://soqpgbtpwhgzhh:8d723fcadfe13105bfffd21b797d2d425ec96889e291dc795dd846fa8d232146@ec2-18-235-97-230.compute-1.amazonaws.com:5432/d86hcp2ir2jh7b
