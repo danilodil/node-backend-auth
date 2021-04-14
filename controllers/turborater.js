@@ -147,10 +147,7 @@ module.exports = {
         };
       return next();
     } catch (error) {
-      let errorMessage = 'Error creating contact';
-      if (error.errorCode === '64') {
-        errorMessage = error.description;
-      }
+      const errorMessage = error.description || 'Error creating contact';
       return next(Boom.badRequest(errorMessage));
     }
   },
