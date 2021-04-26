@@ -9,8 +9,8 @@
  
  module.exports = {
    createApplicant: async (req, res, next) => {
+     const { username } = req.body.decoded_vendor;
      try {
-       const { username } = req.body.decoded_vendor;
  
        let data = req.body.data;
 
@@ -51,7 +51,8 @@
          url: eZLynxUploadResponse && eZLynxUploadResponse.URL !== {} && eZLynxUploadResponse.URL || null,
          error: eZLynxUploadResponse && eZLynxUploadResponse.StatusText || 'Failed to parse ez response',
          ezResponse: respJson ? JSON.stringify(respJson) : null,
-         lob: eZLynxUploadResponse && eZLynxUploadResponse['Name'] || null
+         lob: eZLynxUploadResponse && eZLynxUploadResponse['Name'] || null,
+         username
        }
 
        if (respObj['error'] === 'Failed to parse ez response') {
@@ -79,7 +80,8 @@
          url: null,
          error: eZLynxUploadResponse || 'Failed to parse ez response',
          ezResponse: respJson ? JSON.stringify(respJson) : null,
-         errorType: eZLynxUploadResponse.includes('User Authorization') ? 'credentials' : 'unknown'
+         errorType: eZLynxUploadResponse.includes('User Authorization') ? 'credentials' : 'unknown',
+         username
        }
 
        req.session.data = {
