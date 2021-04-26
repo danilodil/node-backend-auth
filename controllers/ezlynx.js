@@ -349,4 +349,63 @@ module.exports = {
         return next(Boom.badRequest(error.error.Message));
     }
   },
+  createCommercialApplicant: async (req, res, next) => {
+    try {
+        const { username } = req.body.decoded_vendor;
+        logger.info('EZ SC HIT')
+        const url = configConstant.nodeEnv === 'production' ? ezApp.PROD_URL : ezApp.DEV_URL;
+        const ez_user = configConstant.nodeEnv === 'production' ? ezApp.PROD_USERNAME : ezApp.DEV_USERNAME;
+        const ez_password = configConstant.nodeEnv === 'production' ? ezApp.PROD_PASSWORD : ezApp.DEV_PASSWORD;
+        const app_secret = configConstant.nodeEnv === 'production' ? ezApp.PROD_APP_SECRET : ezApp.DEV_APP_SECRET;
+        const auth_options = {
+            method: 'POST',
+            url: `${url}/authenticate`,
+            headers: {
+                EZUser: ez_user,
+                EZPassword: ez_password,
+                EZAppSecret: app_secret,
+                EZToken: 'authenticate',
+                Accept: 'application/json',
+                AccountUsername: username
+            },
+            resolveWithFullResponse: true
+        };
+        const authenticate = await request(auth_options);
+
+        const action = req.query.ezlynxId ? 'PUT' : 'POST';
+        
+        const contact_option = {
+            method: action,
+            url: `${url}/Applicant/v2/Commercial`,
+            json: true,
+            headers: {
+                EZToken: authenticate.headers.eztoken,
+                EZAppSecret: app_secret,
+                Accept: 'application/json',
+                AccountUsername: username
+            },
+            body: { ...req.body.data, AssignedTo: username }
+        }
+
+        logger.info('REQUEST EZ SC: ', contact_option);
+        
+        const response = await request(contact_option);
+        
+        logger.info('RESPONSE FROM EZ SC: ', response);
+
+        if (response) {
+          logger.info(response);
+        } else {
+          logger.info('No resp from sales center');
+        }
+        
+        req.session.data = {
+            ezlynxId: response
+        };
+        return next();
+    } catch (error) {
+        logger.error('EZlynx commercial applicant error ##', error.error.Message);
+        return next(Boom.badRequest(error.error.Message));
+    }
+  },
 };
